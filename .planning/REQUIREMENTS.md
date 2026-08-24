@@ -190,17 +190,131 @@ Deferred to the second milestone. Cuttable as a whole if Accounts slips, since A
 
 ## Traceability
 
-Populated during roadmap creation.
+Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orphans, no duplicates.
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| (pending roadmap) | — | Pending |
+| Requirement | Phase | Milestone | Status |
+|-------------|-------|-----------|--------|
+| SRC-01 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SRC-02 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SRC-03 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SRC-04 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SRC-05 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| INP-01 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
+| INP-02 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
+| INP-03 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
+| INP-04 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
+| INP-05 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
+| INP-06 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
+| INP-07 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
+| INP-08 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
+| COST-01 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| COST-02 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| COST-03 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| COST-04 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| COST-05 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| COST-06 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| COST-07 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| COST-08 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| INC-01 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| INC-02 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| INC-03 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| INC-04 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| INC-05 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| INC-06 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| INC-07 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| INC-08 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| INC-09 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| INC-10 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| OUT-01 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| OUT-02 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| OUT-03 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| OUT-04 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| PRV-01 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| PRV-02 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| PRV-03 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| PRV-04 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| PRV-05 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| PRV-06 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| PRV-07 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| JUR-01 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
+| JUR-02 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
+| JUR-03 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
+| JUR-04 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
+| JUR-05 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| AGT-01 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
+| AGT-02 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
+| AGT-03 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
+| AGT-04 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
+| AGT-05 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |
+| AGT-06 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |
+| AGT-07 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |
+| AGT-08 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
+| AGT-09 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
+| AGT-10 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |
+| AGT-11 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |
+| UI-01 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| UI-02 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| UI-03 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| UI-04 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| UI-05 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| UI-06 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| UI-07 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| UI-08 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| UI-09 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| UI-10 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |
+| UI-11 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| UI-12 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| SHP-01 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SHP-02 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SHP-03 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SHP-04 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SHP-05 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
+| SHP-06 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |
+| SHP-07 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SHP-08 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SHP-09 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SHP-10 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SHP-11 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| SHP-12 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| SHP-13 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| SHP-14 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
+| DMO-01 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| DMO-02 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| DMO-03 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| DMO-04 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| IDX-01 | Phase 9 — Reference Production & Scheduled Index Runs | 2 — Balances | Pending |
+| IDX-02 | Phase 9 — Reference Production & Scheduled Index Runs | 2 — Balances | Pending |
+| IDX-03 | Phase 10 — The Published Index | 2 — Balances | Pending |
+| IDX-04 | Phase 10 — The Published Index | 2 — Balances | Pending |
+| IDX-05 | Phase 10 — The Published Index | 2 — Balances | Pending |
+| IDX-06 | Phase 9 — Reference Production & Scheduled Index Runs | 2 — Balances | Pending |
+| IDX-07 | Phase 10 — The Published Index | 2 — Balances | Pending |
+| IDX-08 | Phase 10 — The Published Index | 2 — Balances | Pending |
+| IDX-09 | Phase 10 — The Published Index | 2 — Balances | Pending |
+| REV-01 | Phase 11 — Reverse Mode & Chart-of-Accounts Depth | 2 — Balances | Pending |
+| DEP-01 | Phase 11 — Reverse Mode & Chart-of-Accounts Depth | 2 — Balances | Pending |
 
 **Coverage:**
-- v1 requirements: 88 total
-- Mapped to phases: 0
-- Unmapped: 88 ⚠️
+- v1 requirements: 88 total — **88 mapped, 0 unmapped ✓**
+- v2 requirements: 11 total — **11 mapped, 0 unmapped ✓**
+- Milestone 1 (Accounts) = Phases 1-8. Milestone 2 (Balances) = Phases 9-11, cuttable as a whole.
+
+**Phase load:**
+
+| Phase | Milestone | Requirements |
+|-------|-----------|--------------|
+| Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | 13 |
+| Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | 13 |
+| Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | 10 |
+| Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | 13 |
+| Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | 10 |
+| Phase 6 — The Interface | 1 — Accounts | 11 |
+| Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | 7 |
+| Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | 11 |
+| Phase 9 — Reference Production & Scheduled Index Runs | 2 — Balances | 3 |
+| Phase 10 — The Published Index | 2 — Balances | 6 |
+| Phase 11 — Reverse Mode & Chart-of-Accounts Depth | 2 — Balances | 2 |
 
 ---
 *Requirements defined: 2026-08-24*
-*Last updated: 2026-08-24 after initial definition*
+*Last updated: 2026-08-24 after roadmap creation*
