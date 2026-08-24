@@ -108,7 +108,8 @@ The public index. The reference production priced across a fixed city set on a s
 - **Deployment**: Must run on web. A hosted URL is required and must work for an anonymous visitor.
 - **Licensing**: Public repository with an OSI-approved license detectable in the repository About section.
 - **Provenance**: New code only, authored within the contest window (opened 2026-07-27). No extending prior work.
-- **Non-AI services**: Unrestricted — hosting, databases, web frameworks are free choices.
+- **Hosting / infrastructure**: An existing AWS Lightsail instance is available and is the intended host. AWS may be used for any infrastructure resource needed — S3, RDS, CloudFront, EventBridge/cron, Secrets Manager. Permitted because the hackathon restricts AI services only; non-AI third-party services (hosting, databases, web frameworks, storage, schedulers) are explicitly unrestricted.
+- **No AWS AI services — absolute**: Every AWS AI service is a Stage One disqualification. **AWS Textract is the specific trap on this project**: it parses government PDFs, which is exactly what the validation ingest does, so it is the most likely accidental violation. All PDF and document extraction must go through Gemini via a permitted Google package. Also forbidden: Bedrock (including Anthropic models hosted there), SageMaker, Comprehend, Rekognition, Transcribe, Polly, Translate, Kendra, Amazon Q. `boto3` itself is fine — what matters is which endpoints are called.
 - **Honesty**: The repo is public and inspectable. Never fake progress; a `sleep()` behind a progress bar is a Stage One death. Never present a researched figure as validated.
 
 ## Key Decisions
@@ -123,7 +124,8 @@ The public index. The reference production priced across a fixed city set on a s
 | Reverse mode deferred to Balances | It is the policy-lever feature and its audience — legislators, film commissions, economic development bodies — is the index audience. Keeps Accounts focused on pricing correctly. | — Pending |
 | Source verification is the first phase of Accounts | Opens the primary documents, reconciles the NY cap, confirms the CT CSV schema, and locks the validated pairs before any modelling. De-risks everything downstream. | — Pending |
 | Accounts UI is the real map/slider/ranked-list treatment, not a form | Design is one of four equally weighted criteria and "build a real interface" is the top-ranked needle-mover in the scorecard. Cannot be allowed to drift into Balances. | — Pending |
-| Stack decided by project research | Python backend is mandated; front end, map library and Google Cloud hosting target left to STACK.md with current versions and rationale | — Pending |
+| Host on the existing AWS Lightsail instance | Already provisioned and paid for; AWS is permitted for non-AI infrastructure. Removes the Google Cloud hosting question from the critical path. | — Pending |
+| Stack otherwise decided by project research | Python backend is mandated; front end, map library and data layer left to STACK.md with current verified versions and rationale | — Pending |
 
 ## Evolution
 
