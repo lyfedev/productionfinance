@@ -63,7 +63,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02-PLAN.md — Four blocking compliance CI gates proven fail-first, then publish the repository (wave 2)
+- [x] 01-02-PLAN.md — Four blocking compliance CI gates proven fail-first, then publish the repository (wave 2)
 - [ ] 01-03-PLAN.md — Source-truth pipeline tracer on Anora, plus the three New York validation pairs (wave 2)
 - [ ] 01-07-PLAN.md — Snapshot-and-restore resize to 2 GB, preserving the static IP (wave 2)
 

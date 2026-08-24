@@ -120,10 +120,10 @@ Stage One judging is pass/fail and partly automated. Each of these is a gate, no
 - [ ] **SHP-04**: The application runs under systemd and is reverse-proxied through Apache with a valid TLS certificate, without disturbing the live vockell.com site
 - [ ] **SHP-05**: A permitted Google SDK is imported and genuinely called at runtime, verified by a timestamped log line at the call site
 - [ ] **SHP-06**: Parallel's Search API is genuinely called at runtime via the official `parallel-web` SDK, verified the same way — unconditional, the track is confirmed as Parallel
-- [ ] **SHP-07**: The resolved lockfile contains none of litellm, openai, anthropic, langchain, langgraph, crewai or llama-index — checked automatically, and `google-adk` is installed bare, never with `[all]`, `[extensions]` or `[test]`
-- [ ] **SHP-08**: The repository is public with an OSI-approved license detectable in the GitHub About section, not merely a LICENSE file
-- [ ] **SHP-09**: All commits fall within the contest window opened 2026-07-27
-- [ ] **SHP-10**: No secret is ever committed — the repository is public
+- [x] **SHP-07**: The resolved lockfile contains none of litellm, openai, anthropic, langchain, langgraph, crewai or llama-index — checked automatically, and `google-adk` is installed bare, never with `[all]`, `[extensions]` or `[test]`
+- [x] **SHP-08**: The repository is public with an OSI-approved license detectable in the GitHub About section, not merely a LICENSE file
+- [x] **SHP-09**: All commits fall within the contest window opened 2026-07-27
+- [x] **SHP-10**: No secret is ever committed — the repository is public
 - [ ] **SHP-11**: A demo video of 3 minutes or under shows the system functioning, with the pain landed in the first 15 seconds
 - [ ] **SHP-12**: A written description covers features, technologies, data sources and findings
 - [ ] **SHP-13**: The hosted URL is verified working from a logged-out browser on a different network than the development machine, as the final pre-submission step
@@ -270,10 +270,10 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | SHP-04 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
 | SHP-05 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
 | SHP-06 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |
-| SHP-07 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
-| SHP-08 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
-| SHP-09 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
-| SHP-10 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SHP-07 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
+| SHP-08 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
+| SHP-09 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
+| SHP-10 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
 | SHP-11 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
 | SHP-12 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
 | SHP-13 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
@@ -295,6 +295,7 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | DEP-01 | Phase 11 — Reverse Mode & Chart-of-Accounts Depth | 2 — Balances | Pending |
 
 **Coverage:**
+
 - v1 requirements: 88 total — **88 mapped, 0 unmapped ✓**
 - v2 requirements: 11 total — **11 mapped, 0 unmapped ✓**
 - Milestone 1 (Accounts) = Phases 1-8. Milestone 2 (Balances) = Phases 9-11, cuttable as a whole.
