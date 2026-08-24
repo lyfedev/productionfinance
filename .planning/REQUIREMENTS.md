@@ -119,7 +119,7 @@ Stage One judging is pass/fail and partly automated. Each of these is a gate, no
 - [ ] **SHP-03**: A subdomain DNS record exists and resolves — created early, as it is the only item carrying propagation delay
 - [ ] **SHP-04**: The application runs under systemd and is reverse-proxied through Apache with a valid TLS certificate, without disturbing the live vockell.com site
 - [ ] **SHP-05**: A permitted Google SDK is imported and genuinely called at runtime, verified by a timestamped log line at the call site
-- [ ] **SHP-06**: Parallel's Search API is genuinely called at runtime, verified the same way *(conditional on SRC-04)*
+- [ ] **SHP-06**: Parallel's Search API is genuinely called at runtime via the official `parallel-web` SDK, verified the same way — unconditional, the track is confirmed as Parallel
 - [ ] **SHP-07**: The resolved lockfile contains none of litellm, openai, anthropic, langchain, langgraph, crewai or llama-index — checked automatically, and `google-adk` is installed bare, never with `[all]`, `[extensions]` or `[test]`
 - [ ] **SHP-08**: The repository is public with an OSI-approved license detectable in the GitHub About section, not merely a LICENSE file
 - [ ] **SHP-09**: All commits fall within the contest window opened 2026-07-27
@@ -197,7 +197,7 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | SRC-01 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
 | SRC-02 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
 | SRC-03 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
-| SRC-04 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SRC-04 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
 | SRC-05 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
 | INP-01 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
 | INP-02 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
