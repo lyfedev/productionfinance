@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 01
 current_phase_name: Foundations — Source Truth & Deploy Path
 status: executing
-stopped_at: Phase 1 context gathered
-last_updated: "2026-08-24T16:50:02.111Z"
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-08-24T22:44:32.883Z"
 last_activity: 2026-08-24
-last_activity_desc: Roadmap created; 88 v1 + 11 v2 requirements mapped across 11 phases
-state_head: a70deb717cfd3baf0f5eac7b06ae439e9bbc287e
+last_activity_desc: Phase 01 execution started
+state_head: 51e86516c009d9b897fd524dfaa11aebb040682f
 progress:
   total_phases: 11
   completed_phases: 0
   total_plans: 9
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-24)
 
 **Core value:** Total landed cost of one identical production, priced per city, with every figure sourced, dated, and provably matching what a government actually paid.
-**Current focus:** Phase 1 — Foundations: Source Truth & Deploy Path
+**Current focus:** Phase 01 — Foundations — Source Truth & Deploy Path
 
 ## Current Position
 
-Phase: 01 (Foundations — Source Truth & Deploy Path) — READY TO EXECUTE
-Plan: 0 of TBD in current phase
+Phase: 01 (Foundations — Source Truth & Deploy Path) — EXECUTING
+Plan: 2 of 9
 Status: Ready to execute
-Last activity: 2026-08-24 — Roadmap created; 88 v1 + 11 v2 requirements mapped across 11 phases
+Last activity: 2026-08-24 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -56,6 +56,11 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 01 P01 | 21min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -69,6 +74,8 @@ Recent decisions affecting current work:
 - [Roadmap]: Cut order is written into ROADMAP.md. Connecticut is the first cuttable item in Accounts; Phase 11 (reverse mode) is the first cuttable item overall.
 - [PROJECT]: Curated validated set is exactly NY, CA, NJ, CT — the only four jurisdictions with per-production government disclosure
 - [PROJECT]: Co-host on the existing vockell.com Lightsail box, resized to 2 GB via snapshot-and-restore (preserves static IP); Apache reverse-proxies to systemd-supervised uvicorn on a subdomain
+- [Phase 01]: uv resolved uvicorn 0.52.4 for the >=0.30 floor; recorded in 01-01-SUMMARY.md
+- [Phase 01]: LICENSE copyright holder resolved via gh api user: Dave Vockell
 
 ### Pending Todos
 
@@ -81,6 +88,7 @@ None yet.
 - **Post-resize free memory is unmeasured.** Measure immediately after the Python 3.10+ install; it gates the Milestone 2 data-layer decision (SQLite vs reusing the box's MySQL).
 - **AWS Textract is the single most likely accidental Stage One disqualification** — it is the obvious tool for exactly what Job 1 does. All extraction routes through Parallel Extract + Gemini.
 - **`google-adk` bare install only** — never `[all]`, `[extensions]` or `[test]`; the extras pull disallowed AI vendor packages into the lockfile.
+- 01-01: .env.example could not be created — global Claude Code permission policy denies Read/Write/Bash on any .env* path, including the placeholder-only .env.example template. Needs a human to create the 3-line file (PRODFIN_GIT_SHA=, PRODFIN_LOG_LEVEL=info, PRODFIN_APP_PORT=8000) or grant a scoped permission exception before plan 01-02 flips the repo public.
 
 ## Deferred Items
 
@@ -92,6 +100,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-24T11:31:54.871Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-foundations-source-truth-deploy-path/01-CONTEXT.md
+Last session: 2026-08-24T22:44:32.849Z
+Stopped at: Completed 01-01-PLAN.md
+Resume file: None
