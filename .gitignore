@@ -38,3 +38,10 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# Additional key material shapes (D-30)
+id_rsa*
+id_ed25519*
+*.ppk
+LightsailDefaultKey*
+.uv-cache/
