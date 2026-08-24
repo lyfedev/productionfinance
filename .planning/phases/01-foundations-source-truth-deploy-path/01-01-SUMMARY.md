@@ -170,3 +170,7 @@ None — Rules 1–3 did not trigger; no bugs, missing-critical-functionality, o
 ---
 *Phase: 01-foundations-source-truth-deploy-path*
 *Completed: 2026-08-24*
+
+## Self-Check: PASSED
+
+All key files verified present on disk (`pyproject.toml`, `uv.lock`, `.python-version`, `app/__init__.py`, `app/main.py`, `tests/test_health.py`, `scripts/smoke.sh`, `LICENSE`, `README.md`, this SUMMARY.md). All three commits (`1dbe6ab`, `b1d2a85`, `d6e45c4`) verified present in `git log --oneline --all`. Plan-level verification block (uv sync + full pytest suite, smoke.sh, dead-endpoint negative check, `uv export` inspection, `git status --short`) re-run and passing except the documented `.env.example` gap.
