@@ -49,7 +49,19 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. An anonymous visitor loads the project's subdomain over valid TLS and receives a response from the app, while vockell.com continues serving normally
   4. The app runs under systemd on Python 3.10 or newer, isolated from the system Python that Bitnami and Apache depend on, survives a host reboot, and is reached through Apache's reverse proxy
   5. CI fails the build if the resolved lockfile contains a forbidden package, if a secret is committed, or if a commit falls outside the contest window — and GitHub's About section displays an OSI-approved licence
-**Plans**: TBD
+**Plans**: 9 plans in 4 waves
+
+Plans:
+- [ ] 01-01-PLAN.md — Python 3.12 project + FastAPI `/health` skeleton proven end-to-end locally, MIT licence, repo hygiene (wave 1)
+- [ ] 01-02-PLAN.md — Four blocking compliance CI gates proven fail-first, then publish the repository (wave 2)
+- [ ] 01-03-PLAN.md — Source-truth pipeline tracer on Anora, plus the three New York validation pairs (wave 2)
+- [ ] 01-04-PLAN.md — CA, NJ and CT validation pairs, the four blocked MA/PA pairs, and the coverage guards (wave 3)
+- [ ] 01-05-PLAN.md — SOURCE-TRUTH.md: NY cap run down against the statute, CT schema, GA rate, partner track (wave 4)
+- [ ] 01-06-PLAN.md — Confirm the subdomain, record host facts, create the DNS A record (wave 1)
+- [ ] 01-07-PLAN.md — Snapshot-and-restore resize to 2 GB, preserving the static IP (wave 2)
+- [ ] 01-08-PLAN.md — Isolated Python 3.12 on the host, systemd service, executed reboot test (wave 3)
+- [ ] 01-09-PLAN.md — Apache reverse proxy and Let's Encrypt TLS on the subdomain (wave 4)
+
 **Parallel tracks**: Track A (source verification, SRC-*) and Track B (host and deploy path, SHP-*) share no state and run concurrently. Track B is day 2-3 work and must not wait on Track A — the subdomain DNS record and Let's Encrypt issuance have propagation clocks independent of build progress, and a working app with no reachable URL fails the submission.
 **Gate notes**: SRC-04 (partner track) is **RESOLVED — Parallel**, owner-confirmed 2026-08-24 before planning began. Parallel Search is therefore a runtime requirement and is load-bearing in Phase 7; SHP-06 is no longer conditional. Re-verify against the submission portal when the entry is filed. SHP-01 (snapshot-and-restore resize to 2 GB) takes the live vockell.com site briefly offline and is a discrete, schedulable task. Measure free memory immediately after the Python install — it gates the Milestone 2 data-layer decision.
 **Compliance notes**: SHP-07..10 are armed here and then verified continuously on every commit, not re-checked at the end. `google-adk` is installed bare — never `[all]`, `[extensions]` or `[test]`.
@@ -218,7 +230,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Foundations — Source Truth & Deploy Path | 1 — Accounts | 0/TBD | Not started | - |
+| 1. Foundations — Source Truth & Deploy Path | 1 — Accounts | 0/9 | Planned | - |
 | 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 0/TBD | Not started | - |
 | 3. New York End-to-End — The Anora Proof | 1 — Accounts | 0/TBD | Not started | - |
 | 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 0/TBD | Not started | - |

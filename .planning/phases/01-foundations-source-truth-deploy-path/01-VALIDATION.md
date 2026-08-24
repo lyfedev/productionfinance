@@ -44,12 +44,37 @@ created: 2026-08-24
 
 ## Per-Task Verification Map
 
-*Populated after planning — task IDs do not exist until PLAN.md files are written.
-Every task the planner emits must map to a row here before `nyquist_compliant: true` can be set.*
+*Populated 2026-08-24 from the nine written PLAN.md files. Checkpoint tasks are listed for
+completeness but carry no automated command by design.*
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| *TBD* | — | — | — | — | — | — | — | ❌ W0 | ⬜ pending |
+| 01-01-T1 (tracer) | 01-01 | 1 | SHP-07 | T-01-03, T-01-05, T-01-SC | `/health` exposes only four contract keys; git-SHA resolution never raises | pytest + real HTTP smoke | `uv sync && uv run pytest tests/test_health.py -x && bash scripts/smoke.sh` | ❌ W0 | ⬜ pending |
+| 01-01-T2 | 01-01 | 1 | SHP-10 | T-01-01, T-01-02, T-01-04 | Private key relocated; placeholder-only `.env.example`; ignore rules extended not replaced | shell assertions | `test ! -e "LightsailDefaultKey-us-west-2 (2).pem" && test "$(git ls-files -- '*.pem' \| wc -l \| tr -d ' ')" = "0"` | ❌ W0 | ⬜ pending |
+| 01-02-T1 | 01-02 | 2 | SHP-08, SHP-10 | T-01-06 | One-way publish decision gated for a human | checkpoint:decision | *(none — blocking-human gate)* | n/a | ⬜ pending |
+| 01-02-T2 | 01-02 | 2 | SHP-07, SHP-09, SHP-10 | T-01-07, T-01-08, T-01-11 | Every gate proven fail-first against a committed known-bad fixture | shell fail-first proofs | `bash .github/scripts/lockfile-scan.sh && ! bash .github/scripts/lockfile-scan.sh .github/fixtures/violation/forbidden-uv.lock && ! bash .github/scripts/vendor-scan.sh .github/fixtures/violation && ! bash .github/scripts/commit-window.sh 2099-01-01` | ❌ W0 | ⬜ pending |
+| 01-02-T3 | 01-02 | 2 | SHP-08, SHP-10 | T-01-06, T-01-10 | Secret scan green over full history before visibility flips; Licensee result read from the API | `gh` API assertions | `gh api repos/{owner}/{repo}/license --jq '.license.spdx_id' \| grep -qx MIT` | ❌ W0 | ⬜ pending |
+| 01-03-T1 | 01-03 | 2 | SRC-03 | — | One-way validation-boundary decision gated for a human | checkpoint:decision | *(none — blocking-human gate)* | n/a | ⬜ pending |
+| 01-03-T2 (tracer) | 01-03 | 2 | SRC-03 | T-01-12, T-01-14, T-01-15 | Figures transcribed from archived bytes; manifest hash matches file on disk; empty fixture set fails hard | pytest + hash check | `uv run pytest tests/test_validation_pair_fixtures.py -x -q` | ❌ W0 | ⬜ pending |
+| 01-03-T3 | 01-03 | 2 | SRC-03 | T-01-12, T-01-15 | Disclosure stages separable; assertion tier argued in writing | pytest (parametrized) | `uv run pytest tests/test_validation_pair_fixtures.py -q` | ❌ W0 | ⬜ pending |
+| 01-04-T1 | 01-04 | 3 | SRC-03 | T-01-17, T-01-19 | CA/NJ figures re-verified from archived primary documents, not the secondary compilation | pytest + hash check | `uv run pytest tests/test_validation_pair_fixtures.py -q` | ❌ W0 | ⬜ pending |
+| 01-04-T2 | 01-04 | 3 | SRC-03 | T-01-18, T-01-19 | CT pair drawn from the 12-217jj production credit only; money parsed past the CSV artifacts | pytest + YAML assertions | `uv run pytest tests/test_validation_pair_fixtures.py -q` | ❌ W0 | ⬜ pending |
+| 01-04-T3 | 01-04 | 3 | SRC-03 | T-01-20, T-01-21 | Blocked pairs explain themselves; jurisdiction gap and blended denominator both fail the suite | pytest (guard tests) | `uv run pytest tests/ -q` | ❌ W0 | ⬜ pending |
+| 01-05-T1 | 01-05 | 4 | SRC-01 | T-01-23, T-01-24, T-01-25 | Cap answer sourced to the statute or recorded as an explicit unresolved conflict | document-shape assertion | `uv run python -c "…SRC-01 entry shape…"` | ❌ W0 | ⬜ pending |
+| 01-05-T2 | 01-05 | 4 | SRC-02, SRC-05 | T-01-26, T-01-28 | CT headers verbatim; GA schedule exact decimal strings; honest tier on loan-out specificity | document-shape assertion | `uv run python -c "…SRC-02/05 entries…"` | ❌ W0 | ⬜ pending |
+| 01-05-T3 | 01-05 | 4 | SRC-04 | T-01-23 | Archive, manifest and fixtures proven to agree; check observed failing on a mutated file | pytest | `uv run pytest tests/test_source_truth.py -q && uv run pytest tests/ -q` | ❌ W0 | ⬜ pending |
+| 01-06-T1 | 01-06 | 1 | SHP-03 | — | Subdomain label confirmed by the developer, never assumed (D-14) | checkpoint:decision | *(none — blocking-human gate)* | n/a | ⬜ pending |
+| 01-06-T2 | 01-06 | 1 | SHP-03 | T-01-32 | `hosting.env` carries no credential and is trackable | shell assertions | `. ./deploy/hosting.env && test "$PRODFIN_STATIC_IP" = "35.165.60.123"` | n/a | ⬜ pending |
+| 01-06-T3 | 01-06 | 1 | SHP-03 | T-01-29, T-01-30, T-01-31 | One sibling A record added; apex unchanged; empty `dig` treated as not-yet-propagated | live probe (one-time) | `dig +short A $PRODFIN_HOST \| grep -qx 35.165.60.123` | n/a | ⬜ pending |
+| 01-07-T1 | 01-07 | 2 | SHP-01 | T-01-39 | Real resource names and bundle prices read from the API; nothing changed | live AWS read (one-time) | `aws lightsail get-instances … --query "instances[?publicIpAddress=='$PRODFIN_STATIC_IP'].name"` | n/a | ⬜ pending |
+| 01-07-T2 | 01-07 | 2 | SHP-01 | T-01-40 | Billable resource authorised with real prices visible | checkpoint:decision | *(none — blocking-human gate)* | n/a | ⬜ pending |
+| 01-07-T3 | 01-07 | 2 | SHP-01 | T-01-34, T-01-35, T-01-36, T-01-37 | Snapshot first, health-check before the IP moves, old instance stopped not deleted | live probe (one-time) + human-check | `curl -fsS -o /dev/null -w '%{http_code}' https://vockell.com \| grep -q 200 && dig +short A vockell.com \| grep -qx 35.165.60.123` | n/a | ⬜ pending |
+| 01-08-T1 | 01-08 | 3 | SHP-02 | T-01-43 | uv-managed 3.12 present; system 3.9.2 unchanged; LAMP stack still serving | live probe (one-time) | `ssh … "$PRODFIN_APP_ROOT/.venv/bin/python -c 'import sys; assert sys.version_info[:2] >= (3,12)'"` | n/a | ⬜ pending |
+| 01-08-T2 | 01-08 | 3 | SHP-04 | T-01-41, T-01-42, T-01-44, T-01-45 | Non-root service user; bound to 127.0.0.1; port 8000 unreachable off-box | live probe (one-time) | `ssh … "systemctl is-active $PRODFIN_SERVICE && curl -fsS http://127.0.0.1:$PRODFIN_APP_PORT/health"` | n/a | ⬜ pending |
+| 01-08-T3 | 01-08 | 3 | SHP-04 | T-01-46, T-01-47, T-01-48 | Reboot executed and recovery observed against a boot timestamp (D-23) | live probe (one-time, destructive) + human-check | `ssh … "systemctl is-active $PRODFIN_SERVICE; uptime -s"` | n/a | ⬜ pending |
+| 01-09-T1 | 01-09 | 4 | SHP-03, SHP-04 | T-01-49, T-01-50, T-01-54 | New vhost only; no existing vhost edited; pre-TLS snapshot available | live probe (one-time) | `curl -fsS -o /dev/null -w '%{http_code}' "http://$PRODFIN_HOST/health" \| grep -q 200` | n/a | ⬜ pending |
+| 01-09-T2 | 01-09 | 4 | SHP-03 | T-01-49 | TLS approach on the live box gated for a human | checkpoint:decision | *(none — blocking-human gate)* | n/a | ⬜ pending |
+| 01-09-T3 | 01-09 | 4 | SHP-03, SHP-04 | T-01-51, T-01-52, T-01-53, T-01-56 | Valid chain with validation enabled; vockell.com coverage intact; renewal job exists | external probe (one-time) + human-check | `curl -fsS "https://$PRODFIN_HOST/health" && SMOKE_BASE_URL="https://$PRODFIN_HOST" bash scripts/smoke.sh` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
