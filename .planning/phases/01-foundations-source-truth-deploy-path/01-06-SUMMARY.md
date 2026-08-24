@@ -139,3 +139,11 @@ None - no external service configuration required. (No DNS panel action was take
 ---
 *Phase: 01-foundations-source-truth-deploy-path*
 *Completed: 2026-08-24*
+
+## Self-Check: PASSED
+
+- `deploy/hosting.env` exists on disk
+- `deploy/README.md` exists on disk
+- `.planning/phases/01-foundations-source-truth-deploy-path/01-06-SUMMARY.md` exists on disk
+- Commit `2b14422` (Task 2: host facts + runbook) present in git log
+- Commit `8279754` (SUMMARY) present in git log
