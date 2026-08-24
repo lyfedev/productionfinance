@@ -1,0 +1,197 @@
+# ProductionFinance — Track B deploy runbook
+
+This is the deploy-path runbook for co-hosting ProductionFinance on the
+existing `vockell.com` Lightsail instance. It records the topology, the
+DNS/mount facts, the ordering decided in D-21, and the rollback position
+at each step, so no later plan (01-07 through 01-09) has to re-derive any
+of this.
+
+Host facts referenced throughout this document live in
+[`deploy/hosting.env`](./hosting.env) — source it with
+`set -a && . ./deploy/hosting.env && set +a` before running any command
+below that uses a `$PRODFIN_*` variable.
+
+## D-14 resolution — path mount, not a subdomain (2026-08-24)
+
+CONTEXT.md D-14 flagged the subdomain label `prodfin.vockell.com` as an
+assumption requiring explicit developer confirmation before any DNS
+record was created. At the 01-06 checkpoint the developer's answer was:
+
+> "this is not critical path -- just put it at vockell.com/finance and
+> not worry about devops."
+
+This is a **path-based mount on the existing `vockell.com` site**, not a
+new subdomain. The public URL for the hackathon submission is:
+
+**`https://vockell.com/finance`**
+
+Consequences that ripple through this runbook and the remaining Track B
+plans:
+
+- **No new DNS record.** `vockell.com` already resolves to the static IP
+  (see below). There is nothing to create, and therefore no propagation
+  clock in this phase. Task 3 of plan 01-06 ("Create the subdomain A
+  record in the Register.com DNS panel") is **not applicable** and was
+  not performed — see "Task 3 — not applicable" below.
+- **No new subdomain vhost.** Plan 01-09 was written assuming a dedicated
+  Apache vhost (`ServerName prodfin.vockell.com`) and its own Let's
+  Encrypt certificate via `bncert-tool`. Under the path-mount decision,
+  that plan's approach needs revision to instead add a reverse-proxy
+  *location* rule (e.g. Apache `ProxyPass /finance` /
+  `ProxyPassReverse /finance`) inside the **existing** `vockell.com`
+  vhost, reusing the vhost's existing TLS certificate. See "Downstream
+  impact on plan 01-09" below. This runbook does not edit 01-09 itself —
+  that revision is left for whoever executes it, flagged here so it is
+  not missed.
+- **No new certificate issuance.** The existing `vockell.com` certificate
+  already covers the apex host; a path mount under that same host needs
+  no new cert, no new `bncert-tool` run.
+
+## Topology
+
+Restated from `01-RESEARCH.md`'s Track B architecture:
+
+- **Register.com DNS** resolves `vockell.com` to the Lightsail static IP.
+  (Unchanged by this plan — no new record was added.)
+- **Bitnami Apache** holds ports 80 and 443 on the box and reverse-proxies
+  requests under `/finance` to a local uvicorn process
+  (`http://127.0.0.1:$PRODFIN_APP_PORT`).
+- **systemd** supervises the uvicorn process as `$PRODFIN_SERVICE`,
+  running as the dedicated `$PRODFIN_SERVICE_USER` user, so it starts on
+  boot and restarts on failure (D-23: this is tested, not assumed).
+- **`uv`-managed Python 3.12**, isolated under `$PRODFIN_APP_ROOT/.venv`,
+  never touches the system Python 3.9.2 that Bitnami and Apache depend
+  on (D-18).
+
+```
+judge's browser
+      |
+      v
+https://vockell.com/finance  ──(Register.com DNS, unchanged)──> 35.165.60.123
+      |
+      v
+Bitnami Apache :443  (existing vhost, existing cert)
+      |  ProxyPass /finance -> http://127.0.0.1:8000
+      v
+uvicorn (systemd: prodfin.service, user: prodfin)
+      |
+      v
+uv-managed Python 3.12 venv at /opt/prodfin/.venv
+(system Python 3.9.2 untouched)
+```
+
+## DNS facts (from live lookup, 01-RESEARCH.md § SHP-03)
+
+- The `vockell.com` zone is hosted at **Register.com** (Network
+  Solutions), nameservers `dns105.register.com` and
+  `dns106.register.com`, registrar "Register.com - Network Solutions,
+  LLC".
+- It is **not** in Route 53 and is **not** managed through the AWS
+  account at all — no `aws route53` command applies to this domain.
+- The apex `vockell.com` A record already resolves to `35.165.60.123`,
+  matching the Lightsail static IP recorded in `.claude/CLAUDE.md` and in
+  `deploy/hosting.env` as `PRODFIN_STATIC_IP`.
+- Because the D-14 resolution is a path mount on this existing apex host,
+  **no new A record was needed and none was created.** The DNS facts
+  above are recorded for completeness and because they still govern the
+  one DNS record ProductionFinance depends on (the apex itself, which
+  must keep resolving to the box).
+
+## Task 3 — not applicable
+
+Plan `01-06-PLAN.md` Task 3 ("Create the subdomain A record in the
+Register.com DNS panel") is recorded here as **NOT APPLICABLE**, not
+silently skipped and not marked complete:
+
+- **Reason:** the developer's D-14 answer resolved to a path-based mount
+  (`vockell.com/finance`) on the existing apex host, not a new subdomain.
+  A path mount requires no new DNS record — `vockell.com` already
+  resolves to the target IP.
+- **What was NOT done, deliberately:** no record was created, modified,
+  or deleted in the Register.com panel. The apex record and the zone's
+  nameservers are exactly as `01-RESEARCH.md` § SHP-03 found them.
+- **What replaces it:** nothing — there is no equivalent action required.
+  The reverse-proxy path rule in plan 01-09 is the only remaining step
+  that makes `/finance` reachable, and it needs no DNS action of its own.
+
+## D-21 ordering and rollback position
+
+D-21 originally set the Track B order as: DNS record → resize → Python →
+systemd → Apache proxy + TLS, reasoning that DNS propagation is the one
+clock outside operator control and should start first. With the path-
+mount decision, the DNS step drops out entirely (see above), so the
+ordering collapses to:
+
+| Step | Plan | What it does | Rollback position |
+|------|------|---------------|--------------------|
+| 1. ~~DNS record~~ | ~~01-06~~ | **Not applicable** — path mount needs no new record | N/A — nothing was changed |
+| 2. Instance resize | 01-07 | Snapshot-and-restore to `small_3_0` (2 GB / 2 vCPU), preserving the static IP | The pre-resize snapshot is the rollback: restore from it to return to the original 472 MB instance. Snapshot taken before any change. |
+| 3. Python install | 01-07/01-08 | `uv python install 3.12`, isolated venv under `$PRODFIN_APP_ROOT/.venv` | Fully additive — deleting `$PRODFIN_APP_ROOT` and the `uv`-installed Python removes it cleanly; system Python 3.9.2 is never touched (D-18). |
+| 4. systemd unit | 01-08 | Install and enable `$PRODFIN_SERVICE`, running as `$PRODFIN_SERVICE_USER` | `systemctl disable --now $PRODFIN_SERVICE` and remove the unit file; no effect on Apache or the existing site. |
+| 5. Apache proxy + TLS | 01-09 (**needs revision** — see below) | Add a `ProxyPass /finance` location to the **existing** vockell.com vhost; no new certificate | Rollback is removing the added `<Location /finance>` block and reloading Apache — the existing vhost and certificate are otherwise untouched. Take a fresh Lightsail snapshot immediately before editing the live vhost regardless, per the standing rule below. |
+
+## Downstream impact on plan 01-09 (flag for the orchestrator)
+
+`01-09-PLAN.md` was written under the original subdomain assumption: a
+dedicated Apache vhost with `ServerName prodfin.vockell.com` and its own
+Let's Encrypt certificate obtained via `sudo /opt/bitnami/bncert-tool`.
+That approach **does not apply** under the path-mount decision recorded
+here. The corrected approach for whoever executes 01-09:
+
+- Do **not** create a new vhost or run `bncert-tool` for a new domain.
+- Add a `ProxyPass /finance http://127.0.0.1:$PRODFIN_APP_PORT/` and
+  `ProxyPassReverse /finance http://127.0.0.1:$PRODFIN_APP_PORT/` pair
+  (plus whatever header-forwarding directives FastAPI needs for correct
+  URL generation under a path prefix, e.g. `X-Forwarded-Prefix`) inside
+  the vhost that already serves `vockell.com` on port 443.
+- Reuse the existing certificate — no new TLS issuance is needed for a
+  path added to an already-covered host.
+- Take a fresh Lightsail snapshot immediately before editing the live
+  vhost config, per the standing rule below — this touches a config file
+  that also serves the live personal site on the same box.
+- FastAPI itself may need `root_path="/finance"` (or equivalent ASGI
+  `SCRIPT_NAME`/`X-Forwarded-Prefix` handling) so that OpenAPI docs and
+  any generated links resolve correctly under the path prefix rather than
+  assuming the app is mounted at `/`.
+
+This runbook does not edit `01-09-PLAN.md` — that revision is explicitly
+left to whoever plans/executes it next, per the 01-06 resume
+instructions. This section exists so the impact is visible in this
+plan's own history rather than discovered mid-execution of 01-09.
+
+## Standing rule — vockell.com is a live personal site sharing this box
+
+`vockell.com` serves someone's live personal site on this same instance.
+No step in Track B may modify an existing DNS record, an existing vhost,
+or an existing certificate binding **except where a task says so
+explicitly and takes a snapshot first.** The path-mount decision makes
+this rule *more* load-bearing than the original subdomain plan, not
+less: 01-09 now edits the vhost that serves the live site directly
+(adding a location block) rather than creating an isolated new one.
+
+## How to verify
+
+Commands each later plan uses, collected in one place:
+
+```bash
+# Source host facts
+set -a && . ./deploy/hosting.env && set +a
+
+# Apex still resolves correctly (unchanged by this plan)
+dig +short A vockell.com
+
+# Zone nameservers still Register.com (unchanged by this plan)
+dig +short NS vockell.com
+
+# Live site still serves (before and after any 01-09 vhost edit)
+curl -I https://vockell.com
+
+# Once 01-09 adds the path mount, the app itself:
+curl -I "$PRODFIN_PUBLIC_URL/health"
+
+# SSH to the box
+ssh -i "$PRODFIN_SSH_KEY" "$PRODFIN_SSH_USER@$PRODFIN_STATIC_IP"
+
+# Process supervision status (run on the box, after 01-08)
+systemctl is-active "$PRODFIN_SERVICE"
+```
