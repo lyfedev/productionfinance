@@ -1,0 +1,91 @@
+"""ProductionFinance FastAPI skeleton.
+
+Phase 1 scope only: proves the venv -> uvicorn -> systemd -> Apache -> TLS
+chain carries a real application (D-20). No engine, no rule schema, no
+jurisdiction data, no UI treatment — computing a figure here would be the
+exact dishonesty PROJECT.md forbids.
+"""
+
+import os
+import subprocess
+from datetime import datetime, timezone
+
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+
+from app import __version__
+
+# Captured once at import so every request in this process reports the
+# same boot time.
+BOOT_TIME: str = datetime.now(timezone.utc).isoformat()
+
+
+def _resolve_git_sha() -> str:
+    """Resolve the short git SHA for this deployment.
+
+    Never raises: an unresolvable SHA on the host must not stop the
+    service from booting (T-01-05 / D-20).
+    """
+    env_sha = os.environ.get("PRODFIN_GIT_SHA")
+    if env_sha:
+        return env_sha
+
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+        if result.returncode == 0:
+            sha = result.stdout.strip()
+            if sha:
+                return sha
+    except Exception:
+        pass
+
+    return "unknown"
+
+
+GIT_SHA: str = _resolve_git_sha()
+
+app = FastAPI(title="ProductionFinance", version=__version__)
+
+
+@app.get("/health")
+def health() -> dict:
+    """Liveness contract: exactly status, version, git_sha, boot_time.
+
+    No environment variable dump, no filesystem path, no dependency
+    inventory (T-01-03).
+    """
+    return {
+        "status": "ok",
+        "version": __version__,
+        "git_sha": GIT_SHA,
+        "boot_time": BOOT_TIME,
+    }
+
+
+@app.get("/", response_class=HTMLResponse)
+def index() -> str:
+    """Holding page. Computes no figure, states no incentive value."""
+    return """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>ProductionFinance</title>
+</head>
+<body>
+  <h1>ProductionFinance</h1>
+  <p>
+    ProductionFinance will price the same film production in every city a
+    producer is considering, and report the true landed cost of each —
+    every figure sourced, dated, and provably matching what a government
+    actually paid.
+  </p>
+  <p>This is a skeleton deployment. No pricing engine is live yet.</p>
+  <p><a href="/health">/health</a></p>
+</body>
+</html>"""
