@@ -1,0 +1,38 @@
+# Known-bad uv.lock fragment — exists solely to drive lockfile-scan.sh red.
+# Structurally valid uv lockfile TOML: real resolved-name shape, a forbidden
+# exact package, a forbidden langchain-family package, a benign package, and
+# a google-adk entry carrying an extras marker.
+version = 1
+revision = 1
+requires-python = ">=3.12"
+
+[[package]]
+name = "fastapi"
+version = "0.141.1"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "openai"
+version = "1.99.9"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "langchain-google-genai"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "google-adk"
+version = "2.7.1"
+source = { registry = "https://pypi.org/simple" }
+
+[[package]]
+name = "productionfinance"
+version = "0.1.0"
+source = { virtual = "." }
+
+[package.metadata]
+requires-dist = [
+    { name = "google-adk", extras = ["all"], specifier = ">=2.7.1" },
+    { name = "openai", specifier = ">=1.0.0" },
+]

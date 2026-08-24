@@ -1,0 +1,57 @@
+name: Compliance Gates
+
+# Stage One disqualification conditions (SHP-07, SHP-09, SHP-10) and D-26's
+# blocking, not report-only, posture. Runs on every push to every branch and
+# on every pull request, using only the two triggers below — never the
+# fork-authored-code-against-base-repo-secrets trigger (T-01-08).
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lockfile-scan:
+    name: lockfile-scan (SHP-07)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan resolved lockfile for forbidden packages
+        run: bash .github/scripts/lockfile-scan.sh
+
+  vendor-scan:
+    name: vendor-scan (D-28)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan source tree for forbidden AWS AI service call sites
+        run: bash .github/scripts/vendor-scan.sh
+
+  commit-window:
+    name: commit-window (SHP-09)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history required — a shallow checkout cannot see all commits
+      - name: Verify all commits are within the contest window
+        run: bash .github/scripts/commit-window.sh
+
+  secret-scan:
+    name: secret-scan (SHP-10)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # gitleaks needs full history to scan past commits, not just the diff
+      # gitleaks/gitleaks-action@v3 is free for repositories owned by a
+      # personal GitHub account (verified directly against the action's own
+      # README — 01-RESEARCH.md § "SHP-07 / SHP-09 / SHP-10"). If this
+      # repository is ever transferred to an organization-owned account, a
+      # free GITLEAKS_LICENSE key becomes required and this job will fail
+      # for a reason unrelated to an actual secret — obtain one from
+      # gitleaks.io at that point and add it as GITLEAKS_LICENSE.
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
