@@ -97,8 +97,8 @@ The user delegated all four gray areas ("you make your best guess"). Every decis
 The user answered "you make your best guess" to the gray-area selection, delegating **all four areas** in full. Every decision above is therefore Claude's discretion. Downstream agents should treat them as working decisions with stated rationale — overturn any of them on the user's word without needing to re-argue the case.
 
 Two items are **not** discretion and must not be guessed by the planner:
-- **D-14** — the subdomain name (`prodfin.vockell.com` is a placeholder awaiting one-word confirmation).
-- **D-15** — the DNS zone host, which must be established by lookup as Track B's first task.
+- The subdomain name — see **D-14** above (`prodfin.vockell.com` is a placeholder awaiting one-word confirmation).
+- The DNS zone host — see **D-15** above, which must be established by lookup as Track B's first task.
 
 </decisions>
 
