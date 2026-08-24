@@ -51,7 +51,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. CI fails the build if the resolved lockfile contains a forbidden package, if a secret is committed, or if a commit falls outside the contest window — and GitHub's About section displays an OSI-approved licence
 **Plans**: TBD
 **Parallel tracks**: Track A (source verification, SRC-*) and Track B (host and deploy path, SHP-*) share no state and run concurrently. Track B is day 2-3 work and must not wait on Track A — the subdomain DNS record and Let's Encrypt issuance have propagation clocks independent of build progress, and a working app with no reachable URL fails the submission.
-**Gate notes**: SRC-04 (partner track) is architecturally significant — it decides whether Parallel Search is a runtime requirement or optional, which reshapes Phase 7. Resolve before Job 2's architecture is planned. SHP-01 (snapshot-and-restore resize to 2 GB) takes the live vockell.com site briefly offline and is a discrete, schedulable task. Measure free memory immediately after the Python install — it gates the Milestone 2 data-layer decision.
+**Gate notes**: SRC-04 (partner track) is **RESOLVED — Parallel**, owner-confirmed 2026-08-24 before planning began. Parallel Search is therefore a runtime requirement and is load-bearing in Phase 7; SHP-06 is no longer conditional. Re-verify against the submission portal when the entry is filed. SHP-01 (snapshot-and-restore resize to 2 GB) takes the live vockell.com site briefly offline and is a discrete, schedulable task. Measure free memory immediately after the Python install — it gates the Milestone 2 data-layer decision.
 **Compliance notes**: SHP-07..10 are armed here and then verified continuously on every commit, not re-checked at the end. `google-adk` is installed bare — never `[all]`, `[extensions]` or `[test]`.
 
 ### Phase 2: Engine Spine & Incentive Interpreter
@@ -131,7 +131,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 ### Phase 7: Live Research, Caching & Durable Jobs
 **Milestone**: 1 — Accounts
 **Goal**: A city with no curated model is researched live, priced, and clearly labelled unvalidated — and the job survives a process restart without hanging.
-**Depends on**: Phase 5 (Job 1's extraction machinery and guardrails), Phase 6 (progress surface), Phase 1 (SRC-04 partner-track resolution)
+**Depends on**: Phase 5 (Job 1's extraction machinery and guardrails), Phase 6 (progress surface)
 **Requirements**: AGT-05, AGT-06, AGT-07, AGT-10, AGT-11, UI-10, SHP-06
 **Success Criteria** (what must be TRUE):
   1. Naming an uncurated city triggers live research that builds a model on the fly, prices it, and displays the result visibly labelled unvalidated and visually distinguishable from validated figures — with production logs showing a timestamped Parallel Search call at its call site fired by that session
@@ -142,7 +142,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: TBD
 **UI hint**: yes
 **Sequencing rationale**: Job 2 is deliberately after Job 1 so that ADK and Parallel integration problems surface on the cheaper, known-answer case first. Job 2 carries materially higher risk — unknown jurisdiction, unknown correct answer — and the live-research demo hanging in front of judges is the #5 project-sinking risk. Verify by triggering Job 2 against a deliberately obscure or nonexistent city and confirming a legible terminal state.
-**Conditional**: SHP-06 is conditional on SRC-04. If the partner track resolves away from Parallel, this phase's SDK surface changes and Job 2 leans on Gemini's own retrieval instead.
+**Partner requirement**: SHP-06 is unconditional — the track is confirmed as Parallel. Job 2 must genuinely call Parallel's Search API at runtime via `parallel-web`, with a timestamped log line at the call site as the evidence.
 
 ### Phase 8: Demo Proof, Export & Submission — SHIP GATE
 **Milestone**: 1 — Accounts

@@ -67,7 +67,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- **SRC-04 (partner track) is architecturally significant.** `productionfinance-brief.md` says Parallel, `hackathon-brief.md` says IBM. Must resolve in Phase 1 — it decides whether Parallel Search is a runtime requirement, which reshapes Phase 7.
+- ~~**SRC-04 (partner track)**~~ — **RESOLVED 2026-08-24: Parallel.** Owner-confirmed. Parallel Search is a runtime requirement and is load-bearing in Phase 7. SHP-06 is unconditional. Re-verify against the submission portal at filing time.
 - **SHP-01 resize takes vockell.com briefly offline.** Discrete, schedulable task inside Phase 1 Track B.
 - **Post-resize free memory is unmeasured.** Measure immediately after the Python 3.10+ install; it gates the Milestone 2 data-layer decision (SQLite vs reusing the box's MySQL).
 - **AWS Textract is the single most likely accidental Stage One disqualification** — it is the obvious tool for exactly what Job 1 does. All extraction routes through Parallel Extract + Gemini.

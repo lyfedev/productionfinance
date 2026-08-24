@@ -97,7 +97,7 @@ The public index. The reference production priced across a fixed city set on a s
 
 **Judging.** Stage One is pass/fail viability, partly automated. Stage Two is four equally weighted criteria: Technological Implementation, Design, Potential Impact, Quality of the Idea — ties broken in that order, Technological Implementation first. The hackathon scorecard ranks "build a real interface" as the single biggest needle-mover because it scores Design and Impact simultaneously. A second cheap scoring move: every computed figure carries its reason as a string, converting a faith claim into an audited one.
 
-**Note on the supplied material.** `hackathon-brief.md` states "Our track: IBM" and its scorecard concerns the sibling animatic project. For ProductionFinance the track is **Parallel**, per `productionfinance-brief.md` HARD CONSTRAINTS. Where the two disagree, `productionfinance-brief.md` governs.
+**Partner track: Parallel — CONFIRMED by the project owner 2026-08-24.** `hackathon-brief.md` states "Our track: IBM", but its scorecard concerns the sibling animatic project; that reference does not apply to ProductionFinance. Parallel's Search API must therefore be called at runtime via the official SDK (`parallel-web`). Where the two briefs disagree, `productionfinance-brief.md` governs.
 
 ## Constraints
 
@@ -127,6 +127,7 @@ The public index. The reference production priced across a fixed city set on a s
 | Accounts UI is the real map/slider/ranked-list treatment, not a form | Design is one of four equally weighted criteria and "build a real interface" is the top-ranked needle-mover in the scorecard. Cannot be allowed to drift into Balances. | — Pending |
 | Co-host on the existing vockell.com Lightsail instance, resized to 2 GB | Reuses infrastructure already running rather than adding any; the attached static IP means the address does not change and no DNS propagation is needed for the apex. Resize is required because the current 472 MB box cannot run the mandated Google SDK stack without risking the OOM killer taking down the live site. | — Pending |
 | Resize is scheduled into the deploy phase, not run during planning | Snapshot-and-restore takes vockell.com offline; no reason to incur that while requirements are still being written. Research flags the deploy path as day 2-3 work, so it lands early regardless. | — Pending |
+| Partner track is Parallel, not IBM | Confirmed by the project owner 2026-08-24, resolving the contradiction between the two briefs. Parallel Search is a runtime requirement, so it is load-bearing in Job 2 rather than optional. | ✓ Good |
 | Stack otherwise decided by project research | Python backend is mandated; front end, map library and data layer left to STACK.md with current verified versions and rationale | — Pending |
 
 ## Evolution

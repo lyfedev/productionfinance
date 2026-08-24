@@ -16,7 +16,7 @@ Resolve before modelling. Wrong inputs produce confidently wrong outputs, and th
 - [ ] **SRC-01**: New York's annual cap is reconciled against a primary source (tax.ny.gov or enacted FY2026 budget bill text). Working hypothesis to confirm or refute: $700M base plus a separate $100M independent-film pool, not a $700M/$800M dispute.
 - [ ] **SRC-02**: Connecticut open-data CSV column headers are confirmed by opening the actual endpoint, before CT's rule model or ingestion logic is written
 - [ ] **SRC-03**: All 11 sourced production/award validation pairs are locked into test fixtures with their source document URLs and disclosure stage (issued / allocated / estimated) recorded
-- [ ] **SRC-04**: Partner track is confirmed against the official submission portal — `productionfinance-brief.md` says Parallel, `hackathon-brief.md` says IBM. Resolve before Job 2's architecture is locked.
+- [x] **SRC-04**: Partner track confirmed — **Parallel** (owner-confirmed 2026-08-24). Parallel's Search API must be called at runtime via the official `parallel-web` SDK. The "Our track: IBM" line in `hackathon-brief.md` refers to the sibling animatic project and does not apply here. *Resolved before planning; re-verify against the submission portal when the entry is filed.*
 - [ ] **SRC-05**: Georgia loan-out withholding rate is confirmed against a dated Georgia DOR source. Working hypothesis: 5.75% is pre-2024-reform, 4.99% is current.
 
 ### Production Input
