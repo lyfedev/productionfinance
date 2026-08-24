@@ -1,0 +1,40 @@
+# ── Secrets — NEVER commit. This repository is public per hackathon rules. ──
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+service-account*.json
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+
+# Node / frontend
+node_modules/
+.vite/
+frontend/dist/
+
+# Local data + caches
+*.sqlite
+*.sqlite3
+*.db
+.cache/
+data/cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
