@@ -1,0 +1,240 @@
+# DELIBERATE THROWAWAY — exists SOLELY to prove JUR-05 (plan 02-06, Task 3).
+#
+# This is a jurisdiction the engine has never seen, with nothing in common
+# with jurisdictions/us-ny.yaml (base total_qualified_spend, rate flat,
+# mechanism refundable, currency USD) or jurisdictions/us-ct.yaml (base
+# total_qualified_spend, rate tiered_by_spend, mechanism transferable,
+# currency USD). It must price correctly with ZERO lines changed in any
+# engine/*.py file — that zero-line diff is the proof, recorded verbatim in
+# 02-06-SUMMARY.md from `git diff --name-only HEAD~1 HEAD | grep '^engine/'`
+# run against the commit that adds this file and its test.
+#
+# EVERY NUMBER BELOW IS INVENTED. This models NO real jurisdiction, no real
+# incentive programme, and must never be cited, extracted into a research
+# document, or presented as anything other than a synthetic engine-
+# correctness fixture. jurisdiction.status is synthetic_fixture (never any
+# curated-data status value) and this file lives under
+# tests/fixtures/jurisdictions/, never under jurisdictions/ — the
+# directory-hygiene test in tests/test_engine_qualifying_base.py enforces
+# both structurally.
+#
+# Dimensions exercised, deliberately different from both curated files:
+#   - base_definition.type: labour_only (neither curated file uses this)
+#   - rate_structure.type: blended_by_ceiling_split (neither curated file
+#     uses this — us-ny is flat, us-ct is tiered_by_spend)
+#   - mechanism: rebate_grant (neither curated file uses this — us-ny is
+#     refundable, us-ct is transferable)
+#   - currency: CZK (both curated files are USD) — a deliberate callback to
+#     feasibility-incentives.md's Czech Republic case study (the reason
+#     eligibility and availability are two separate answers, INC-05)
+#   - a declared per-person ceiling (applies: true — though price_jurisdiction
+#     never threads production-specific per_person_compensations, so the
+#     no-op "no compensation lines supplied" branch is what actually runs
+#     end-to-end here; the schema field itself is what this dimension proves)
+#   - a declared minimum spend, well below the priced production's spend
+#   - a per-project cap that actually binds (clips the computed credit)
+#   - a declared audit fee schedule (one flat-fee band)
+#   - a declared payout lag (display-only, per SCOPE-FREEZE.md item 8)
+#   - two programmes with a stacking relationship (stacks_with)
+#
+# Priced against a total qualified spend of CZK 50,000,000. Expected values
+# below (in tests/test_engine_jurisdiction_additivity.py) are computed BY
+# HAND from these declared numbers, never by calling the engine on itself:
+#
+#   primary-throwaway (blended_by_ceiling_split, no pct_core_cap declared):
+#     base (labour_only, from_total) = 50,000,000
+#     per-person ceiling: applies=true but no compensations supplied by the
+#       pipeline -> no-op, base unchanged
+#     no uplifts declared -> no-op
+#     enhanced_slice = min(50,000,000, 20,000,000) = 20,000,000
+#     standard_slice = max(0, 50,000,000 - 20,000,000) = 30,000,000
+#     (no pct_cap declared, so neither slice is further capped)
+#     enhanced_amount = 20,000,000 x 0.30 = 6,000,000
+#     standard_amount = 30,000,000 x 0.20 = 6,000,000
+#     gross credit = 12,000,000
+#     per-project cap 10,000,000 BINDS (12,000,000 > 10,000,000) -> clipped
+#       to 10,000,000
+#     annual programme cap: not declared -> no-op, no change
+#     gross credit (final) = 10,000,000
+#     audit fee: qualifying base 50,000,000 falls in the declared [0, null)
+#       band -> deduct flat fee 25,000
+#     net cash (rebate_grant) = 10,000,000 - 25,000 = 9,975,000
+#
+#   secondary-throwaway (flat 0.05, no ceiling/minimum/caps/audit declared):
+#     base (labour_only, from_total) = 50,000,000
+#     gross credit = 50,000,000 x 0.05 = 2,500,000
+#     no audit fee schedule declared -> deduct $0
+#     net cash (rebate_grant) = 2,500,000
+#
+#   No mutual exclusivity declared between the two -> both contribute.
+#   Jurisdiction total = 9,975,000 + 2,500,000 = 12,475,000
+
+jurisdiction:
+  id: zz-fixture-throwaway
+  name: "DELIBERATE THROWAWAY — exists solely to prove JUR-05, models no real jurisdiction"
+  country_code: ZZ
+  level: national
+  parent_id: null
+  currency: CZK
+  status: synthetic_fixture
+  effective_dates:
+    rule_version_effective_from: "2026-01-01"
+    rule_version_effective_to: null
+    source_checked_date: "2026-08-25"
+  sources:
+    - url: "https://example.invalid/zz-fixture-throwaway"
+      title: "Deliberate throwaway fixture for plan 02-06's JUR-05 additivity proof — not a government source, models no real jurisdiction"
+      accessed_date: "2026-08-25"
+      confidence: LOW
+
+programmes:
+  - id: primary-throwaway
+    name: "Throwaway: blended_by_ceiling_split, labour_only base, rebate_grant, binding per-project cap"
+    requires_separate_application: false
+    stacks_with: ["secondary-throwaway"]
+    mutually_exclusive_with: []
+
+    mechanism: rebate_grant
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: labour_only
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: true
+      note: "declared to exercise the schema dimension; price_jurisdiction supplies no per_person_compensations, so the no-op branch is what runs end-to-end through this fixture"
+      w2_cap_amount:
+        value: "500000"
+        currency: CZK
+      loanout_exempt: true
+      loanout_withholding_rate: "0.15"
+      loanout_withholding_confirmed: true
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: blended_by_ceiling_split
+      base_rate: null
+      tiers: []
+      uplifts: []
+      ceiling_split:
+        enhanced_threshold:
+          value: "20000000"
+          currency: CZK
+        enhanced_rate: "0.30"
+        standard_rate: "0.20"
+      headcount_scale: null
+      source_note: "Invented — deliberate throwaway fixture, models no real jurisdiction"
+
+    minimum_spend:
+      value: "1000000"
+      currency: CZK
+
+    caps:
+      per_project_cap:
+        value: "10000000"
+        currency: CZK
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: true
+      fee_schedule:
+        - spend_threshold_low: "0"
+          spend_threshold_high: null
+          fee_primary: "25000"
+          fee_third_party_auditor: null
+
+    timing:
+      terms_lock_at: completion
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "invented — deliberate throwaway fixture, not a real payout schedule"
+        typical_days: 45
+        interest_paid: false
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
+
+  - id: secondary-throwaway
+    name: "Throwaway: flat rate, stacks with primary-throwaway, no ceiling/minimum/caps/audit"
+    requires_separate_application: false
+    stacks_with: ["primary-throwaway"]
+    mutually_exclusive_with: []
+
+    mechanism: rebate_grant
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: labour_only
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "not modelled by this programme — the ceiling dimension is exercised by primary-throwaway above"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.05"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: "Invented — deliberate throwaway fixture, models no real jurisdiction"
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "invented — deliberate throwaway fixture, not a real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
