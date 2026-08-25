@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 02
 current_phase_name: Engine Spine & Incentive Interpreter
 status: executing
-stopped_at: Completed 02-05-PLAN.md
-last_updated: "2026-08-25T12:16:50.722Z"
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-08-25T12:40:01.499Z"
 last_activity: 2026-08-25
 last_activity_desc: Phase 02 execution started
-state_head: 8a573a4556188d9191b46e84aa6d3cdd437d916a
+state_head: 46093cd0718054a524b8634a5883f7c33bae5ad1
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 15
-  completed_plans: 11
+  completed_plans: 13
   percent: 9
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 ## Current Position
 
 Phase: 02 (Engine Spine & Incentive Interpreter) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-08-25 — Phase 02 execution started
 
@@ -72,6 +72,7 @@ Progress: [█░░░░░░░░░] 9%
 | Phase 02 P02 | 12min | 2 tasks | 3 files |
 | Phase 02 P03 | 11min | 2 tasks | 5 files |
 | Phase 02 P05 | 55min | 3 tasks | 9 files |
+| Phase 02 P04 | 18min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,7 @@ Recent decisions affecting current work:
 - [Phase 02]: Phase 02 plan 02: property-tested PRV-01/02/03 and the pinned-rounding/Decimal-precision/fail-loud-schema contracts against a real Anora-priced Figure tree -- zero engine/ production code changes needed, both plan-anticipated escape hatches went unused, both non-vacuity checks (deleted rounding= arg, removed no-op derivation line) performed and reverted.
 - [Phase 02]: Phase 02 plan 03: all four base-definition types plus the closed HANDLER_REGISTRY escape hatch widened from 02-01's tracer; excluded_line_items and the minimum-spend cliff apply uniformly across every type; lesser-of's 'actual local' candidate is core_expenditure itself under the D-02 no-localisation boundary. — Widens engine/qualifying_base.py per plan 02-03 without restructuring the schema plan 02-01 landed
 - [Phase 02]: Phase 02 plan 05: per-person ceiling reduces the qualifying base before the rate (W-2 excess over cap; loan-out exempt qualifies in full plus a separate, never-netted withholding-obligation Figure selected from a dated schedule); tiered_by_spend (cliff lookup) and blended_by_ceiling_split (split-then-cap-each-slice) landed as two distinct engine/credit.py functions, reproducing Christmas Always ($1,159,502) and the UK worked example ($7,176,000) exactly, each proven not to produce the plausible wrong figure (984502 / 7632000). Connecticut's mechanism (transferable), minimum spend ($100,000) and mandatory audit are sourced from CT General Statutes Sec. 12-217jj, fetched and archived this session -- also independently corroborating the CSV-derived tier bands.
+- [Phase 02]: Phase 02 plan 04: all four net-cash mechanisms (refundable, transferable, rebate_grant, nonrefundable_credit) landed in engine/net_cash.py, sharing a half-open cliff-tiered audit fee lookup that mirrors engine/credit.py's rate-band shape; the UK worked example closes on Decimal('5382000') net cash from Decimal('7176000') gross at 25% corporation tax, putting DMO-02's 44% naive-arithmetic-overstatement claim under test rather than only in a slide. transferable reports a low/high bound with point=None, never a fabricated midpoint. ArrivalTiming now computes an estimated date from a declared payout_lag.typical_days; an unsourced lag still reports a null date with a stated reason.
 
 ### Pending Todos
 
@@ -129,6 +131,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-25T12:16:50.657Z
-Stopped at: Completed 02-05-PLAN.md
+Last session: 2026-08-25T12:39:45.598Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None

@@ -48,9 +48,9 @@ Resolve before modelling. Wrong inputs produce confidently wrong outputs, and th
 - [ ] **INC-03**: Tiers and uplifts are applied in the correct jurisdiction-specific order, including stacking rules between national and regional programmes
 - [ ] **INC-04**: Per-project caps and annual programme caps are both modelled
 - [ ] **INC-05**: Availability is reported separately from eligibility — whether the annual allocation still has money in it is its own answer
-- [ ] **INC-06**: Gross incentive is converted to net cash by mechanism: refundable credit, transferable credit sold at broker discount, direct rebate, or non-refundable, with audit fees deducted
-- [ ] **INC-07**: Taxable incentives are reported net of corporation tax
-- [ ] **INC-08**: Estimated cash arrival timing is reported alongside value
+- [x] **INC-06**: Gross incentive is converted to net cash by mechanism: refundable credit, transferable credit sold at broker discount, direct rebate, or non-refundable, with audit fees deducted
+- [x] **INC-07**: Taxable incentives are reported net of corporation tax
+- [x] **INC-08**: Estimated cash arrival timing is reported alongside value
 - [x] **INC-09**: Minimum spend thresholds and cliff effects are modelled
 - [ ] **INC-10**: Sales tax and hotel occupancy tax exemptions are modelled as separate stackable cost reductions where they exist
 
@@ -220,9 +220,9 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | INC-03 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
 | INC-04 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
 | INC-05 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
-| INC-06 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
-| INC-07 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
-| INC-08 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| INC-06 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
+| INC-07 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
+| INC-08 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
 | INC-09 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
 | INC-10 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
 | OUT-01 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
