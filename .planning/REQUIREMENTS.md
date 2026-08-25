@@ -116,7 +116,7 @@ Stage One judging is pass/fail and partly automated. Each of these is a gate, no
 
 - [ ] **SHP-01**: The vockell.com Lightsail instance is resized to 2 GB via snapshot-and-restore, preserving its static IP
 - [x] **SHP-02**: Python 3.10 or newer is installed on the host, isolated from the system Python that Bitnami and Apache depend on
-- [x] **SHP-03**: A subdomain DNS record exists and resolves — created early, as it is the only item carrying propagation delay
+- [x] **SHP-03**: The public hostname resolves to the deploy target — satisfied by the existing `vockell.com` A record under the D-14 path-mount decision (`https://vockell.com/finance`). No subdomain record was created because none is required; the propagation delay this requirement was written to front-load no longer exists. Original wording read "A subdomain DNS record exists and resolves — created early, as it is the only item carrying propagation delay"; reworded 2026-08-25 to match what was actually built rather than leave a satisfied-looking claim about a record that does not exist.
 - [x] **SHP-04**: The application runs under systemd and is reverse-proxied through Apache with a valid TLS certificate, without disturbing the live vockell.com site
 - [ ] **SHP-05**: A permitted Google SDK is imported and genuinely called at runtime, verified by a timestamped log line at the call site
 - [ ] **SHP-06**: Parallel's Search API is genuinely called at runtime via the official `parallel-web` SDK, verified the same way — unconditional, the track is confirmed as Parallel
