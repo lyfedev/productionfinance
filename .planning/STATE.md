@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 02
 current_phase_name: Engine Spine & Incentive Interpreter
 status: executing
-stopped_at: Completed 02-08-PLAN.md
-last_updated: "2026-08-25T18:42:43.930Z"
+stopped_at: Completed 02-09-PLAN.md
+last_updated: "2026-08-25T19:02:03.943Z"
 last_activity: 2026-08-25
 last_activity_desc: Phase 02 execution started
-state_head: df163247911a167b08e7a716a3a073b5c5a6de33
+state_head: 8b343e02d0ae99ecd895f4328d84c6a202a04958
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 18
-  completed_plans: 16
+  completed_plans: 17
   percent: 9
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 ## Current Position
 
 Phase: 02 (Engine Spine & Incentive Interpreter) — EXECUTING
-Plan: 3 of 9
+Plan: 4 of 9
 Status: Ready to execute
 Last activity: 2026-08-25 — Phase 02 execution started
 
@@ -76,6 +76,7 @@ Progress: [█░░░░░░░░░] 9%
 | Phase 02 P06 | 50min | 3 tasks | 7 files |
 | Phase 02 P07 | 51min | 2 tasks | 4 files |
 | Phase 02 P08 | 22min | 2 tasks | 3 files |
+| Phase 02 P09 | 32min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,7 @@ Recent decisions affecting current work:
 - [Phase 02]: Phase 02 plan 07: closed CR-01 by carrying the minimum-spend, excluded-line-items and per-person-ceiling reductions onto core expenditure before slicing in blended_by_ceiling_split, via an always-attached EXCLUDED_LINE_ITEMS_TOTAL_LABEL marker Figure; a zero-or-below running base now short-circuits to Decimal('0') before any slice is rated. Anora, Christmas Always, the UK worked example and zz-fixture-throwaway all still reproduce byte-identically.
 - [Phase 02]: engine/models.py: both stacks_with and mutually_exclusive_with edges validated in ONE model_validator on JurisdictionRuleSet (WR-02 substance: cannot drift apart), comparing ids via plain string equality with no normalization
 - [Phase 02]: WR-04 fixed at the JurisdictionRuleSet schema boundary (Field min_length=1 on programmes); engine/figure.py::combined_confidence left untouched since its empty-sequence contract is correct for its primary use
+- [Phase 02]: Phase 02 plan 09: WR-03 closed-closed dated-range convention recorded and guarded against overlapping withholding bands (both dated-dated and open-ended-dated). Validation-pairs golden test re-coupled to price_jurisdiction: New York's Anora reproduces Decimal('991190') end-to-end. Genuine discovered finding, documented not routed around: jurisdictions/us-ct.yaml's real transfer_discount has no sourced typical_rate_low/typical_rate_high, so price_jurisdiction raises for every active Connecticut pair; Christmas Always's direct-path exact reproduction (Decimal('1159502')) is unaffected. Recorded to WINDOWS.md as an unmet-truth entry.
 
 ### Pending Todos
 
@@ -138,6 +140,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-25T18:42:43.883Z
-Stopped at: Completed 02-08-PLAN.md
+Last session: 2026-08-25T19:02:03.883Z
+Stopped at: Completed 02-09-PLAN.md
 Resume file: None

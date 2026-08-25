@@ -106,7 +106,7 @@ Plans:
   4. Whether the production qualifies is answered separately from whether the programme's annual allocation still has money left in it
   5. A new jurisdiction can be added as a rule file alone with no change to engine code — demonstrated by adding a throwaway fixture jurisdiction
 
-**Plans**: 8/9 plans executed in 3 waves; 3 gap-closure plans added in 2 waves after verification found gaps (02-VERIFICATION.md, status gaps_found, 2/5 must-haves)
+**Plans**: 9/9 plans executed in 3 waves; 3 gap-closure plans added in 2 waves after verification found gaps (02-VERIFICATION.md, status gaps_found, 2/5 must-haves)
 
 Plans:
 **Wave 1**
@@ -128,7 +128,7 @@ Plans:
 
 - [x] 02-07-PLAN.md — CR-01: a failing regression fixture for `blended_by_ceiling_split` combined with a binding cliff, excluded line items and a per-person ceiling, then the fix that makes the rate step slice the actually-adjusted base (gap-closure wave 1)
 - [x] 02-08-PLAN.md — WR-01/WR-02/WR-04: one load-time validator resolving every `stacks_with` and `mutually_exclusive_with` edge against declared programme ids, plus a non-empty `programmes` constraint (gap-closure wave 1)
-- [ ] 02-09-PLAN.md — WR-03: the loan-out withholding schedule's closed-closed dated-range convention documented, boundary-tested and guarded against overlapping bands; plus the validation-pairs golden test re-coupled to `price_jurisdiction` (gap-closure wave 2)
+- [x] 02-09-PLAN.md — WR-03: the loan-out withholding schedule's closed-closed dated-range convention documented, boundary-tested and guarded against overlapping bands; plus the validation-pairs golden test re-coupled to `price_jurisdiction` (gap-closure wave 2)
 
 **Critical path**: This is the hard gate. Nothing in Phases 3-8 starts meaningfully before it lands. Scope is fixed by ARCHITECTURE.md's already-specified schemas — the `JurisdictionRuleSet` YAML schema, the immutable `Figure` value object carrying its own derivation DAG, and the generic rule interpreter with a small named Python handler registry as the escape hatch. No fresh research needed; implement against the specified design.
 **Scope discipline**: Write a dated scope-freeze note listing the fixed set of modelled rule dimensions before moving on. Unbounded normalization scope is the #3 project-sinking risk.
@@ -311,7 +311,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundations — Source Truth & Deploy Path | 1 — Accounts | 8/9 | In Progress|  |
-| 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 8/9 | In Progress|  |
+| 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 9/9 | In Progress|  |
 | 3. New York End-to-End — The Anora Proof | 1 — Accounts | 0/TBD | Not started | - |
 | 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 0/TBD | Not started | - |
 | 5. Curated Breadth & the Validation Loop | 1 — Accounts | 0/TBD | Not started | - |
