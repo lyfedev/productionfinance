@@ -106,7 +106,7 @@ Plans:
   4. Whether the production qualifies is answered separately from whether the programme's annual allocation still has money left in it
   5. A new jurisdiction can be added as a rule file alone with no change to engine code — demonstrated by adding a throwaway fixture jurisdiction
 
-**Plans**: 6/6 plans executed in 3 waves
+**Plans**: 6/6 plans executed in 3 waves; 3 gap-closure plans added in 2 waves after verification found gaps (02-VERIFICATION.md, status gaps_found, 2/5 must-haves)
 
 Plans:
 **Wave 1**
@@ -123,6 +123,12 @@ Plans:
 
 - [x] 02-04-PLAN.md — Four net-cash mechanisms, audit-fee cliffs, corporation tax, arrival timing, and the UK £5.382M net (wave 3)
 - [x] 02-06-PLAN.md — Stacking across programmes, caps, availability separate from eligibility, and the JUR-05 additivity proof (wave 3)
+
+**Gap closure** *(added after 02-VERIFICATION.md returned gaps_found; run with `/gsd-execute-phase 2 --gaps-only`)*
+
+- [ ] 02-07-PLAN.md — CR-01: a failing regression fixture for `blended_by_ceiling_split` combined with a binding cliff, excluded line items and a per-person ceiling, then the fix that makes the rate step slice the actually-adjusted base (gap-closure wave 1)
+- [ ] 02-08-PLAN.md — WR-01/WR-02/WR-04: one load-time validator resolving every `stacks_with` and `mutually_exclusive_with` edge against declared programme ids, plus a non-empty `programmes` constraint (gap-closure wave 1)
+- [ ] 02-09-PLAN.md — WR-03: the loan-out withholding schedule's closed-closed dated-range convention documented, boundary-tested and guarded against overlapping bands; plus the validation-pairs golden test re-coupled to `price_jurisdiction` (gap-closure wave 2)
 
 **Critical path**: This is the hard gate. Nothing in Phases 3-8 starts meaningfully before it lands. Scope is fixed by ARCHITECTURE.md's already-specified schemas — the `JurisdictionRuleSet` YAML schema, the immutable `Figure` value object carrying its own derivation DAG, and the generic rule interpreter with a small named Python handler registry as the escape hatch. No fresh research needed; implement against the specified design.
 **Scope discipline**: Write a dated scope-freeze note listing the fixed set of modelled rule dimensions before moving on. Unbounded normalization scope is the #3 project-sinking risk.
