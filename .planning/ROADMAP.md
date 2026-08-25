@@ -42,7 +42,18 @@ Decimal phases appear between their surrounding integers in numeric order.
 ### Phase 1: Foundations — Source Truth & Deploy Path
 
 **Milestone**: 1 — Accounts
-**Goal**: Every fact the engine will encode is confirmed against a primary source, and a public HTTPS URL serves the app on the resized host while vockell.com stays live.
+**Goal**: Every fact the engine will encode is confirmed against a primary source, and a public HTTPS URL serves the app on the host while vockell.com stays live.
+
+> **Status 2026-08-25 — goal substantively met, one plan deliberately outstanding.**
+> Verified 5/5 must-haves (`01-VERIFICATION.md`). `https://vockell.com/finance` serves
+> anonymous visitors over valid TLS and vockell.com is unaffected.
+> The word "resized" was dropped from the goal above because the resize did **not**
+> happen: plan 01-07 is **deferred, not superseded** (`01-07-DEFERRED.md`) by user
+> decision — the app instead runs on the un-resized 0.5 GB box, which measured 283 MB
+> available with swap untouched. **SHP-01 remains open** and this phase stays unchecked
+> until it is resolved or consciously retired. Re-test the memory premise as soon as
+> `google-genai` or a datastore lands; the hosted URL is a Stage One submission
+> requirement with a hard 2026-09-09 deadline.
 **Depends on**: Nothing (first phase)
 **Requirements**: SRC-01, SRC-02, SRC-03, SRC-04, SRC-05, SHP-01, SHP-02, SHP-03, SHP-04, SHP-07, SHP-08, SHP-09, SHP-10
 **Success Criteria** (what must be TRUE):
