@@ -1,0 +1,48 @@
+production_title: "Disney's Hexed"
+jurisdiction_id: us-ca
+program_id: ca-film-television-tax-credit-program
+production_type: feature
+season: null
+
+qualified_spend: "47538000"
+credit_amount: "16638000"
+diversity_credit_amount: null
+
+disclosure_stage: allocated
+status: active
+blocker: null
+
+source_url: "https://film.ca.gov/film-and-television-tax-credit-program-approved-projects-list/"
+source_document: "sources/ca/2026-08-24-ca-film-commission-approved-projects.html"
+source_document_sha256: "db0d11702fd12ae80a2826a47649b94ddf113c96a368ed159ca8447cf6eb8299"
+report_period: "2025-2026"
+date_checked: "2026-08-24"
+
+assertion:
+  mode: bounded
+  tolerance_bps: 50
+  variance_reason: >
+    Same allocation-vs-issued reasoning as ca_clueless_s1.yaml: disclosure
+    stage is allocated (Credit Allocation Date 6/22/2026), not a final
+    audited issuance. The implied rate here (35.0%) is even cleaner than
+    Clueless S1's 35.1%, landing almost exactly on CA's documented
+    non-independent uplift ceiling, but the approved-projects table still
+    does not itemize which specific uplift categories (animation, relocating
+    series, etc.) a "Non-Independent Feature Film Animation" production like
+    this claimed to reach that rate from the 20% base — the same class of
+    named unobservable as Clueless S1, carried at the same tolerance.
+
+notes: >
+  Re-verified independently this session against the same live CA Film
+  Commission table as ca_clueless_s1.yaml (see that fixture's notes for the
+  fetch method). Row: fiscal year 2025-2026, "Disney's Hexed*", company
+  "Walt Disney Animation Studios", production type "Non-Independent Feature
+  Film Animation", classification "Non-Independent", CA filming days "-"
+  (animation productions do not report live-action filming days in this
+  table), 524 cast hired, 249 crew hired, background-player days "-",
+  Qualified Expenditures $47,538,000, Credit Allocation $16,638,000, Credit
+  Allocation Date 6/22/2026. Both figures match 01-RESEARCH.md and
+  feasibility-incentives.md exactly — no discrepancy. D-02 interpreter-only
+  boundary holds identically to ca_clueless_s1.yaml. diversity_credit_amount
+  omitted as null for the same reason: CA's table has no such column, and a
+  "0" would misrepresent an absent column as a disclosed zero.

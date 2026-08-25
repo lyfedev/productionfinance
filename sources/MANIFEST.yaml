@@ -18,3 +18,70 @@ documents:
       - "Anora — Chart C, Film Tax Credit Program - Credits Issued"
       - "Succession-S4 — Chart C, Film Tax Credit Program - Credits Issued"
       - "Gilded Age, The-S2 — Chart C, Film Tax Credit Program - Credits Issued"
+
+  - path: sources/ca/2026-08-24-ca-film-commission-approved-projects.html
+    url: https://film.ca.gov/film-and-television-tax-credit-program-approved-projects-list/
+    retrieved_at: "2026-08-24T22:50:00-07:00"
+    sha256: "db0d11702fd12ae80a2826a47649b94ddf113c96a368ed159ca8447cf6eb8299"
+    jurisdiction: us-ca
+    document_title: "Film and Television Tax Credit Program Approved Projects List"
+    note: >
+      Archived as .html, not .csv, per D-08/D-09's "archive as published"
+      escape hatch — this disclosure is published as a server-rendered HTML
+      table (a Ninja Tables plugin embed), not a downloadable CSV/spreadsheet.
+      Fetched with a direct curl (no JS execution), so the archived bytes are
+      the same server response any visitor's browser receives, including the
+      full <tbody> of every approved-projects row across all fiscal years.
+    cited_for:
+      - "Clueless S1* — All-Programs-Approved-Projects table, row data-row_id=1 (2026-2027)"
+      - "Disney's Hexed* — All-Programs-Approved-Projects table, row data-row_id=12 (2025-2026)"
+
+  - path: sources/nj/2026-08-24-njeda-film-tax-credit-activity-report-joker.txt
+    url: https://app.powerbigov.us/view?r=eyJrIjoiYmQ4MDY1ZmEtNTI5Yy00YzZlLTkwOGQtNmM3Njc3NzljYTRkIiwidCI6ImRlZjliNmZhLTM1OTgtNGI0OC1iYjcyLTBiYzM4NDAzMmVhMyJ9
+    retrieved_at: "2026-08-24T22:57:00-07:00"
+    sha256: "f99eb42e976596e1d2e4e3122dffefe36221428228025cb002564d356592f6c4"
+    jurisdiction: us-nj
+    document_title: "NJEDA Film Tax Credit Activity Report (Power BI dashboard, embedded at njeda.gov/film/) — Joker row extract"
+    note: >
+      D-09-style escape hatch for a live, interactive Power BI report rather
+      than a discrete downloadable document: no single-file export of the
+      full dataset exists. Archived content is the browser accessibility-tree
+      text (ARIA grid cell content) extracted directly from the rendered DOM
+      after sorting by "Product Known As" and scrolling the Joker row into
+      the virtualized viewport — the same content a screen reader announces,
+      not an LLM summary. A corroborating screenshot is saved alongside as
+      2026-08-24-njeda-film-tax-credit-activity-report-joker.png (not
+      separately sha256'd; the .txt is the cited source of the digits).
+    cited_for:
+      - "Joker aka Romeo — PROD-00185335, WB Studio Enterprises Inc., approved 08/13/2019"
+
+  - path: sources/nj/2026-08-24-njeda-film-tax-credit-activity-report-trial-of-chicago-7.txt
+    url: https://app.powerbigov.us/view?r=eyJrIjoiYmQ4MDY1ZmEtNTI5Yy00YzZlLTkwOGQtNmM3Njc3NzljYTRkIiwidCI6ImRlZjliNmZhLTM1OTgtNGI0OC1iYjcyLTBiYzM4NDAzMmVhMyJ9
+    retrieved_at: "2026-08-24T22:58:30-07:00"
+    sha256: "fff03bdfcc11406d073510496e7a95964e02a8c845526d297d10fd11f17d5bab"
+    jurisdiction: us-nj
+    document_title: "NJEDA Film Tax Credit Activity Report (Power BI dashboard, embedded at njeda.gov/film/) — Trial of the Chicago 7 row extract"
+    note: >
+      Same live Power BI dashboard and same D-09-style escape hatch as the
+      Joker entry above — see that entry's note for the full methodology.
+      Sorted by "Product Known As", scrolled to the "Trial of the Chicago 7,
+      The" row. Corroborating screenshot saved alongside as
+      2026-08-24-njeda-film-tax-credit-activity-report-trial-of-chicago-7.png.
+    cited_for:
+      - "Trial of the Chicago 7, The — PROD-00187913, C7 Production Inc., approved 07/14/2020"
+
+  - path: sources/ct/2026-08-24-ct-film-tax-credits-issued.csv
+    url: https://data.ct.gov/api/v3/views/kjsu-mdny/export.csv?accessType=DOWNLOAD
+    retrieved_at: "2026-08-24T22:51:00-07:00"
+    sha256: "2b249b80d393d57ff849ee1f1630f3fc6acd0aaecf216c938fc3bb93e7ddfe87"
+    jurisdiction: us-ct
+    document_title: "Connecticut Film and Digital Media Tax Credits Issued (data.ct.gov open-data export, dataset kjsu-mdny)"
+    note: >
+      101,709 bytes, 658 data rows (plus one blank row after the header per
+      SRC-02's documented gotcha) — well under the D-09 25MB threshold, so
+      archived whole rather than filtered. Covers 2007-08-10 through
+      2024-10-25 across all three CGS statutory programmes (12-217jj,
+      12-217kk, 12-217ll); the selected validation pair is filtered to
+      12-217jj only (see ct_christmas_always.yaml notes).
+    cited_for:
+      - "Christmas Always, LLC — issued 2024-10-22, Rocky Hill, CGS 12-217jj"

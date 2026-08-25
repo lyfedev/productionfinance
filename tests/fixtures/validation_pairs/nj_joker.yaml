@@ -1,0 +1,56 @@
+production_title: "Joker"
+jurisdiction_id: us-nj
+program_id: nj-garden-state-film-digital-media-jobs-program
+production_type: feature
+season: null
+
+qualified_spend: "6133257"
+credit_amount: "1962642"
+diversity_credit_amount: null
+
+disclosure_stage: estimated
+status: active
+blocker: null
+
+source_url: "https://app.powerbigov.us/view?r=eyJrIjoiYmQ4MDY1ZmEtNTI5Yy00YzZlLTkwOGQtNmM3Njc3NzljYTRkIiwidCI6ImRlZjliNmZhLTM1OTgtNGI0OC1iYjcyLTBiYzM4NDAzMmVhMyJ9"
+source_document: "sources/nj/2026-08-24-njeda-film-tax-credit-activity-report-joker.txt"
+source_document_sha256: "f99eb42e976596e1d2e4e3122dffefe36221428228025cb002564d356592f6c4"
+report_period: "SFY2020"
+date_checked: "2026-08-24"
+
+assertion:
+  mode: bounded
+  tolerance_bps: 50
+  variance_reason: >
+    disclosure_stage is estimated: the dashboard's own column header is "Est.
+    NJ Qualified Film Prod. Expenses After 7/1/18" and "Total Award" — both
+    pre-certification figures, not the "Adjusted Certification" column
+    ($1,783,375) the same row also carries, which is the later, lower,
+    audited-cost-verified amount. The implied rate against Total Award is a
+    clean 32.0% (matching feasibility-incentives.md exactly), but this
+    production also carries a "Yes" Diversity Bonus flag whose dollar value
+    is not broken out anywhere in this table — an uplift is present but not
+    itemized, the same class of named unobservable D-04 requires bounded
+    mode to carry.
+
+notes: >
+  Re-verified independently this session directly against the live NJEDA
+  "Film Tax Credit Activity Report" Power BI dashboard (embedded at
+  https://www.njeda.gov/film/) — not feasibility-incentives.md, not an LLM
+  summary. See source_document for the full extraction methodology and raw
+  capture (this dashboard has no downloadable single-file export; the
+  archived .txt is the accessibility-tree text read directly from the
+  rendered DOM, which is what a screen reader announces, at the row level).
+  Row: Tax Credit Allocation Year SFY2020, Product ID PROD-00185335, Account
+  Name "WB Studio Enterprises Inc.", Product Known As "Joker aka Romeo",
+  City Newark, Approval Date 08/13/2019, Est. NJ Qualified Film Prod.
+  Expenses After 7/1/18 $6,133,257, Total Award $1,962,642, Diversity Bonus
+  Yes, Adjusted Certification $1,783,375. qualified_spend and credit_amount
+  both match 01-RESEARCH.md and feasibility-incentives.md exactly — no
+  discrepancy for this pair (contrast with nj_trial_of_the_chicago_7.yaml,
+  which does carry a $1 discrepancy against the same secondary sources).
+  D-02 interpreter-only boundary holds: qualified_spend is fed in as a
+  given; no input-vector field is asserted against. diversity_credit_amount
+  is omitted as null, not "0" — the dashboard's Diversity Bonus column is a
+  Yes/No flag, not a dollar figure, so there is no comparable disclosed
+  amount to record and a "0" would misstate that.

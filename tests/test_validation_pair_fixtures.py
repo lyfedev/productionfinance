@@ -87,6 +87,14 @@ def test_fixture_has_required_fields(path):
     if data["status"] == "active":
         for field in MONEY_FIELDS:
             raw = data.get(field)
+            if field == "diversity_credit_amount" and raw is None:
+                # Not every jurisdiction publishes a diversity/equity credit
+                # line item (CA and NJ's disclosures do not). null means "no
+                # such column exists in the source" — distinct from "0",
+                # which would assert the column exists and reported zero.
+                # qualified_spend and credit_amount remain mandatory strings
+                # for every active fixture; only this field may be absent.
+                continue
             assert isinstance(raw, str), (
                 f"{path}: money field '{field}' must be a YAML string "
                 f"(never a float), got {type(raw).__name__}: {raw!r}"

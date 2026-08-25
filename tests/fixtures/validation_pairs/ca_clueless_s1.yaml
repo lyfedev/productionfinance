@@ -1,0 +1,58 @@
+production_title: "Clueless S1"
+jurisdiction_id: us-ca
+program_id: ca-film-television-tax-credit-program
+production_type: series
+season: "1"
+
+qualified_spend: "46522000"
+credit_amount: "16335000"
+diversity_credit_amount: null
+
+disclosure_stage: allocated
+status: active
+blocker: null
+
+source_url: "https://film.ca.gov/film-and-television-tax-credit-program-approved-projects-list/"
+source_document: "sources/ca/2026-08-24-ca-film-commission-approved-projects.html"
+source_document_sha256: "db0d11702fd12ae80a2826a47649b94ddf113c96a368ed159ca8447cf6eb8299"
+report_period: "2026-2027"
+date_checked: "2026-08-24"
+
+assertion:
+  mode: bounded
+  tolerance_bps: 50
+  variance_reason: >
+    disclosure_stage is allocated, not issued: the source table's own column
+    is "Credit Allocation", dated 7/27/2026 in the "Credit Allocation Date"
+    column — this is the amount the CA Film Commission approved a production
+    to draw against, not a post-production, audited-cost figure like NY's
+    "Credit Issued Amount". CA's Program 4.0 non-independent base rate is a
+    documented 20%, with uplift categories (out-of-zone filming, relocating
+    TV series, etc.) bringing the effective rate toward the 35% implied here
+    (35.1%) for a non-independent scripted TV series; the approved-projects
+    table itself does not itemize which specific uplift categories this
+    production claimed, so the residue above a bare base rate is a named,
+    not-fully-observable, unobservable exactly as D-04 requires. A small
+    bounded tolerance is used rather than exact because an allocation-stage
+    figure is itself a snapshot subject to later true-up, not a final
+    reconciled amount.
+
+notes: >
+  Re-verified independently this session directly against the live CA Film
+  Commission "Film and Television Tax Credit Program Approved Projects List"
+  page (fetched via a direct HTTP GET, not an LLM summary) — the page embeds
+  the full approved-projects table server-side (a Ninja Tables plugin), so
+  the figures were read from the same HTML bytes archived at
+  source_document. Row: fiscal year 2026-2027, "Clueless S1*", company "CBS
+  Studios Inc.", production type "New TV Series Scripted", classification
+  "Non-Independent", 56 CA filming days, 125 cast hired, 300 crew hired,
+  2,466 background-player days, Qualified Expenditures $46,522,000, Credit
+  Allocation $16,335,000, Credit Allocation Date 7/27/2026. Both figures
+  match 01-RESEARCH.md and feasibility-incentives.md exactly — no
+  discrepancy to report for this pair (contrast with the NJ Trial of the
+  Chicago 7 pair, which does carry a $1 discrepancy). D-02 interpreter-only
+  boundary holds: qualified_spend is fed in as a given from the disclosure;
+  no input-vector field (crew count, shoot days, etc.) is asserted against.
+  This fixture omits diversity_credit_amount as null (not "0") because the
+  CA approved-projects table publishes no such column at all — a "0" would
+  falsely assert the column exists and reported zero.

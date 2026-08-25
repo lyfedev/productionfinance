@@ -1,0 +1,67 @@
+NJEDA Film Tax Credit Activity Report — accessibility-tree text extraction
+============================================================================
+Source: NJEDA "Film Tax Credit Activity Report" (Power BI dashboard, embedded
+at https://www.njeda.gov/film/), report URL:
+https://app.powerbigov.us/view?r=eyJrIjoiYmQ4MDY1ZmEtNTI5Yy00YzZlLTkwOGQtNmM3Njc3NzljYTRkIiwidCI6ImRlZjliNmZhLTM1OTgtNGI0OC1iYjcyLTBiYzM4NDAzMmVhMyJ9
+Retrieved: 2026-08-24T22:57:00-07:00
+
+Method: this is a live, interactive Power BI report (not a static PDF/CSV) —
+rows are virtualized and rendered client-side from the Azure Government cloud
+backend (wabi-us-gov-virginia-api.analysis.usgovcloudapi.net). There is no
+downloadable single-file export of the full dataset. This capture is the
+accessibility-tree text (ARIA grid cell content, the same content a screen
+reader announces) extracted directly from the rendered DOM after sorting the
+"Product Known As" column ascending and scrolling to bring the Joker row into
+the virtualized viewport — not an LLM summary, not a re-transcription of a
+secondary source. See sources/MANIFEST.yaml D-09-style note recording this as
+an escape-hatch archival method for a live dashboard rather than a discrete
+document.
+
+Column order (detail table): Tax Credit Allocation Year | Product ID |
+Account Name | Product Known As | City | Approval Date | Est. NJ Qualified
+Film Prod. Expenses After 7/1/18 | Total Award | Diversity Bonus | Adjusted
+Certification
+
+Row of interest, verbatim as extracted:
+Select RowSFY2020PROD-00185335WB Studio Enterprises Inc.Joker aka RomeoNewark08/13/2019$6,133,257$1,962,642Yes$1,783,375
+
+Parsed:
+  Tax Credit Allocation Year: SFY2020
+  Product ID: PROD-00185335
+  Account Name: WB Studio Enterprises Inc.
+  Product Known As: Joker aka Romeo
+  City: Newark
+  Approval Date: 08/13/2019
+  Est. NJ Qualified Film Prod. Expenses After 7/1/18: $6,133,257
+  Total Award: $1,962,642
+  Diversity Bonus: Yes
+  Adjusted Certification: $1,783,375
+
+Full raw text capture (entire accessible page text at time of retrieval)
+follows, delimited by lines of dashes:
+----------------------------------------------------------------------------
+Show keyboard shortcutsShow screen reader tipsSkip to main contentPower BI ReportPress Enter to explore dataPress Enter to explore dataFilm Tax Credit Activity Report Press Enter to explore dataPress Enter to explore dataPress Enter to explore data
+Scroll up
+Scroll down
+Scroll left
+Scroll right
+Row SelectionTax Credit Allocation Year  Total Count Est. NJ Qualified Film Prod. Expenses After 7/1/18  Total Award Adjusted Certification Certified to Date
+Select RowSFY20194$19,784,721$6,167,433$2,420,661$2,420,661Select RowSFY202012$189,919,920$60,003,095$43,574,860$43,574,860Select RowSFY202124$185,582,542$59,284,529$42,774,138$42,774,138Select RowSFY202239$564,972,229$199,251,434$143,815,971$143,353,843Select RowSFY202355$756,768,676$266,585,267$232,416,971$232,416,971Select RowSFY202433$372,397,432$132,669,517$100,920,416$100,920,417Select RowSFY202548$555,307,455$198,186,377$104,218,829$102,293,550Select RowSFY202642$359,597,114$126,353,868$473,873$473,873Select RowSFY20276$49,769,875$17,410,011 $0
+Total263$3,054,099,964$1,065,911,531$670,615,719$668,228,313
+Press Enter to explore data
+Scroll up
+Scroll down
+Scroll left
+Scroll right
+Row SelectionTax Credit Allocation Year Product ID Account Name Product Known As City Approval Date Est. NJ Qualified Film Prod. Expenses After 7/1/18 Total Award Diversity Bonus Adjusted Certification
+Select RowSFY2026PROD-00324194McCarter Theatre CompanyI & You: The Musical FilmPrinceton Borough02/20/2026$1,722,507$602,877No Select RowSFY2026PROD-00323893I Play Rocky, LLCI Play RockyJersey City03/19/2026$27,886,995$10,536,312No Select RowSFY2023PROD-00304955Pink Opaque LLCI Saw The TV GlowCranford10/31/2022$7,120,808$2,544,645Yes$2,018,429Select RowSFY2023PROD-00304037Atomic Punk Films LLCInsidious: The Red DoorMadison Borough09/14/2022$30,365,483$10,766,711Yes$7,206,193Select RowSFY2023PROD-00310658It Ends with Us Movie LLCIt Ends With UsNewark05/10/2023$34,383,268$12,211,253Yes$11,984,706Select RowSFY2020PROD-00185335WB Studio Enterprises Inc.Joker aka RomeoNewark08/13/2019$6,133,257$1,962,642Yes$1,783,375Select RowSFY2025PROD-00313934WB Studio Enterprises Inc.Joker: Folie a Deux aka JulietNewark09/06/2024$13,338,223$4,740,925Yes$4,503,753Select RowSFY2021PROD-00258281Apple Slice Productions, LLCJulesMontclair06/09/2021$12,474,685$3,742,406No Select RowSFY2022PROD-00288726Apple Slice Productions, LLCJulesMorristown03/09/2022$14,591,770$4,890,402No$4,003,405Select RowSFY2023PROD-00303064TKR The Movie, IncKill Room, TheJersey City08/29/2022$8,864,067$3,162,368Yes$3,162,368Select RowSFY2025PROD-00314512Hotel Theresa Production Inc.Killing CastroPaterson09/20/2024$13,086,713$4,633,319Yes$4,329,496Select RowSFY2024PROD-00311198Paradise Films, LLCKilling Mary SueCape May City08/25/2023$4,266,381$1,578,561Yes$940,578Select RowSFY2025PROD-00314773GENUS AE, LLCKiss of the Spider WomanKearny11/18/2024$30,843,717$10,896,173Yes$10,429,854Select RowSFY2023PROD-00303896Vacation Home Productions, LLCKnock at the CabinTabernacle08/24/2022$5,090,513$1,883,490Yes$1,674,165Select RowSFY2021PROD-00188172Crabs in a Bucket, LLCLast Call aka Crabs in a BucketBayonne01/15/2021$956,870$287,061No$287,061Select RowSFY2024PROD-00310234Not The Funeral Home LLCLast Drive In With Joe Bob Briggs, TheEast Hanover12/18/2023$831,949$273,144No Select RowSFY2025PROD-00317532Late Fame LLCLate FameJersey City03/31/2025$2,727,810$967,259Yes$766,409Select RowSFY2022PROD-00288655Universal Television LLCLaw and Order OC S1Newark05/17/2022$2,820,686$987,240No$964,507Select RowSFY2023PROD-00303181Universal Television LLCLaw and Order OC S2Newark08/15/2022$1,841,415$626,642No$571,913Select RowSFY2025PROD-00315790Lemonade Blessing LLCLemonade BlessingJersey City08/21/2024$438,283$152,846Yes
+Total     $3,054,099,964$1,065,911,531 $670,615,719
+Press Enter to explore dataPlease select the location on the map to view the project detailsPress Enter to explore data
+Scroll up
+Scroll down
+Scroll left
+Scroll right
+Tax Credit Allocation Year---Product ID---Account Name---Product Known As---City---Approval Date---Est. NJ Qualified Film Prod. Expenses After 7/1/18---Total Award---Diversity Bonus---Adjusted Certification---Certified to Date---Product Sub Status---Withdrawn On---
+-+ 92% Microsoft Power BI1of1Page 1
+Report Zoomed To 92%
+----------------------------------------------------------------------------

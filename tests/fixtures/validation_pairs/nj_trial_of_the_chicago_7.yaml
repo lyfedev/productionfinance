@@ -1,0 +1,65 @@
+production_title: "The Trial of the Chicago 7"
+jurisdiction_id: us-nj
+program_id: nj-garden-state-film-digital-media-jobs-program
+production_type: feature
+season: null
+
+qualified_spend: "17906613"
+credit_amount: "5371984"
+diversity_credit_amount: null
+
+disclosure_stage: estimated
+status: active
+blocker: null
+
+source_url: "https://app.powerbigov.us/view?r=eyJrIjoiYmQ4MDY1ZmEtNTI5Yy00YzZlLTkwOGQtNmM3Njc3NzljYTRkIiwidCI6ImRlZjliNmZhLTM1OTgtNGI0OC1iYjcyLTBiYzM4NDAzMmVhMyJ9"
+source_document: "sources/nj/2026-08-24-njeda-film-tax-credit-activity-report-trial-of-chicago-7.txt"
+source_document_sha256: "fff03bdfcc11406d073510496e7a95964e02a8c845526d297d10fd11f17d5bab"
+report_period: "SFY2021"
+date_checked: "2026-08-24"
+
+assertion:
+  mode: bounded
+  tolerance_bps: 50
+  variance_reason: >
+    disclosure_stage is estimated for the same reason as nj_joker.yaml: the
+    dashboard's own column headers are "Est. NJ Qualified Film Prod.
+    Expenses After 7/1/18" and "Total Award", not the row's separate
+    "Adjusted Certification" figure ($5,173,771), which is the later,
+    lower, audited-cost-verified amount. The implied rate against Total
+    Award is a clean 30.0% (matching the 30.0% recorded in
+    feasibility-incentives.md), with no Diversity Bonus claimed on this row
+    ("No") — so the residue here is smaller than Joker's, but the
+    estimated-vs-adjusted gap ($5,371,984 to $5,173,771, about 200bps) is
+    itself the named unobservable: which portion of estimated qualified
+    spend was later disallowed at certification is not stated anywhere in
+    this table.
+
+notes: >
+  Re-verified independently this session against the same live NJEDA "Film
+  Tax Credit Activity Report" Power BI dashboard as nj_joker.yaml — see
+  source_document for the full extraction methodology and raw capture. Row:
+  Tax Credit Allocation Year SFY2021, Product ID PROD-00187913, Account
+  Name "C7 Production Inc.", Product Known As "Trial of the Chicago 7,
+  The", City Paterson, Approval Date 07/14/2020, Est. NJ Qualified Film
+  Prod. Expenses After 7/1/18 $17,906,613, Total Award $5,371,984,
+  Diversity Bonus No, Adjusted Certification $5,173,771.
+
+  DISCREPANCY FOUND: 01-RESEARCH.md and feasibility-incentives.md both
+  record this production's credit as $5,371,983 (one dollar lower than the
+  $5,371,984 read directly off the live government dashboard this session).
+  Per the plan's own instruction ("If any extracted figure differs from the
+  value recorded in 01-RESEARCH.md or feasibility-incentives.md... treat the
+  archived primary document as authoritative"), credit_amount is set to
+  "5371984" here, matching the archived capture, not the secondary
+  compilation's "5371983". This is very likely a single-digit transcription
+  slip somewhere upstream of feasibility-incentives.md (both prior documents
+  are themselves secondary compilations, not independently re-verified
+  against this dashboard before this session), not a data revision on
+  NJEDA's side — but the primary source wins per the project's own
+  precedence rule, and the $1 delta is recorded here rather than silently
+  reconciled to match the other two documents. qualified_spend ($17,906,613)
+  matches both secondary sources exactly. D-02 interpreter-only boundary
+  holds; diversity_credit_amount omitted as null for the same reason as
+  nj_joker.yaml (Diversity Bonus is a Yes/No flag here, and this row is
+  "No" — there is no disclosed dollar amount to record either way).
