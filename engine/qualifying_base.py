@@ -9,6 +9,7 @@ per-jurisdiction Python.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from dataclasses import replace as _dataclass_replace
 from datetime import date
 from decimal import Decimal
 
@@ -16,7 +17,12 @@ from engine.figure import Confidence, Figure
 from engine.handlers import resolve_handler
 from engine.models import BaseDefinition, Programme
 
-__all__ = ["CORE_EXPENDITURE_LABEL", "SpendBreakdown", "compute_qualifying_base"]
+__all__ = [
+    "CORE_EXPENDITURE_LABEL",
+    "EXCLUDED_LINE_ITEMS_TOTAL_LABEL",
+    "SpendBreakdown",
+    "compute_qualifying_base",
+]
 
 # Every qualifying-base handler records the un-capped core expenditure on
 # its returned Figure as an entry in `inputs` whose label is exactly this
@@ -25,6 +31,16 @@ __all__ = ["CORE_EXPENDITURE_LABEL", "SpendBreakdown", "compute_qualifying_base"
 # applies — establishing the edge here (rather than in a later plan) is
 # what lets the expansion plans run in parallel.
 CORE_EXPENDITURE_LABEL = "Core expenditure (pre-cap)"
+
+# CR-01 (plan 02-07): the total amount `_apply_excluded_line_items`
+# subtracted, recorded ALWAYS — Decimal('0') when `excluded_line_items` is
+# empty, never omitted — as an entry in the returned Qualifying base
+# Figure's `inputs`. `engine/credit.py`'s `blended_by_ceiling_split` rate
+# branch reads this edge (via `_find_excluded_line_items_total`) to carry
+# the reduction forward onto the effective core expenditure it slices,
+# rather than silently discarding it the way CR-01 did. A conditionally-
+# present edge is exactly the kind of silence PRV-03 forbids.
+EXCLUDED_LINE_ITEMS_TOTAL_LABEL = "Excluded line items total"
 
 
 @dataclass(frozen=True)
@@ -112,7 +128,7 @@ def _apply_minimum_spend_check(programme: Programme, figure: Figure) -> Figure:
 
 def _apply_excluded_line_items(
     base_definition: BaseDefinition, spend: SpendBreakdown, figure: Figure
-) -> Figure:
+) -> tuple[Figure, Decimal]:
     """Subtract every named component in ``excluded_line_items``, in the
     order the rule file declares them.
 
@@ -121,7 +137,14 @@ def _apply_excluded_line_items(
     which ``tests/test_engine_qualifying_base.py`` asserts directly rather
     than assuming. A name not present in ``spend.line_items`` raises
     ``KeyError`` rather than silently treating it as zero.
+
+    Returns the running Figure AND the total amount subtracted, together —
+    ``compute_qualifying_base`` records that total on
+    ``EXCLUDED_LINE_ITEMS_TOTAL_LABEL`` (CR-01, plan 02-07), and returning it
+    from the same computation that produced it is what guarantees the
+    recorded total can never drift from what was actually subtracted.
     """
+    total = Decimal("0")
     for item_name in base_definition.excluded_line_items:
         try:
             item_value = spend.line_items[item_name]
@@ -130,12 +153,13 @@ def _apply_excluded_line_items(
                 f"base_definition.excluded_line_items names {item_name!r}, which "
                 "SpendBreakdown.line_items does not carry a value for"
             ) from exc
+        total += item_value
         figure = figure.with_step(
             f"excluded line item {item_name!r}: subtracting {item_value} {figure.unit} "
             "(declared in base_definition.excluded_line_items)",
             value=figure.value - item_value,
         )
-    return figure
+    return figure, total
 
 
 def _lesser_of_pct_core_or_actual_local(
@@ -272,7 +296,31 @@ def compute_qualifying_base(
         live_fetched_this_run=False,
     )
 
-    figure = _apply_excluded_line_items(programme.base_definition, spend, figure)
+    figure, excluded_total = _apply_excluded_line_items(programme.base_definition, spend, figure)
+
+    # CR-01 (plan 02-07): attach the excluded-line-items total ALWAYS —
+    # Decimal('0') when no items are declared, never omitted — so
+    # engine/credit.py's blended_by_ceiling_split rate branch can carry this
+    # reduction forward onto the effective core expenditure it slices,
+    # instead of silently discarding it. A conditionally-present edge is
+    # exactly the kind of silence PRV-03 forbids, and the rate step must be
+    # able to distinguish "no exclusions declared" from "the edge is
+    # missing".
+    excluded_line_items_total = Figure(
+        value=excluded_total,
+        unit=currency,
+        label=EXCLUDED_LINE_ITEMS_TOTAL_LABEL,
+        derivation=(
+            f"{len(programme.base_definition.excluded_line_items)} excluded line item(s) "
+            f"declared on this programme; total subtracted: {excluded_total} {currency}",
+        ),
+        inputs=(),
+        source_url=source_url,
+        date_checked=date_checked,
+        confidence=confidence,
+        live_fetched_this_run=False,
+    )
+    figure = _dataclass_replace(figure, inputs=(*figure.inputs, excluded_line_items_total))
 
     # The minimum-spend cliff is evaluated against the *qualifying base*
     # produced by the dispatch above (net of excluded_line_items), never

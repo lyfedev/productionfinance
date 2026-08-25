@@ -20,7 +20,7 @@ from typing import Literal
 
 from engine.figure import Figure
 from engine.models import PerPersonCeiling, Programme, Tier
-from engine.qualifying_base import CORE_EXPENDITURE_LABEL
+from engine.qualifying_base import CORE_EXPENDITURE_LABEL, EXCLUDED_LINE_ITEMS_TOTAL_LABEL
 from engine.rounding import quantize_money
 
 __all__ = [
@@ -369,6 +369,28 @@ def _find_core_expenditure_figure(figure: Figure) -> Figure | None:
     )
 
 
+def _find_excluded_line_items_total(figure: Figure) -> Decimal:
+    """Reach the `Excluded line items total` Figure `engine/qualifying_base.py`
+    always attaches to the Qualifying base Figure's `inputs` (CR-01, plan
+    02-07), and return its value. Mirrors `_find_uplift_additional_rate`:
+    returns `Decimal('0')` when the edge is absent — a directly-constructed
+    test Figure with an empty `inputs` tuple (predating this plan) still
+    works, since "the edge is missing" and "no exclusions declared" both
+    correctly carry forward zero reduction."""
+    qualifying_base_figure = _find_qualifying_base_input(figure)
+    if qualifying_base_figure is None:
+        return Decimal("0")
+    marker = next(
+        (
+            inp
+            for inp in qualifying_base_figure.inputs
+            if inp.label == EXCLUDED_LINE_ITEMS_TOTAL_LABEL
+        ),
+        None,
+    )
+    return marker.value if marker is not None else Decimal("0")
+
+
 def _apply_rate(programme: Programme, figure: Figure) -> Figure:
     rate_structure = programme.rate_structure
 
@@ -432,6 +454,21 @@ def _apply_rate(programme: Programme, figure: Figure) -> Figure:
         # exactly the kind of plausible-looking-but-invented behaviour this
         # engine exists to avoid. A future jurisdiction that needs this
         # combination requires a visible design decision, not a silent one.
+        #
+        # CR-01 (plan 02-07): this branch slices the EFFECTIVE core
+        # expenditure — the raw core expenditure with every non-percentage-
+        # cap reduction this same function already ran (minimum-spend,
+        # excluded line items, the per-person ceiling) carried forward onto
+        # it — never the raw core expenditure directly and never `.value` as
+        # it stood before this step. The ONE thing this branch legitimately
+        # does differently from every other rate branch is that it
+        # re-derives the percentage cap per slice from core expenditure
+        # rather than trusting it was already applied by
+        # `base_definition.type` (SCOPE-FREEZE.md dimension 3's carve-out).
+        # That carve-out covers the percentage cap and nothing else —
+        # minimum-spend, excluded line items and the per-person ceiling are
+        # never covered by it, and CR-01 is exactly what happens when the
+        # carve-out is allowed to swallow them too.
         ceiling_split = rate_structure.ceiling_split
         if (
             ceiling_split is None
@@ -452,14 +489,49 @@ def _apply_rate(programme: Programme, figure: Figure) -> Figure:
                 "wrong-ordering bug wearing a disguise"
             )
 
+        # A zero-or-below running base (a binding minimum-spend cliff, or a
+        # per-person-ceiling reduction driving the base below zero — which
+        # `_apply_per_person_ceiling` does not floor) short-circuits before
+        # any slice is rated. This is what makes a binding cliff actually
+        # reach the credit, rather than being discarded the way CR-01
+        # discarded it.
+        if figure.value <= Decimal("0"):
+            return figure.with_step(
+                "blended_by_ceiling_split: the running qualifying base is "
+                f"{figure.value} {figure.unit} — zero or below after the declared "
+                "adjustments (minimum-spend cliff and/or per-person ceiling) — no "
+                "slice is rated, gross credit is 0",
+                value=Decimal("0"),
+            )
+
+        # The total reduction this base has already taken that the
+        # percentage cap did NOT cause: the excluded-line-items total
+        # (engine/qualifying_base.py's always-attached marker) plus the
+        # per-person ceiling's own reduction. The latter is exact because
+        # `_apply_per_person_ceiling` is the only step between the Figure's
+        # construction in `compute_gross_credit` and this branch that
+        # changes `.value` — `_apply_uplift_stacking` provably does not (it
+        # only ever appends a marker Figure to `inputs`); a future step
+        # inserted between them must reckon with this invariant.
+        qualifying_base_input = _find_qualifying_base_input(figure)
+        assert qualifying_base_input is not None  # guaranteed by the guard clause above
+        excluded_line_items_total = _find_excluded_line_items_total(figure)
+        per_person_ceiling_reduction = max(
+            Decimal("0"), qualifying_base_input.value - figure.value
+        )
+        total_reduction = max(
+            Decimal("0"), excluded_line_items_total + per_person_ceiling_reduction
+        )
+
         core_expenditure = core_expenditure_figure.value
+        effective_core_expenditure = max(Decimal("0"), core_expenditure - total_reduction)
         enhanced_threshold = ceiling_split.enhanced_threshold.value
         enhanced_rate = ceiling_split.enhanced_rate
         standard_rate = ceiling_split.standard_rate
         pct_cap = programme.base_definition.pct_core_cap
 
-        enhanced_slice = min(core_expenditure, enhanced_threshold)
-        standard_slice = max(Decimal("0"), core_expenditure - enhanced_threshold)
+        enhanced_slice = min(effective_core_expenditure, enhanced_threshold)
+        standard_slice = max(Decimal("0"), effective_core_expenditure - enhanced_threshold)
         capped_enhanced_slice = enhanced_slice * pct_cap if pct_cap is not None else enhanced_slice
         capped_standard_slice = standard_slice * pct_cap if pct_cap is not None else standard_slice
         enhanced_amount = capped_enhanced_slice * enhanced_rate
@@ -467,12 +539,23 @@ def _apply_rate(programme: Programme, figure: Figure) -> Figure:
         credit_value = enhanced_amount + standard_amount
 
         cap_desc = f"{pct_cap} of slice" if pct_cap is not None else "no percentage cap declared"
+        # This line is emitted UNCONDITIONALLY, including when the total
+        # reduction is zero — a zero reduction states so explicitly, so
+        # silence is never mistaken for "not considered" (PRV-03).
+        figure = figure.with_step(
+            "blended_by_ceiling_split effective core expenditure: raw core "
+            f"expenditure {core_expenditure} {figure.unit}, minus total reduction "
+            f"{total_reduction} {figure.unit} (excluded line items "
+            f"{excluded_line_items_total} + per-person ceiling {per_person_ceiling_reduction}, "
+            "the only adjustments this branch's percentage-cap carve-out never covers) = "
+            f"effective core expenditure {effective_core_expenditure} {figure.unit}"
+        )
         # Both slices ALWAYS emit a derivation line, even when one is zero —
         # a wholly-enhanced production must still show the standard slice
         # was considered and came to nothing (never silent, PRV-03).
         figure = figure.with_step(
-            "blended_by_ceiling_split enhanced slice: core expenditure "
-            f"{core_expenditure} {figure.unit} split at enhanced_threshold "
+            "blended_by_ceiling_split enhanced slice: effective core expenditure "
+            f"{effective_core_expenditure} {figure.unit} split at enhanced_threshold "
             f"{enhanced_threshold} — enhanced slice {enhanced_slice}, capped "
             f"({cap_desc}) to {capped_enhanced_slice}, x rate {enhanced_rate} = "
             f"{enhanced_amount}"
