@@ -59,7 +59,7 @@ from pathlib import Path
 from typing import Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 __all__ = [
     "AnnualProgrammeCap",
@@ -324,7 +324,17 @@ class Programme(StrictModel):
 
 class JurisdictionRuleSet(StrictModel):
     jurisdiction: Jurisdiction
-    programmes: list[Programme]
+    # RD-05-adjacent: minimum length 1 (WR-04). A jurisdiction that declares
+    # zero programmes has priced nothing; letting it load would route
+    # `combined_confidence`'s documented empty-sequence default ("nothing
+    # weaker to inherit from") into a `validated`, source-less, date-less $0
+    # jurisdiction total at price_jurisdiction time — a confidence claim
+    # about a computation that never happened, the exact laundering failure
+    # mode the two-value confidence enum exists to prevent (T-02-20,
+    # PRV-02). engine/figure.py::combined_confidence is intentionally left
+    # unmodified; the fix is that a zero-programme ruleset can never reach
+    # it.
+    programmes: list[Programme] = Field(min_length=1)
 
     @model_validator(mode="after")
     def _programme_edges_resolve_to_declared_ids(self) -> JurisdictionRuleSet:

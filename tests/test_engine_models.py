@@ -378,3 +378,44 @@ def test_every_committed_rule_file_still_loads():
         )
     for path in paths:
         load_ruleset(path)
+
+
+def test_empty_programmes_list_raises():
+    """A `JurisdictionRuleSet` constructed with `programmes: []` raises
+    `pydantic.ValidationError` naming the `programmes` field — WR-04. Routing
+    a zero-programme ruleset through `combined_confidence`'s documented
+    empty-sequence default would otherwise produce a `validated`,
+    source-less, date-less $0 total: a confidence claim about a computation
+    that never happened."""
+    jurisdiction = Jurisdiction(
+        id="zz-synthetic-empty-programmes",
+        name="Synthetic in-memory jurisdiction with zero programmes — never a real place",
+        country_code="ZZ",
+        level="national",
+        parent_id=None,
+        currency="USD",
+        status="synthetic_fixture",
+        effective_dates=EffectiveDates(
+            rule_version_effective_from=date(2026, 1, 1),
+            rule_version_effective_to=None,
+            source_checked_date=date(2026, 8, 25),
+        ),
+        sources=[],
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        JurisdictionRuleSet(jurisdiction=jurisdiction, programmes=[])
+    assert "programmes" in str(excinfo.value)
+
+
+def test_empty_programmes_list_raises_through_load_ruleset(tmp_path):
+    """The same empty-`programmes` shape, round-tripped through a temporary
+    YAML file and `load_ruleset`, raises too — proven on the real rule-file
+    read path, not only on direct construction."""
+    doc = copy.deepcopy(_valid_ruleset_doc())
+    doc["jurisdiction"]["status"] = "synthetic_fixture"
+    doc["programmes"] = []
+    rule_file = tmp_path / "empty-programmes.yaml"
+    rule_file.write_text(yaml.safe_dump(doc), encoding="utf-8")
+    with pytest.raises(ValidationError) as excinfo:
+        load_ruleset(rule_file)
+    assert "programmes" in str(excinfo.value)
