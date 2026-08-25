@@ -1,0 +1,31 @@
+# deploy/prodfin.service — systemd unit for the ProductionFinance FastAPI app
+#
+# Checked into the repository so the host configuration is reviewable in the
+# public repo (D-17). Installed to /etc/systemd/system/prodfin.service on the
+# host by plan 01-08 Task 2, then `systemctl daemon-reload && systemctl enable
+# --now prodfin`.
+#
+# Runs as the dedicated non-login system user `prodfin` (never root, never
+# `bitnami`), binds uvicorn to 127.0.0.1 only (Apache is the only thing that
+# should ever reach it — see plan 01-09 for the reverse-proxy path mount at
+# /finance), and references the uv-managed venv's uvicorn binary by absolute
+# path. Never source an activate script here — it does not work reliably
+# under systemd's non-interactive, non-login shell.
+
+[Unit]
+Description=ProductionFinance FastAPI service
+After=network.target
+
+[Service]
+Type=simple
+User=prodfin
+Group=prodfin
+WorkingDirectory=/opt/prodfin
+ExecStart=/opt/prodfin/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=-/opt/prodfin/.env
+
+[Install]
+WantedBy=multi-user.target

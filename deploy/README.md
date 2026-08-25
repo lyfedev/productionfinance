@@ -252,6 +252,43 @@ Filesystem      Size  Used Avail Use% Mounted on
 /dev/xvda1       20G  5.5G   14G  30% /
 ```
 
+## Deploying (plan 01-08 Task 2)
+
+The whole deploy path is one command, run on the host as `bitnami` (needs
+passwordless sudo to restart the systemd unit; git and `uv` operations run as
+`prodfin` internally via `sudo -u prodfin`):
+
+```bash
+cd /opt/prodfin
+bash deploy/deploy.sh
+```
+
+What it does, in order: `git pull --ff-only origin main` as `prodfin` (fails
+loudly rather than silently merging if `main` was ever rewritten) → `uv sync
+--frozen` against the committed `uv.lock`, so the host resolves exactly what
+CI's `lockfile-scan` already scanned, never a fresh resolution → records the
+newly-checked-out short SHA into `/opt/prodfin/.env` as `PRODFIN_GIT_SHA` →
+`systemctl restart prodfin` → polls `systemctl is-active` until the unit
+reports active (or fails after 10s) → health-checks
+`http://127.0.0.1:8000/health` and exits non-zero if it does not return 200.
+A restart that does not come back is a failed deploy, not a silent one.
+
+Idempotent: re-running it with no new commits and an already-active service
+is a no-op that still re-verifies health — safe to run twice.
+
+**How to read a failure:** the script's own `==>` lines show which stage it
+was in; if it fails at the health check, `sudo systemctl status prodfin
+--no-pager` and `sudo journalctl -u prodfin -n 50 --no-pager` on the host are
+the next two commands to run (see "Reboot test" below for the same diagnostic
+pattern applied to a boot-time failure).
+
+One-time host setup, not part of `deploy.sh` itself: `uv` is installed to
+`/home/bitnami/.local/bin/{uv,uvx}` (per "Host bootstrap" above) and exposed
+on the system `PATH` via `/usr/local/bin/uv` → `/usr/local/bin/uvx` symlinks,
+so `sudo -u prodfin uv ...` resolves regardless of which user's shell
+invokes it — `/usr/local/bin` is the standard place for locally-installed
+tools on Debian and is never touched by `apt`, unlike `/usr/bin`.
+
 ## How to verify
 
 Commands each later plan uses, collected in one place:
