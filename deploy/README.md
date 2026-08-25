@@ -43,6 +43,9 @@ plans:
   impact on plan 01-09" below. This runbook does not edit 01-09 itself —
   that revision is left for whoever executes it, flagged here so it is
   not missed.
+  **RESOLVED 2026-08-25 — see "Apache path mount (plan 01-09, D-14
+  revision) — executed 2026-08-25" below for the actual host edit,
+  verification, and result.**
 - **No new certificate issuance.** The existing `vockell.com` certificate
   already covers the apex host; a path mount under that same host needs
   no new cert, no new `bncert-tool` run.
@@ -128,9 +131,31 @@ ordering collapses to:
 | 2. Instance resize | 01-07 | Snapshot-and-restore to `small_3_0` (2 GB / 2 vCPU), preserving the static IP | The pre-resize snapshot is the rollback: restore from it to return to the original 472 MB instance. Snapshot taken before any change. |
 | 3. Python install | 01-07/01-08 | `uv python install 3.12`, isolated venv under `$PRODFIN_APP_ROOT/.venv` | Fully additive — deleting `$PRODFIN_APP_ROOT` and the `uv`-installed Python removes it cleanly; system Python 3.9.2 is never touched (D-18). |
 | 4. systemd unit | 01-08 | Install and enable `$PRODFIN_SERVICE`, running as `$PRODFIN_SERVICE_USER` | `systemctl disable --now $PRODFIN_SERVICE` and remove the unit file; no effect on Apache or the existing site. |
-| 5. Apache proxy + TLS | 01-09 (**needs revision** — see below) | Add a `ProxyPass /finance` location to the **existing** vockell.com vhost; no new certificate | Rollback is removing the added `<Location /finance>` block and reloading Apache — the existing vhost and certificate are otherwise untouched. Take a fresh Lightsail snapshot immediately before editing the live vhost regardless, per the standing rule below. |
+| 5. Apache proxy + TLS | 01-09 (**done 2026-08-25** — see "Apache path mount" below) | Added `ProxyPass /finance` + a targeted `RewriteCond` exclusion to the **existing** vockell.com vhost; no new certificate | Rollback is either of the two timestamped file backups taken before editing, restored per the command in that section. No Lightsail snapshot was taken for this step — see note below the table. |
 
-## Downstream impact on plan 01-09 (flag for the orchestrator)
+**Note on the Lightsail-snapshot recommendation above:** the row and
+section below recommended a fresh Lightsail snapshot before editing the
+live vhost. The 01-09 executor's actual instructions explicitly forbade
+provisioning, resizing, or snapshotting any AWS resource for this step —
+read-only AWS/DNS queries only. This is a deliberate, session-level
+override, justified because this step (unlike the certificate issuance
+`01-09-PLAN.md` originally called for) never touches TLS state: it is a
+config-only edit to routing directives inside an existing vhost, covered
+instead by a file-level backup, a mandatory `configtest` before every
+reload, and immediate external re-verification of the live site after
+each change — see "Apache path mount" below for exactly what that looked
+like in practice.
+
+## Downstream impact on plan 01-09 (flag for the orchestrator) — RESOLVED
+
+**Resolved 2026-08-25 — see "Apache path mount (plan 01-09, D-14
+revision) — executed 2026-08-25" below for what actually ran.** The
+recommendation text below is preserved as the historical record of what
+01-06 flagged; the executed approach differs in the two respects noted
+inline (no Lightsail snapshot, and the app-side `root_path` question was
+resolved with a simpler `PRODFIN_PUBLIC_PATH`-prefixed link rather than
+ASGI `root_path`/`X-Forwarded-Prefix` machinery, since this skeleton has
+no router mounted under the prefix).
 
 `01-09-PLAN.md` was written under the original subdomain assumption: a
 dedicated Apache vhost with `ServerName prodfin.vockell.com` and its own
@@ -348,6 +373,184 @@ verified) completed by `07:00:04Z`, about 39 seconds after the reboot
 command. No fix to `deploy/prodfin.service` was required — the unit worked
 on the first reboot.
 
+## Apache path mount (plan 01-09, D-14 revision) — executed 2026-08-25
+
+**This is a revision of plan `01-09-PLAN.md` as literally written, not the
+plan as written.** `01-09-PLAN.md` was authored for a dedicated subdomain
+(`prodfin.vockell.com`) with its own new Apache vhost and its own freshly
+issued Let's Encrypt certificate via `bncert-tool`. That approach was
+superseded by the D-14 path-mount decision recorded above and in
+`01-06-SUMMARY.md`, before 01-09 ever executed. This section is the actual
+record of what ran instead. `01-09-PLAN.md` was not edited — this
+divergence is recorded here and in `01-09-SUMMARY.md` per the executor's
+explicit instructions, so the gap between plan-as-written and
+plan-as-built is visible rather than silently absorbed.
+
+**What was NOT done, deliberately, per those instructions:**
+- No new vhost file. No `bncert-tool` run. No new certificate issued,
+  renewed, or replaced. No AWS resource created, resized, or snapshotted
+  (read-only `aws`/`dig` queries only).
+- The existing `vockell.com` / `www.vockell.com` certificate (Let's
+  Encrypt, expires 2026-10-23, i.e. well over 30 days out at the time of
+  this plan) was reused as-is.
+
+### What was done
+
+**1. Discovered the live vhost.** The Bitnami Apache directory on this
+box is `/opt/bitnami/apache` (`/opt/bitnami/apache2` is a symlink to it —
+both names resolve to the same tree, so the "apache vs apache2" open item
+from `01-RESEARCH.md` is now closed: they're the same directory). The
+vhosts-directory convention `01-RESEARCH.md` expected
+(`/opt/bitnami/apache/conf/vhosts/`) turned out to contain only Bitnami's
+own samples — the vhost that actually answers for `vockell.com` lives at
+`/opt/bitnami/apache/conf/bitnami/bitnami-ssl.conf`
+(`<VirtualHost _default_:443>`, the box's one and only HTTPS vhost,
+matching any Host header) and its HTTP counterpart in
+`/opt/bitnami/apache/conf/bitnami/bitnami.conf`
+(`<VirtualHost _default_:80>`). `mod_proxy` and `mod_proxy_http` were
+already loaded (`httpd -M`) — no module-enable step was needed.
+
+**2. Backed up before any edit**, per the mandatory sequence:
+```
+sudo cp -p /opt/bitnami/apache/conf/bitnami/bitnami-ssl.conf \
+  /opt/bitnami/apache/conf/bitnami/bitnami-ssl.conf.bak-20260825T071452Z
+```
+(md5sum-verified identical to the live file immediately after.) A second
+backup was taken before the follow-up fix in step 4 below
+(`bitnami-ssl.conf.bak-20260825T071628Z`) — both remain on the host as the
+rollback position; restoring either is `sudo cp -p <backup> bitnami-ssl.conf
+&& sudo /opt/bitnami/apache/bin/apachectl -t && sudo /opt/bitnami/apache/bin/apachectl -k graceful`.
+
+**3. Edited the existing vhost** (not a new file — see
+`deploy/prodfin-finance-location.conf` for the reviewable copy of exactly
+what was added and why). Inside `<VirtualHost _default_:443>`:
+- Added `RewriteCond %{REQUEST_URI} !^/finance` to the vhost's pre-existing
+  "Enable non-www to www redirection" rule, using the same exclusion
+  pattern the rule already used for `/.well-known`.
+- Added `ProxyPreserveHost On`, `ProxyPass /finance http://127.0.0.1:8000`,
+  `ProxyPassReverse /finance http://127.0.0.1:8000` (see exact rationale
+  for the target having no trailing slash in
+  `deploy/prodfin-finance-location.conf`).
+
+Ran `sudo /opt/bitnami/apache/bin/apachectl -t` → `Syntax OK` before any
+reload, both times this file was edited.
+
+**4. Reloaded gracefully** — `sudo /opt/bitnami/apache/bin/apachectl -k
+graceful` (not `ctlscript.sh restart`, which stops-then-starts) — then
+verified from OFF the box, before anything else:
+```
+$ curl -sI https://vockell.com
+HTTP/1.1 301 Moved Permanently
+Location: https://www.vockell.com/
+```
+Identical to the pre-existing baseline recorded in `01-08-SUMMARY.md`.
+
+**Bug found and fixed during this same verification pass, before Task 1
+was called done:** the first version of the `ProxyPass` (target with a
+trailing slash, matching the shape `01-RESEARCH.md`'s subdomain-oriented
+pattern used) produced a doubled slash on every proxied request —
+`GET /finance/health` reached uvicorn as `GET //health`, which
+Starlette 404s on as a distinct path from `/health`:
+```
+$ curl -sI https://vockell.com/finance/health
+HTTP/1.1 404 Not Found
+Server: uvicorn
+```
+The `Server: uvicorn` header on a 404 was the tell: the proxy was
+reaching the app, the path mapping was wrong. Confirmed directly on the
+host (`curl 'http://127.0.0.1:8000//health'` → `404`, same problem, one
+hop earlier). Fixed by removing the trailing slash from the `ProxyPass`/
+`ProxyPassReverse` targets (backup taken first, configtest passed,
+gracefully reloaded again) — full mechanism explained in
+`deploy/prodfin-finance-location.conf`.
+
+**5. A second bug, in the application, found by the same pass:** the
+holding page's `<a href="/health">` is an absolute server-root path. Under
+a path mount, a browser resolves that against the origin
+(`https://vockell.com/health`), not the current `/finance/...` location —
+a dead link on the one page an anonymous visitor lands on first
+(`generated URLs must not break` per this plan's own scope). Fixed in
+`app/main.py` (commit `3b7fb04`): the app now reads `PRODFIN_PUBLIC_PATH`
+(set to `/finance` in `/opt/prodfin/.env` on the host, empty for
+local/dev) and prefixes the generated link with it. No ASGI
+`root_path`/`X-Forwarded-Prefix` machinery was needed — this skeleton has
+no router mounted under the prefix and generates no other absolute link.
+Deployed via the existing `deploy/deploy.sh` (`git pull` + `uv sync` +
+restart) after pushing the commit and confirming CI green
+(run `32820627620`, all 4 gates passed).
+
+**6. Full external verification, from this developer machine (outside
+the box), anonymous, certificate validation fully on:**
+```
+$ curl -fsS https://vockell.com/finance/health
+{"status":"ok","version":"0.1.0","git_sha":"3b7fb04","boot_time":"2026-08-25T07:18:01.171623+00:00"}
+
+$ curl -fsS https://vockell.com/finance/
+<!doctype html> ... <a href="/finance/health">/finance/health</a> ...
+
+$ curl -v https://vockell.com/finance/health 2>&1 | grep -i 'subject:\|issuer:\|verify ok'
+*  subject: CN=vockell.com
+*  issuer: C=US; O=Let's Encrypt; CN=YE1
+* SSL certificate verify ok.
+
+$ echo | openssl s_client -servername vockell.com -connect vockell.com:443 2>/dev/null \
+  | openssl x509 -noout -dates -ext subjectAltName
+notBefore=Jul 25 23:48:15 2026 GMT
+notAfter=Oct 23 23:48:14 2026 GMT
+X509v3 Subject Alternative Name:
+    DNS:vockell.com, DNS:www.vockell.com
+
+$ curl -sI http://vockell.com/finance/health
+HTTP/1.1 302 Found
+Location: https://vockell.com/finance/health
+
+$ nc -z -w 5 35.165.60.123 8000; echo $?
+1   # connection refused/timed out — port 8000 not reachable off the box
+
+$ SMOKE_BASE_URL=https://vockell.com/finance bash scripts/smoke.sh
+PASS: GET /health returned 200
+PASS: /health body carries git_sha
+PASS: /health body carries boot_time
+PASS: GET / returned 200
+Smoke test passed.
+```
+Headless-browser check (gstack `browse`, real Chromium, real TLS
+validation — not curl): navigated to `https://vockell.com/finance/`, 200,
+zero console errors; clicked the `/finance/health` link and confirmed
+navigation landed on `https://vockell.com/finance/health` (same domain,
+correct path) rendering the health JSON; separately navigated to
+`https://vockell.com/` and got `net::ERR_NAME_NOT_RESOLVED` resolving
+`www.vockell.com` — the identical pre-existing behaviour documented in
+`01-08-SUMMARY.md`, not a regression from this change.
+
+**7. Certificate renewal — pre-existing, unaffected, verified as a real
+job on the host** (not modified, not newly added by this plan, since no
+new certificate was issued):
+```
+$ crontab -l   # as bitnami
+43 0 * * * sudo /opt/bitnami/letsencrypt/lego --path /opt/bitnami/letsencrypt \
+  --email="dave@vockell.com" --http --http-timeout 30 \
+  --http.webroot /opt/bitnami/apps/letsencrypt --domains=vockell.com \
+  --user-agent bitnami-bncert/1.1.0 renew \
+  && sudo /opt/bitnami/apache/bin/httpd -f /opt/bitnami/apache/conf/httpd.conf -k graceful
+  # bncert-autorenew
+```
+Runs daily at 00:43 UTC, and itself uses a graceful reload — consistent
+with the reload discipline used throughout this section.
+
+### Result
+
+- `https://vockell.com/finance` is the hosted URL for the hackathon
+  submission — reachable by an anonymous visitor, valid TLS chain (the
+  site's existing certificate), no certificate warning.
+- `https://vockell.com` (every path other than `/finance`) is byte-for-byte
+  unaffected: confirmed via diff of the vhost file against the very first
+  backup (the only changed lines are the ones listed in step 3), and via
+  live external `curl`/browser checks matching the documented pre-existing
+  301-to-www baseline exactly.
+- Rollback position: either backup listed in step 2, restored per the
+  command shown there.
+
 ## How to verify
 
 Commands each later plan uses, collected in one place:
@@ -365,8 +568,8 @@ dig +short NS vockell.com
 # Live site still serves (before and after any 01-09 vhost edit)
 curl -I https://vockell.com
 
-# Once 01-09 adds the path mount, the app itself:
-curl -I "$PRODFIN_PUBLIC_URL/health"
+# The app itself, through the path mount (live since 01-09):
+curl -fsS "$PRODFIN_PUBLIC_URL/health"
 
 # SSH to the box
 ssh -i "$PRODFIN_SSH_KEY" "$PRODFIN_SSH_USER@$PRODFIN_STATIC_IP"
