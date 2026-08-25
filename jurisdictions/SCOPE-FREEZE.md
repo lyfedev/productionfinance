@@ -72,23 +72,55 @@ finds the boundary in the same directory.
    `mutually_exclusive_with` fields; `engine/pipeline.py::price_jurisdiction`
    loops over every declared programme and sums independent dollar outputs
    from independently-computed bases — never percentages. New York declares
-   one programme, so the loop is exercised for N=1; actual stacking
-   summation across more than one programme is implemented in plan 02-06.
+   one programme, so the loop was exercised for N=1 through plan 02-05;
+   **plan 02-06** lands the genuine multi-programme case:
+   `engine/credit.py::_apply_uplift_stacking` applies a programme's own
+   `uplifts` additively to its own base rate, in the order the rule file
+   declares them (data, not a code branch — proven by a fixture test that
+   swaps two declared uplifts and asserts the credit changes);
+   `engine/pipeline.py::_resolve_mutual_exclusivity` resolves every declared
+   `mutually_exclusive_with` edge before summation, taking the larger
+   contribution and recording both the taken and untaken programme's figure
+   (never silently dropping one); `_grinding_clause_lines` checks for a
+   declared grinding/assistance-reduction clause between two stacked,
+   contributing programmes and records the absence when the schema has no
+   field to express one (RD-06 below records the layout decision this
+   depends on). `tests/fixtures/jurisdictions/synthetic-stacking.yaml`
+   proves the whole chain: independent dollar summation across a national
+   and a regional programme with genuinely different bases, computed by
+   hand and asserted to differ from the wrong summed-rates figure.
 5. **Caps** (INC-04). `Caps.per_project_cap` and
    `Caps.annual_programme_cap` (amount, period, optional escalator
    schedule) are both present in the schema. New York declares
    `per_project_cap: null` and an annual cap of $700,000,000 per calendar
-   year (cited to the enacted budget bill). `engine/credit.py`'s per-project
-   and annual-cap steps both emit an unconditional derivation line; actual
-   per-project clipping is implemented in plan 02-06. The annual cap NEVER
-   reduces gross credit (RD-04, `02-01-PLAN.md`) — cap existence is rule
-   data (modelled here); cap consumption is live data, out of Phase 2's
-   scope entirely (dimension 11 below).
+   year (cited to the enacted budget bill). **Plan 02-06** lands per-project
+   clipping (`engine/credit.py::_apply_per_project_cap`, `min(credit, cap)`,
+   strictly-greater-than at the boundary — a credit exactly at the cap is
+   not clipped, proven at cap-minus-one/cap/cap-plus-one). The annual cap
+   step (`_apply_annual_programme_cap`) still NEVER reduces gross credit
+   (RD-04) — cap existence is rule data (modelled here); cap consumption is
+   live data, out of Phase 2's scope entirely (dimension 11 below). Where
+   both caps are declared, only the per-project cap clips the credit value;
+   the annual cap's derivation line is recorded independently.
 6. **Availability versus eligibility** (INC-05). `Caps.cap_consumption_check`
    declares the *method* by which live consumption would be checked
    (`live_research` for New York) without Phase 2 ever performing that
-   check itself. The two-independent-field availability answer (eligible
-   vs. available) is implemented in plan 02-06.
+   check itself. **Plan 02-06** lands the two-independent-field answer:
+   `engine/credit.py::assess_eligibility` (does this production qualify —
+   minimum spend, programme open, mutual exclusivity considered) and
+   `assess_availability` (does the programme's annual allocation still have
+   money left) are two separate functions returning two separate results,
+   both attached to `PricedProgramme` (`engine/pipeline.py`). `available` is
+   three-state: `True`/`False` only when a remaining-allocation figure was
+   actually supplied; an absent figure yields `None` with a reason stating
+   consumption state was not fetched — never defaulted to available. An
+   eligible-but-exhausted production reports `eligible=True,
+   available=False`; an ineligible production still gets a fully-computed,
+   non-null availability answer. **Partial allocation is deliberately not
+   modelled**: where the remaining allocation is smaller than the computed
+   credit, this phase reports the programme unavailable rather than
+   splitting the award across periods — a disclosed simplification owned by
+   whichever later phase adds a partial-award model, never a silent gap.
 7. **Net-cash mechanisms** (INC-06). `Programme.mechanism` is closed to
    `refundable`, `transferable`, `rebate_grant`, `nonrefundable_credit`.
    `engine/net_cash.py` implements `refundable` (New York's mechanism);
@@ -222,6 +254,36 @@ governs, not only inside a plan file:
   fixtures under `tests/fixtures/validation_pairs/` stay the single source
   of truth instead of being duplicated into the rule file where the two
   copies could diverge.
+- **RD-06 — regional programmes live in the parent jurisdiction's own file,
+  as additional `programmes` entries, never in a separate file linked by
+  `parent_id`.** `02-06-PLAN.md`'s opening task was a
+  `checkpoint:decision` (`programmes-in-one-file` vs.
+  `separate-files-parent-id`) precisely because `ARCHITECTURE.md` Q2
+  supplies both mechanisms and picks neither, and this decision fixes the
+  shape of every rule file committed from this point forward AND Phase 7's
+  Job 2 structured-extraction contract. **Decision: `programmes-in-one-file`
+  — answered by a human checkpoint on 2026-08-25.** Rationale: one file per
+  jurisdiction is the property that makes a public repository inspectable
+  (a reviewer opens one file and sees everything a place offers); stacking
+  edges (`stacks_with`, `mutually_exclusive_with`) resolve WITHIN that one
+  file, so the engine performs NO cross-file resolution step; it matches
+  how this phase's two curated files are already written; and Job 2
+  extracts one document per city rather than orchestrating two. Rejected
+  alternative, `separate-files-parent-id` (one file per programme-issuing
+  body, linked upward by `jurisdiction.parent_id`): cleaner per-body
+  provenance separation, but makes stacking a cross-file resolution step
+  the engine would have to perform, requires a reviewer to open two files
+  to see what one city actually offers, and would force Job 2 to judge when
+  a discovered regional scheme warrants a new file versus an entry — a
+  judgement an extraction step is poorly placed to make. Undo cost if this
+  is reversed later: rewriting every affected rule file, re-deriving the
+  Gemini response schema, and migrating any permalink that encodes a
+  jurisdiction identifier — a migration, not a refactor, which is why the
+  decision was gated rather than assumed.
+  `tests/fixtures/jurisdictions/synthetic-stacking.yaml` is written in this
+  layout: one file, three `programmes` entries, stacking and
+  mutual-exclusivity edges resolved locally by
+  `engine/pipeline.py::price_jurisdiction`.
 
 ## Unsourced facts deliberately not encoded
 

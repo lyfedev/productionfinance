@@ -20,17 +20,25 @@ from decimal import Decimal
 import pytest
 
 from engine.credit import (
+    Availability,
+    Eligibility,
     PerPersonCompensation,
+    assess_availability,
+    assess_eligibility,
     blend_two_rates_by_ceiling,
     compute_gross_credit,
     lookup_flat_rate_by_band,
 )
 from engine.figure import Figure
 from engine.models import (
+    AnnualProgrammeCap,
     Audit,
     BaseDefinition,
     Caps,
     CeilingSplit,
+    EffectiveDates,
+    Jurisdiction,
+    JurisdictionRuleSet,
     Money,
     PayoutLag,
     PerPersonCeiling,
@@ -39,16 +47,19 @@ from engine.models import (
     Tier,
     Timing,
     TransferDiscount,
+    Uplift,
     Validation,
     load_ruleset,
 )
 from engine.net_cash import convert_to_net_cash
+from engine.pipeline import price_jurisdiction
 from engine.qualifying_base import CORE_EXPENDITURE_LABEL, SpendBreakdown, compute_qualifying_base
 from engine.rounding import quantize_money
 
 FIXTURE_DIR = "tests/fixtures/jurisdictions"
 GA_FIXTURE = f"{FIXTURE_DIR}/synthetic-ga-style.yaml"
 UK_FIXTURE = f"{FIXTURE_DIR}/synthetic-uk-style.yaml"
+STACKING_FIXTURE = f"{FIXTURE_DIR}/synthetic-stacking.yaml"
 
 
 def _programme_by_id(path: str, programme_id: str) -> Programme:
@@ -69,6 +80,8 @@ def _make_programme(
     mechanism: str = "refundable",
     taxable: bool = False,
     corporation_tax_rate: Decimal | None = None,
+    caps: Caps | None = None,
+    minimum_spend: Money | None = None,
 ) -> Programme:
     """Build a minimal, valid Programme for tests that need a specific
     per_person_ceiling/rate_structure combination not covered by the
@@ -84,8 +97,8 @@ def _make_programme(
         base_definition=base_definition or BaseDefinition(type="total_qualified_spend"),
         per_person_ceiling=per_person_ceiling or PerPersonCeiling(applies=False),
         rate_structure=rate_structure,
-        minimum_spend=None,
-        caps=Caps(),
+        minimum_spend=minimum_spend,
+        caps=caps or Caps(),
         audit=Audit(mandatory=False),
         timing=Timing(
             terms_lock_at="application",
@@ -94,6 +107,47 @@ def _make_programme(
         transfer_discount=TransferDiscount(applies=False),
         validation=Validation(validated=False),
     )
+
+
+def _qualifying_base_figure(value: Decimal, *, currency: str = "USD") -> Figure:
+    """A directly-constructed 'Qualifying base' Figure for tests that want to
+    drive `compute_gross_credit` from an exact, hand-picked base value rather
+    than through `compute_qualifying_base`'s own dispatch."""
+    return Figure(
+        value=value,
+        unit=currency,
+        label="Qualifying base",
+        derivation=("test: directly constructed qualifying base",),
+        inputs=(),
+        source_url=None,
+        date_checked=None,
+        confidence="validated",
+        live_fetched_this_run=False,
+    )
+
+
+def _make_jurisdiction_ruleset(
+    programmes: list[Programme], *, jurisdiction_id: str = "zz-synthetic-in-memory-test"
+) -> JurisdictionRuleSet:
+    """An in-memory `JurisdictionRuleSet`, for tests that need to vary the
+    declared *number* of programmes (N=1, 2, 3, ...) without maintaining N
+    separate committed YAML fixtures."""
+    jurisdiction = Jurisdiction(
+        id=jurisdiction_id,
+        name="Synthetic in-memory jurisdiction for a programme-count test — never a real place",
+        country_code="ZZ",
+        level="national",
+        parent_id=None,
+        currency="USD",
+        status="synthetic_fixture",
+        effective_dates=EffectiveDates(
+            rule_version_effective_from=date(2026, 1, 1),
+            rule_version_effective_to=None,
+            source_checked_date=date(2026, 8, 25),
+        ),
+        sources=[],
+    )
+    return JurisdictionRuleSet(jurisdiction=jurisdiction, programmes=programmes)
 
 
 # ---------------------------------------------------------------------------
@@ -539,8 +593,6 @@ def test_tier_dispatch_and_stacking():
     # dispatching the SAME base through both structures and confirming the
     # two rate_structure types give different, individually-correct results
     # (never the same number by coincidence, never a shared code path).
-    # (Uplift stacking itself — additive rates across programmes — is a
-    # separate mechanism implemented in plan 02-06, not exercised here.)
     cliff_programme = _make_programme(
         rate_structure=RateStructure(type="tiered_by_spend", tiers=CT_TIERS)
     )
@@ -563,6 +615,277 @@ def test_tier_dispatch_and_stacking():
         "tiered_by_spend and blended_by_ceiling_split dispatched on the same input "
         "must not silently collapse to the same computation"
     )
+
+    # 7. Stacking half (plan 02-06): within one programme, uplifts are
+    # additive to the base rate, applied in DECLARED order — a stackable
+    # uplift always adds, a non-stackable uplift only adds if nothing has
+    # applied yet. Swapping two non-stackable uplifts' declared order
+    # therefore changes which one survives to contribute, proving the order
+    # is read from data, not a code branch.
+    uplift_first = Uplift(
+        id="uplift-first", name="First declared", additional_rate=Decimal("0.05"), stackable=False
+    )
+    uplift_second = Uplift(
+        id="uplift-second", name="Second declared", additional_rate=Decimal("0.03"), stackable=False
+    )
+    programme_first_then_second = _make_programme(
+        rate_structure=RateStructure(
+            type="flat", base_rate=Decimal("0.20"), uplifts=[uplift_first, uplift_second]
+        )
+    )
+    programme_second_then_first = _make_programme(
+        rate_structure=RateStructure(
+            type="flat", base_rate=Decimal("0.20"), uplifts=[uplift_second, uplift_first]
+        )
+    )
+    shared_base = _qualifying_base_figure(Decimal("10000000"))
+    result_first_then_second = compute_gross_credit(programme_first_then_second, shared_base)
+    result_second_then_first = compute_gross_credit(programme_second_then_first, shared_base)
+    assert result_first_then_second.value == Decimal("2500000")  # (0.20 + 0.05) x 10,000,000
+    assert result_second_then_first.value == Decimal("2300000")  # (0.20 + 0.03) x 10,000,000
+    assert result_first_then_second.value != result_second_then_first.value, (
+        "swapping two non-stackable uplifts' declared order must change the resulting "
+        "credit — ordering is read from data, not a code branch"
+    )
+
+    # Across programmes, only dollars are summed, never rates. Loading the
+    # committed stacking fixture and pricing it end-to-end through
+    # price_jurisdiction proves this for a genuine national+regional stack
+    # (see test_stacking_sums_dollars_not_rates_and_resolves_mutual_exclusivity
+    # below for the full, explicit negative-value assertion).
+    stacking_ruleset = load_ruleset(STACKING_FIXTURE)
+    stacking_priced = price_jurisdiction(stacking_ruleset, Decimal("10000000"))
+    stacking_by_id = {pp.programme_id: pp for pp in stacking_priced.programmes}
+    assert stacking_by_id["national-base"].gross_credit.value == Decimal("2500000")
+    assert stacking_by_id["regional-topup"].gross_credit.value == Decimal("300000")
+
+
+def test_stacking_sums_dollars_not_rates_and_resolves_mutual_exclusivity():
+    """`tests/fixtures/jurisdictions/synthetic-stacking.yaml` declares a
+    national programme (flat 0.20 + a 0.05 uplift = effective 0.25 over the
+    full $10,000,000 base -> $2,500,000), a regional top-up that stacks with
+    it over a SMALLER, different base (30% of core expenditure = $3,000,000,
+    at flat 0.10 -> $300,000), and a third programme mutually exclusive with
+    the regional one (flat 0.02 over the full base -> $200,000, smaller than
+    the regional contribution, so the regional programme is the one taken).
+
+    Every expected value here is computed BY HAND from the fixture's own
+    declared numbers, never by calling the engine on itself."""
+    ruleset = load_ruleset(STACKING_FIXTURE)
+    priced = price_jurisdiction(ruleset, Decimal("10000000"))
+    by_id = {pp.programme_id: pp for pp in priced.programmes}
+
+    national = by_id["national-base"]
+    regional = by_id["regional-topup"]
+    third = by_id["third-exclusive"]
+
+    assert national.gross_credit.value == Decimal("2500000")
+    assert regional.gross_credit.value == Decimal("300000")
+    assert third.gross_credit.value == Decimal("200000")
+
+    # requires_separate_application is true on national-base — the
+    # programme is still priced (its value above is unaffected), but a
+    # derivation line names the requirement so it is never silently dropped.
+    assert any(
+        "requires_separate_application is true" in line for line in national.gross_credit.derivation
+    )
+
+    # CORRECT: independent dollar outputs summed. national + regional stack
+    # (third-exclusive is excluded by mutual exclusivity, below).
+    correct_stacked_sum = national.gross_credit.value + regional.gross_credit.value
+    assert correct_stacked_sum == Decimal("2800000")
+
+    # WRONG: summing the two rates (0.25 national-effective + 0.10 regional)
+    # and applying the sum to national's own $10,000,000 base — arithmetically
+    # different whenever the two programmes have different bases, which they
+    # do here (national's base is $10,000,000; regional's is $3,000,000).
+    # The engine must never produce this figure.
+    wrong_summed_rate_figure = Decimal("10000000") * (Decimal("0.25") + Decimal("0.10"))
+    assert wrong_summed_rate_figure == Decimal("3500000")
+    assert correct_stacked_sum != wrong_summed_rate_figure
+
+    # Mutual exclusivity: regional-topup ($300,000) is taken over
+    # third-exclusive ($200,000) — the untaken figure is recorded, not
+    # dropped. The jurisdiction total is national + regional only.
+    assert priced.total_net_cash.value == Decimal("2800000")
+    derivation_text = " ".join(priced.total_net_cash.derivation)
+    assert "'regional-topup' taken (300000 USD)" in derivation_text
+    assert "'third-exclusive' not taken (200000 USD)" in derivation_text
+
+    # The untaken programme is still fully priced and reported in
+    # PricedJurisdiction.programmes — never silently dropped, even though it
+    # contributed nothing to the summed total.
+    assert third.gross_credit.value == Decimal("200000")
+
+    # No grinding/assistance-reduction clause is declared between the two
+    # stacked, contributing programmes — the absence is recorded, not
+    # assumed (SCOPE-FREEZE.md dimension 4).
+    assert (
+        "no grinding or assistance-reduction clause is declared between stacked "
+        "programmes 'national-base' and 'regional-topup'" in derivation_text
+    )
+
+    # PricedJurisdiction.programmes preserves the rule file's declared
+    # order — grouping is read from the rule file, never reordered/sorted.
+    assert [pp.programme_id for pp in priced.programmes] == [
+        "national-base",
+        "regional-topup",
+        "third-exclusive",
+    ]
+
+    # Determinism: pricing the same input twice in one process yields
+    # identical derivation tuples — no hidden module-level mutable state.
+    priced_again = price_jurisdiction(ruleset, Decimal("10000000"))
+    assert priced_again.total_net_cash.derivation == priced.total_net_cash.derivation
+    for pp_a, pp_b in zip(priced.programmes, priced_again.programmes, strict=True):
+        assert pp_a.gross_credit.derivation == pp_b.gross_credit.derivation
+
+
+@pytest.mark.parametrize("n", [1, 2, 3])
+def test_stacking_prices_every_declared_programme(n):
+    """A jurisdiction declaring N stackable programmes prices ALL N through
+    the identical code path and sums their independent dollar outputs — a
+    first-programme-only bug would pass at N=1 and fail at N=2 and N=3."""
+    rates = [Decimal("0.10"), Decimal("0.15"), Decimal("0.20")]
+    programmes = [
+        _make_programme(
+            programme_id=f"programme-{i}",
+            name=f"Synthetic programme {i}",
+            rate_structure=RateStructure(type="flat", base_rate=rates[i]),
+        )
+        for i in range(n)
+    ]
+    ruleset = _make_jurisdiction_ruleset(programmes)
+
+    priced = price_jurisdiction(ruleset, Decimal("10000000"))
+
+    assert len(priced.programmes) == n
+    expected_total = quantize_money(
+        sum((Decimal("10000000") * rate for rate in rates[:n]), Decimal("0"))
+    )
+    assert priced.total_net_cash.value == expected_total
+
+
+# ---------------------------------------------------------------------------
+# Task 2: caps that clip, and an availability answer that is not the
+# eligibility answer (INC-04, INC-05)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("raw_credit", "expected"),
+    [
+        (Decimal("1999999"), Decimal("1999999")),
+        (Decimal("2000000"), Decimal("2000000")),
+        (Decimal("2000001"), Decimal("2000000")),
+    ],
+    ids=["cap_minus_one", "at_cap", "cap_plus_one"],
+)
+def test_cap_boundaries(raw_credit, expected):
+    """A per-project cap of $2,000,000 clips $1,999,999 -> $1,999,999,
+    $2,000,000 -> $2,000,000 (unclipped, comparison is strictly
+    greater-than), and $2,000,001 -> $2,000,000."""
+    programme = _make_programme(
+        rate_structure=RateStructure(type="flat", base_rate=Decimal("1")),
+        caps=Caps(per_project_cap=Money(value=Decimal("2000000"), currency="USD")),
+    )
+    result = compute_gross_credit(programme, _qualifying_base_figure(raw_credit))
+    assert result.value == expected
+
+
+def test_cap_boundaries_no_cap_declared_emits_noop():
+    programme = _make_programme(rate_structure=RateStructure(type="flat", base_rate=Decimal("1")))
+    result = compute_gross_credit(programme, _qualifying_base_figure(Decimal("5000000")))
+    assert result.value == Decimal("5000000")
+    assert any("no per-project cap is declared" in line for line in result.derivation)
+
+
+def test_per_project_and_annual_cap_both_declared_only_per_project_clips():
+    """Where both a per-project cap and an annual programme cap are
+    declared, the credit is clipped by the per-project cap only — the
+    annual cap NEVER touches the credit value (RD-04) — and both steps emit
+    their own derivation line."""
+    programme = _make_programme(
+        rate_structure=RateStructure(type="flat", base_rate=Decimal("1")),
+        caps=Caps(
+            per_project_cap=Money(value=Decimal("2000000"), currency="USD"),
+            annual_programme_cap=AnnualProgrammeCap(
+                amount=Money(value=Decimal("500000"), currency="USD"), period="calendar_year"
+            ),
+        ),
+    )
+    result = compute_gross_credit(programme, _qualifying_base_figure(Decimal("3000000")))
+
+    assert result.value == Decimal("2000000")  # per-project cap binds; annual cap never clips
+    derivation_text = " ".join(result.derivation)
+    assert "per-project cap of 2000000" in derivation_text
+    assert "annual programme cap of 500000" in derivation_text
+
+
+def test_annual_cap_remaining_parameter_never_changes_credit():
+    """The gross credit is byte-identical whether `annual_cap_remaining` is
+    supplied or omitted — the annual programme cap never reduces gross
+    credit (RD-04); it only feeds `assess_availability`, a separate
+    determination."""
+    programme = _make_programme(
+        rate_structure=RateStructure(type="flat", base_rate=Decimal("0.2")),
+        caps=Caps(
+            annual_programme_cap=AnnualProgrammeCap(
+                amount=Money(value=Decimal("100"), currency="USD"), period="calendar_year"
+            )
+        ),
+    )
+    qualifying_base = _qualifying_base_figure(Decimal("1000000"))
+
+    with_remaining = compute_gross_credit(programme, qualifying_base, annual_cap_remaining=Decimal("1"))
+    without_remaining = compute_gross_credit(programme, qualifying_base, annual_cap_remaining=None)
+
+    assert with_remaining.value == without_remaining.value == Decimal("200000")
+
+
+def test_availability_three_state():
+    """`available` is `True`/`False` only when a remaining-allocation figure
+    was actually supplied; passing none yields `None` with a reason —
+    NEVER defaulted to `True`."""
+    unknown = assess_availability(Decimal("100"), None)
+    assert unknown.available is None
+    assert unknown.available is not True
+    assert "not fetched" in unknown.reason
+
+    exactly_enough = assess_availability(Decimal("100"), Decimal("100"))
+    assert exactly_enough.available is True
+
+    one_dollar_short = assess_availability(Decimal("100"), Decimal("99"))
+    assert one_dollar_short.available is False
+    assert "partial allocation" in one_dollar_short.reason
+
+
+def test_availability_separate_from_eligibility():
+    """An eligible production against an exhausted allocation reports
+    `eligible` True and `available` False as two independent fields, never
+    collapsed into one answer. An ineligible production still gets a fully
+    computed (non-null) availability answer."""
+    programme = _make_programme(rate_structure=RateStructure(type="flat", base_rate=Decimal("0.2")))
+    qualifying_base = compute_qualifying_base(
+        programme, SpendBreakdown.from_total(Decimal("1000000")), currency="USD"
+    )
+
+    # Eligible (minimum spend met, programme open) but the programme's
+    # annual allocation is exhausted for this production's $200,000 credit.
+    eligibility = assess_eligibility(programme, qualifying_base, jurisdiction_status="curated_validated")
+    availability = assess_availability(Decimal("200000"), Decimal("199999"))
+    assert isinstance(eligibility, Eligibility)
+    assert isinstance(availability, Availability)
+    assert eligibility.eligible is True
+    assert availability.available is False
+
+    # An ineligible production (programme not open) still gets a
+    # fully-computed, non-null availability answer — the two are never fused.
+    ineligible = assess_eligibility(programme, qualifying_base, jurisdiction_status="no_programme_found")
+    still_computed_availability = assess_availability(Decimal("200000"), Decimal("300000"))
+    assert ineligible.eligible is False
+    assert still_computed_availability.available is True
+    assert still_computed_availability.available is not None
 
 
 def test_directory_hygiene_synthetic_fixtures_declare_synthetic_status():

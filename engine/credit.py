@@ -24,7 +24,11 @@ from engine.qualifying_base import CORE_EXPENDITURE_LABEL
 from engine.rounding import quantize_money
 
 __all__ = [
+    "Availability",
+    "Eligibility",
     "PerPersonCompensation",
+    "assess_availability",
+    "assess_eligibility",
     "blend_two_rates_by_ceiling",
     "compute_gross_credit",
     "lookup_flat_rate_by_band",
@@ -252,14 +256,95 @@ def _apply_per_person_ceiling(
     return figure
 
 
+# `_apply_uplift_stacking` (within-programme, additive to the base rate) and
+# multi-programme mutual-exclusivity/summation (engine/pipeline.py) are two
+# different mechanisms, both named "stacking" in plain English — the
+# scope-freeze note's dimension 4. This label marks a Figure carrying the
+# total additive rate from this programme's own uplifts, attached to the
+# credit-sequence figure's `inputs`, so `_apply_rate` (which runs after this
+# step) can read it without `_apply_uplift_stacking` needing to widen
+# `compute_gross_credit`'s call signature.
+_UPLIFT_ADDITIONAL_RATE_LABEL = "Uplift stacking additional rate"
+
+
+def _find_uplift_additional_rate(figure: Figure) -> Decimal:
+    """Read the total additive rate `_apply_uplift_stacking` recorded, or
+    `Decimal('0')` when no uplifts were declared (the common case — every
+    existing rate-structure test with no uplifts continues to add exactly
+    zero, unchanged)."""
+    for inp in figure.inputs:
+        if inp.label == _UPLIFT_ADDITIONAL_RATE_LABEL:
+            return inp.value
+    return Decimal("0")
+
+
 def _apply_uplift_stacking(programme: Programme, figure: Figure) -> Figure:
-    uplifts = programme.rate_structure.uplifts
-    if uplifts:
-        raise NotImplementedError(
-            "uplift stacking (independent-dollar summation across "
-            "programmes) is implemented in plan 02-06"
+    """Within one programme, uplifts are additive to that programme's own
+    base rate, applied in the order the `uplifts` list declares them — the
+    order is data, not a code branch (INC-03).
+
+    `stackable` decides whether a given uplift may combine with uplifts
+    already applied: a stackable uplift always adds its `additional_rate` to
+    the running total; a non-stackable uplift only adds if nothing has been
+    applied yet (it cannot combine with anything already taken). This makes
+    the result order-dependent: swapping two non-stackable uplifts' declared
+    order changes which one survives to contribute — `tests/test_engine_credit.py`
+    proves this directly by reversing a fixture's declared `uplifts` list.
+
+    `Programme.requires_separate_application` (a top-level field, distinct
+    from `Uplift.requires_separate_application`) is recorded here too: the
+    programme is still priced, but a derivation line names the requirement
+    so it is never silently dropped when this programme's figure is later
+    summed against others in `engine/pipeline.py`.
+    """
+    if programme.requires_separate_application:
+        figure = figure.with_step(
+            f"{programme.name}: requires_separate_application is true — this programme is "
+            "still priced independently, but claiming it requires filing a separate "
+            "application, not a shared one with any programme it stacks with"
         )
-    return figure.with_step("no uplift stacking rules are declared for this programme")
+
+    uplifts = programme.rate_structure.uplifts
+    if not uplifts:
+        return figure.with_step("no uplift stacking rules are declared for this programme")
+
+    applied_rate = Decimal("0")
+    applied_any = False
+    for uplift in uplifts:
+        if uplift.stackable or not applied_any:
+            applied_rate += uplift.additional_rate
+            applied_any = True
+            line = (
+                f"uplift {uplift.id!r} ({uplift.name}): additional rate "
+                f"{uplift.additional_rate} stacked onto the base rate — running "
+                f"additional rate now {applied_rate} (stackable={uplift.stackable})"
+            )
+        else:
+            line = (
+                f"uplift {uplift.id!r} ({uplift.name}): stackable is false and an uplift "
+                "was already applied earlier in the declared order — skipped, a "
+                "non-stackable uplift cannot combine with uplifts already applied "
+                "(order is read from data, not a code branch)"
+            )
+        if uplift.requires_separate_application:
+            line = f"{line} — this uplift requires a separate application"
+        figure = figure.with_step(line)
+
+    marker = Figure(
+        value=applied_rate,
+        unit="rate",
+        label=_UPLIFT_ADDITIONAL_RATE_LABEL,
+        derivation=(
+            f"total additional rate from this programme's stackable uplifts, applied in "
+            f"declared order: {applied_rate}",
+        ),
+        inputs=(),
+        source_url=figure.source_url,
+        date_checked=figure.date_checked,
+        confidence=figure.confidence,
+        live_fetched_this_run=False,
+    )
+    return _dataclass_replace(figure, inputs=(*figure.inputs, marker))
 
 
 def _find_qualifying_base_input(figure: Figure) -> Figure | None:
@@ -292,11 +377,16 @@ def _apply_rate(programme: Programme, figure: Figure) -> Figure:
             raise ValueError(
                 "rate_structure.type is 'flat' but base_rate is not declared"
             )
-        credit_value = figure.value * rate_structure.base_rate
-        line = (
-            f"flat rate {rate_structure.base_rate} applied to base "
-            f"{figure.value} {figure.unit}"
-        )
+        additional_rate = _find_uplift_additional_rate(figure)
+        effective_rate = rate_structure.base_rate + additional_rate
+        credit_value = figure.value * effective_rate
+        line = f"flat rate {rate_structure.base_rate}"
+        if additional_rate != Decimal("0"):
+            line = (
+                f"{line} + uplift stacking additional rate {additional_rate} = "
+                f"{effective_rate}"
+            )
+        line = f"{line} applied to base {figure.value} {figure.unit}"
         if rate_structure.source_note:
             line = f"{line} — {rate_structure.source_note}"
         return figure.with_step(line, value=credit_value)
@@ -306,7 +396,9 @@ def _apply_rate(programme: Programme, figure: Figure) -> Figure:
             raise ValueError(
                 "rate_structure.type is 'tiered_by_spend' but no tiers are declared"
             )
-        credit_value = lookup_flat_rate_by_band(figure.value, rate_structure.tiers)
+        raw_credit_value = lookup_flat_rate_by_band(figure.value, rate_structure.tiers)
+        additional_rate = _find_uplift_additional_rate(figure)
+        credit_value = raw_credit_value + figure.value * additional_rate
         matched_tier = next(
             tier
             for tier in rate_structure.tiers
@@ -319,13 +411,27 @@ def _apply_rate(programme: Programme, figure: Figure) -> Figure:
             f"{figure.value} {figure.unit} falls in the band "
             f"[{matched_tier.threshold_low}, {upper}) — takes the single rate "
             f"{matched_tier.rate}, never a marginal/blended calculation "
-            f"(02-RESEARCH.md Pitfall 3) — gives {credit_value}"
+            f"(02-RESEARCH.md Pitfall 3) — gives {raw_credit_value}"
         )
+        if additional_rate != Decimal("0"):
+            line = (
+                f"{line}; plus uplift stacking additional rate {additional_rate} x base "
+                f"= {figure.value * additional_rate} — total {credit_value}"
+            )
         if rate_structure.source_note:
             line = f"{line} — {rate_structure.source_note}"
         return figure.with_step(line, value=credit_value)
 
     if rate_structure.type == "blended_by_ceiling_split":
+        # Uplift stacking's additive rate (_find_uplift_additional_rate) is
+        # NOT consumed here: a ceiling-split blend already applies two
+        # distinct rates to two distinct slices, and no requirement or
+        # curated jurisdiction in this phase combines uplift stacking with
+        # blended_by_ceiling_split — extending it speculatively (add to
+        # both rates? one? a third slice?) would be an unverified guess,
+        # exactly the kind of plausible-looking-but-invented behaviour this
+        # engine exists to avoid. A future jurisdiction that needs this
+        # combination requires a visible design decision, not a silent one.
         ceiling_split = rate_structure.ceiling_split
         if (
             ceiling_split is None
@@ -392,10 +498,30 @@ def _apply_rate(programme: Programme, figure: Figure) -> Figure:
 
 
 def _apply_per_project_cap(programme: Programme, figure: Figure) -> Figure:
+    """A per-project cap is a rule about what THIS project may be entitled
+    to, so it clips the credit value: `min(credit, cap)`. The comparison is
+    strictly greater-than — a credit exactly at the cap is not clipped
+    (boundary test at cap-1/cap/cap+1). This is unlike the annual programme
+    cap below (`_apply_annual_programme_cap`), which never touches `.value`
+    at all (RD-04) — the two caps answer genuinely different questions."""
     cap = programme.caps.per_project_cap
     if cap is None:
         return figure.with_step("no per-project cap is declared for this programme")
-    raise NotImplementedError("per-project cap clipping is implemented in plan 02-06")
+
+    if figure.value > cap.value:
+        clipped = cap.value
+        line = (
+            f"per-project cap of {cap.value} {cap.currency} applied — credit "
+            f"{figure.value} {figure.unit} exceeds the cap and is clipped to {clipped}"
+        )
+        return figure.with_step(line, value=clipped)
+
+    line = (
+        f"per-project cap of {cap.value} {cap.currency} is declared but not binding "
+        f"— credit {figure.value} {figure.unit} does not exceed it (comparison is "
+        "strictly greater-than: a credit exactly at the cap is not clipped)"
+    )
+    return figure.with_step(line)
 
 
 def _apply_annual_programme_cap(programme: Programme, figure: Figure) -> Figure:
@@ -419,10 +545,17 @@ def _apply_annual_programme_cap(programme: Programme, figure: Figure) -> Figure:
     if cap is None or cap.amount is None:
         return figure.with_step("no annual programme cap is declared for this programme")
 
+    consumption_check = programme.caps.cap_consumption_check
+    check_desc = (
+        f"declared consumption-check method: {consumption_check.method}"
+        if consumption_check is not None
+        else "no cap_consumption_check method is declared"
+    )
     line = (
         f"annual programme cap of {cap.amount.value} {cap.amount.currency} "
-        f"({cap.period}) declared — cap existence recorded; availability is "
-        "assessed separately (RD-04) and never reduces this gross credit value"
+        f"({cap.period}) declared — {check_desc} — cap existence recorded; the "
+        "remaining-allocation figure (if supplied) feeds assess_availability, which "
+        "is assessed separately (RD-04) and never reduces this gross credit value"
     )
     return figure.with_step(line)
 
@@ -447,10 +580,12 @@ def compute_gross_credit(
     (e.g. New York) exercises: the per-person-ceiling step's no-op branch
     never inspects them.
 
-    `annual_cap_remaining` is accepted for the future live-consumption path
-    (Phase 7); this plan does not yet consult it, since the annual cap step
-    never changes `.value` (RD-04)."""
-    del annual_cap_remaining  # accepted for interface stability; unused until 02-06/Phase 7
+    `annual_cap_remaining` is accepted here for interface stability but is
+    NOT consulted by this function — the annual-cap step never changes
+    `.value` (RD-04). `assess_availability` below is where a caller's
+    remaining-allocation figure is actually consumed; `engine/pipeline.py`
+    calls it separately with the same value."""
+    del annual_cap_remaining  # accepted for interface stability; consumed by assess_availability
 
     figure = Figure(
         value=qualifying_base.value,
@@ -480,4 +615,134 @@ def compute_gross_credit(
     quantized = quantize_money(figure.value)
     return figure.with_step(
         f"gross credit quantized to whole dollars: {quantized}", value=quantized
+    )
+
+
+@dataclass(frozen=True)
+class Eligibility:
+    """Whether a production QUALIFIES for a programme — answered completely
+    independently of whether the programme's annual allocation still has
+    money left in it (`Availability`, below). INC-05 forbids collapsing
+    these into one boolean; they are two different questions with two
+    different answers, computed here as two separate functions."""
+
+    eligible: bool
+    reasons: tuple[str, ...]
+
+
+def assess_eligibility(
+    programme: Programme,
+    qualifying_base: Figure,
+    *,
+    jurisdiction_status: str,
+) -> Eligibility:
+    """Reasons cover: whether the minimum-spend threshold was met (read from
+    `qualifying_base`'s own derivation — `_apply_minimum_spend_check` in
+    `engine/qualifying_base.py` already records this unconditionally, so no
+    new engine/qualifying_base.py change is needed here), whether the
+    jurisdiction's programme is open (`jurisdiction_status !=
+    'no_programme_found'`), and whether this programme declares a
+    mutual-exclusivity relationship — its actual resolution (which of a
+    mutually-exclusive pair is taken) happens at the jurisdiction level in
+    `engine/pipeline.py`, not per-programme here, so this only names that it
+    was considered.
+
+    An ineligible production still gets a fully computed `Availability`
+    answer elsewhere (`assess_availability`) — the two are never fused."""
+    reasons: list[str] = []
+    eligible = True
+
+    if any(
+        "is below the declared minimum-spend threshold" in line
+        for line in qualifying_base.derivation
+    ):
+        eligible = False
+        reasons.append(
+            "qualifying spend is below the programme's declared minimum-spend threshold"
+        )
+    else:
+        reasons.append("minimum-spend threshold met (or none declared for this programme)")
+
+    if jurisdiction_status == "no_programme_found":
+        eligible = False
+        reasons.append(
+            "jurisdiction.status is 'no_programme_found' — no active programme exists here"
+        )
+    else:
+        reasons.append(f"jurisdiction status is {jurisdiction_status!r} — programme is open")
+
+    if programme.mutually_exclusive_with:
+        reasons.append(
+            "declares mutually_exclusive_with "
+            f"{programme.mutually_exclusive_with} — resolution (which programme is "
+            "taken when both would contribute) happens at the jurisdiction level, "
+            "in engine/pipeline.py, not here"
+        )
+    else:
+        reasons.append("no mutually-exclusive programme is declared for this programme")
+
+    return Eligibility(eligible=eligible, reasons=tuple(reasons))
+
+
+@dataclass(frozen=True)
+class Availability:
+    """Whether the programme's annual allocation still has money left for
+    THIS production's credit — a fact about the programme's remaining
+    allocation, never about this project's entitlement (that is
+    `Eligibility`, above, and the per-project cap in `_apply_per_project_cap`).
+
+    Three-state, never a plain boolean: `available` is `True`/`False` only
+    when a remaining-allocation figure was actually supplied; passing none
+    yields `None` with a reason naming that consumption state was not
+    fetched. Defaulting an unknown to `True` would be the single most
+    misleading simplification available in this engine (the Czech Republic
+    case in `feasibility-incentives.md`: terms stable, money exhausted
+    mid-year — unrepresentable if availability is inferred from the rules
+    rather than fetched)."""
+
+    available: bool | None
+    reason: str
+
+
+def assess_availability(
+    credit_value: Decimal,
+    annual_cap_remaining: Decimal | None,
+) -> Availability:
+    """`annual_cap_remaining` is `None` whenever the caller has not fetched
+    live consumption state for this run (Phase 7's `DataFreshnessGate` owns
+    that fetch) — this function NEVER infers a value for it. Remaining
+    allocation exactly equal to `credit_value` reports available; one
+    dollar below reports unavailable, and no intermediate/partial-award
+    state is modelled (`jurisdictions/SCOPE-FREEZE.md`, disclosed
+    simplification, not a silent gap)."""
+    if annual_cap_remaining is None:
+        return Availability(
+            available=None,
+            reason=(
+                "no remaining-allocation figure was supplied for this run — consumption "
+                "state was not fetched (Phase 7's DataFreshnessGate owns fetching it); "
+                "defaulting an unknown to available would be the single most misleading "
+                "simplification available in this engine"
+            ),
+        )
+
+    if annual_cap_remaining >= credit_value:
+        return Availability(
+            available=True,
+            reason=(
+                f"remaining allocation {annual_cap_remaining} is at or above the computed "
+                f"credit {credit_value} — this production's credit fits within the "
+                "programme's remaining annual allocation"
+            ),
+        )
+
+    return Availability(
+        available=False,
+        reason=(
+            f"remaining allocation {annual_cap_remaining} is below the computed credit "
+            f"{credit_value} — the programme's annual allocation is exhausted for this "
+            "production; partial allocation (splitting the award across periods) is "
+            "deliberately not modelled in this phase, an explicit disclosed simplification "
+            "(jurisdictions/SCOPE-FREEZE.md), never a silent gap"
+        ),
     )

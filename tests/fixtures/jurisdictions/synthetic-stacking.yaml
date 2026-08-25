@@ -1,0 +1,277 @@
+# SYNTHETIC TEST FIXTURE — NOT A REAL JURISDICTION, NOT A CURATED RULE MODEL.
+#
+# Built for plan 02-06 (INC-03's stacking half) to prove the identity model
+# a national-plus-regional stack requires: N programmes, each priced
+# independently against its own base, with ONLY the resulting dollar
+# figures summed — never a summed rate applied to one shared base.
+#
+# Layout decision (checkpoint:decision, answered by the human 2026-08-25,
+# recorded in jurisdictions/SCOPE-FREEZE.md RD-06): `programmes-in-one-file`
+# — a regional programme that stacks on a national one lives as a second
+# entry in the SAME jurisdiction file's `programmes` list, not as a separate
+# file linked by `jurisdiction.parent_id`. Stacking edges (`stacks_with`,
+# `mutually_exclusive_with`) below are therefore resolved WITHIN this one
+# file; the engine performs no cross-file resolution step.
+#
+# Three programmes, all illustrative, none sourced to any real government
+# disclosure:
+#   - `national-base`: flat rate over the full total_qualified_spend base,
+#     carrying TWO uplifts (`early-shoot-uplift`, `rural-location-uplift`),
+#     both non-stackable — the ordering test in tests/test_engine_credit.py
+#     swaps their declared order and asserts the resulting credit changes,
+#     proving ordering is read from data, not a code branch.
+#     `requires_separate_application: true` at the programme level, so the
+#     "still priced, application-requirement recorded" derivation line is
+#     also exercised.
+#   - `regional-topup`: flat rate over a DIFFERENT, smaller base
+#     (`lesser_of_pct_core_or_actual_local` at a 30% cap of core
+#     expenditure) — stacks with `national-base`. Summing
+#     `national-base` + `regional-topup` as independent dollar outputs
+#     gives a different (correct) number than summing their two rates and
+#     applying the sum to `national-base`'s own base, which the test
+#     computes explicitly and asserts the engine does not produce.
+#   - `third-exclusive`: mutually exclusive with `regional-topup`, over the
+#     full base at a rate deliberately set BELOW `regional-topup`'s
+#     contribution, so `regional-topup` is the one taken and
+#     `third-exclusive` is the one recorded-but-excluded — proving the
+#     resolution keeps both figures visible rather than silently dropping
+#     the untaken one.
+#
+# All figures below are hand-picked round numbers chosen so the expected
+# results can be computed by hand in the test file, never by calling the
+# engine on itself. Every numeric value is a quoted YAML string (RD-01).
+
+jurisdiction:
+  id: zz-synthetic-stacking
+  name: "SYNTHETIC FIXTURE — national + regional stacking (illustrative, not a real curated place)"
+  country_code: ZZ
+  level: national
+  parent_id: null
+  currency: USD
+  status: synthetic_fixture
+  effective_dates:
+    rule_version_effective_from: "2026-01-01"
+    rule_version_effective_to: null
+    source_checked_date: "2026-08-25"
+  sources:
+    - url: "https://example.invalid/synthetic-fixture-stacking"
+      title: "Synthetic test fixture for plan 02-06's stacking/exclusivity engine-correctness proof — not a government source"
+      accessed_date: "2026-08-25"
+      confidence: LOW
+
+programmes:
+  - id: national-base
+    name: "Synthetic: national base programme, two non-stackable uplifts"
+    requires_separate_application: true
+    stacks_with: ["regional-topup"]
+    mutually_exclusive_with: []
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: total_qualified_spend
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "not modelled by this synthetic fixture — it exercises the stacking/exclusivity step only"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.20"
+      tiers: []
+      uplifts:
+        - id: early-shoot-uplift
+          name: "Early principal photography window uplift"
+          additional_rate: "0.05"
+          stackable: false
+          conditions: "illustrative only — declared order matters, this is the FIRST declared uplift"
+          requires_separate_application: false
+        - id: rural-location-uplift
+          name: "Rural location uplift"
+          additional_rate: "0.03"
+          stackable: false
+          conditions: "illustrative only — declared SECOND; non-stackable, so it is skipped when early-shoot-uplift already applied"
+          requires_separate_application: false
+      ceiling_split: null
+      headcount_scale: null
+      source_note: "Illustrative only — synthetic fixture, not sourced to any government disclosure"
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
+
+  - id: regional-topup
+    name: "Synthetic: regional top-up programme, different (smaller) base"
+    requires_separate_application: false
+    stacks_with: ["national-base"]
+    mutually_exclusive_with: ["third-exclusive"]
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: lesser_of_pct_core_or_actual_local
+      pct_core_cap: "0.30"
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "not modelled by this synthetic fixture — it exercises the stacking/exclusivity step only"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.10"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: "Illustrative only — synthetic fixture, not sourced to any government disclosure"
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
+
+  - id: third-exclusive
+    name: "Synthetic: mutually exclusive with regional-topup, smaller contribution so it is the one NOT taken"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: ["regional-topup"]
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: total_qualified_spend
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "not modelled by this synthetic fixture — it exercises the stacking/exclusivity step only"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.02"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: "Illustrative only — synthetic fixture, not sourced to any government disclosure"
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
