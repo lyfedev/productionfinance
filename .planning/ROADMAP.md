@@ -106,12 +106,12 @@ Plans:
   4. Whether the production qualifies is answered separately from whether the programme's annual allocation still has money left in it
   5. A new jurisdiction can be added as a rule file alone with no change to engine code — demonstrated by adding a throwaway fixture jurisdiction
 
-**Plans**: 6 plans in 3 waves
+**Plans**: 1/6 plans executed in 3 waves
 
 Plans:
 **Wave 1**
 
-- [ ] 02-01-PLAN.md — Tracer: New York priced end-to-end from rule file to the cited $991,190, plus the full schema and the dated scope-freeze note (wave 1)
+- [x] 02-01-PLAN.md — Tracer: New York priced end-to-end from rule file to the cited $991,190, plus the full schema and the dated scope-freeze note (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -305,7 +305,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundations — Source Truth & Deploy Path | 1 — Accounts | 8/9 | In Progress|  |
-| 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 0/6 | Planned | - |
+| 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 1/6 | In Progress|  |
 | 3. New York End-to-End — The Anora Proof | 1 — Accounts | 0/TBD | Not started | - |
 | 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 0/TBD | Not started | - |
 | 5. Curated Breadth & the Validation Loop | 1 — Accounts | 0/TBD | Not started | - |
