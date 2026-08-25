@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 02
 current_phase_name: Engine Spine & Incentive Interpreter
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-08-25T11:35:41.157Z"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-08-25T11:48:52.968Z"
 last_activity: 2026-08-25
 last_activity_desc: Phase 02 execution started
-state_head: 74c27f22994f75c4f9d6ae06424070ed139dd13e
+state_head: 3c0ff54aef36d7520b1ece4f51dc0dfccdccb932
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 15
-  completed_plans: 10
+  completed_plans: 11
   percent: 9
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 ## Current Position
 
 Phase: 02 (Engine Spine & Incentive Interpreter) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-08-25 — Phase 02 execution started
 
@@ -70,6 +70,7 @@ Progress: [█░░░░░░░░░] 9%
 | Phase 01 P09 | 16min | 1 tasks | 3 files |
 | Phase 02 P01 | 44min | 2 tasks | 15 files |
 | Phase 02 P02 | 12min | 2 tasks | 3 files |
+| Phase 02 P03 | 11min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -100,6 +101,7 @@ Recent decisions affecting current work:
 - [Phase 01]: 01-09 executed a revised plan: ProxyPass /finance added inline to the EXISTING vockell.com Apache vhost, reusing its existing Let's Encrypt certificate -- not the dedicated subdomain vhost + new bncert-tool certificate 01-09-PLAN.md was originally written for (superseded by D-14's path-mount decision, 01-06). No AWS resource (snapshot/resize) was touched; a file-level backup + configtest + graceful reload substituted. Two live Apache bugs found and fixed during verification (a www-redirect swallowing /finance; a doubled-slash ProxyPass target) plus one app-code bug (an absolute-path link breaking under the /finance mount, fixed via PRODFIN_PUBLIC_PATH). https://vockell.com/finance is now confirmed reachable by an anonymous off-box visitor over valid TLS; vockell.com's pre-existing behaviour on every other path is unchanged.
 - [Phase 02]: Phase 02 plan 01: engine spine tracer reproduces New York's Anora credit exactly ($991,190); RD-01..RD-05 schema deviations recorded in jurisdictions/SCOPE-FREEZE.md; Succession S4 fixture corrected exact->bounded (10bps) after measuring a 1.73bps residue, not silently reconciled.
 - [Phase 02]: Phase 02 plan 02: property-tested PRV-01/02/03 and the pinned-rounding/Decimal-precision/fail-loud-schema contracts against a real Anora-priced Figure tree -- zero engine/ production code changes needed, both plan-anticipated escape hatches went unused, both non-vacuity checks (deleted rounding= arg, removed no-op derivation line) performed and reverted.
+- [Phase 02]: Phase 02 plan 03: all four base-definition types plus the closed HANDLER_REGISTRY escape hatch widened from 02-01's tracer; excluded_line_items and the minimum-spend cliff apply uniformly across every type; lesser-of's 'actual local' candidate is core_expenditure itself under the D-02 no-localisation boundary. — Widens engine/qualifying_base.py per plan 02-03 without restructuring the schema plan 02-01 landed
 
 ### Pending Todos
 
@@ -125,6 +127,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-25T11:35:41.077Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-08-25T11:48:43.961Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None
