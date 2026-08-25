@@ -1,0 +1,230 @@
+# SYNTHETIC TEST FIXTURE — NOT A REAL JURISDICTION, NOT A CURATED RULE MODEL.
+#
+# Georgia is NEVER a curated jurisdiction for this project (per PROJECT.md
+# Out of Scope and jurisdictions/SCOPE-FREEZE.md): no per-production
+# disclosure exists anywhere for Georgia's film credit, so the validation
+# loop this project runs against a government-issued figure cannot close
+# for it. This file is purely an engine-correctness regression fixture,
+# built from the Georgia worked example in feasibility-incentives.md
+# ("Georgia, $10M GA spend including a $2M lead-actor deal") and from
+# `.planning/phases/02-engine-spine-incentive-interpreter/02-RESEARCH.md`
+# "Pitfall 4" — it proves engine/credit.py's per-person-ceiling step
+# reduces the BASE before the rate, distinguishes W-2 from loan-out
+# treatment, and selects a withholding rate from a dated schedule rather
+# than a scalar.
+#
+# Every numeric value below is illustrative and made up EXCEPT the
+# `loanout_withholding_schedule`, which is copied verbatim from
+# `.planning/SOURCE-TRUTH.md` SRC-05 — the Georgia Department of Revenue's
+# own published five-year declining schedule, confirmed HIGH confidence
+# against a primary source archived under sources/ga/. The flat 30% rate,
+# the $500,000 W-2 cap, and the `mechanism: refundable` declaration are all
+# illustrative constructs to exercise the engine, not sourced Georgia facts
+# — Georgia's real programme is transferable, not refundable, and its real
+# per-person cap and rate figures are confirmed in feasibility-incentives.md
+# but not re-sourced to a primary document in this session.
+#
+# `jurisdiction.status` is `synthetic_fixture` (never any curated-data
+# status value) and this file lives under `tests/fixtures/jurisdictions/`,
+# never under `jurisdictions/` — the directory-hygiene test in
+# tests/test_engine_qualifying_base.py enforces both structurally. This
+# file must never be presented as, or mistaken for, a curated
+# government-sourced rule model.
+#
+# Every numeric value is a quoted YAML string (RD-01 convention).
+
+jurisdiction:
+  id: zz-synthetic-ga-style
+  name: "SYNTHETIC FIXTURE — Georgia-style per-person ceiling (illustrative, not a real curated place)"
+  country_code: ZZ
+  level: state
+  parent_id: null
+  currency: USD
+  status: synthetic_fixture
+  effective_dates:
+    rule_version_effective_from: "2026-01-01"
+    rule_version_effective_to: null
+    source_checked_date: "2026-08-25"
+  sources:
+    - url: "https://dor.georgia.gov/film-tax-credits/film-tax-credit-resources"
+      title: "Film Tax Credit Resources (Georgia Department of Revenue) — the withholding schedule this fixture reproduces (SOURCE-TRUTH.md SRC-05); the flat rate and W-2 cap declared below are illustrative, not sourced to this page"
+      accessed_date: "2026-08-24"
+      confidence: HIGH
+
+programmes:
+  - id: ga-style-w2-vs-loanout-confirmed-synthetic
+    name: "Synthetic: per-person ceiling, W-2 vs loan-out, confirmed schedule"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: total_qualified_spend
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: true
+      note: "illustrative $500,000 W-2 cap, loan-out exempt — not Georgia's real confirmed cap figure"
+      w2_cap_amount:
+        value: "500000"
+        currency: USD
+      loanout_exempt: true
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: true
+      loanout_withholding_schedule:
+        # Copied verbatim from SOURCE-TRUTH.md SRC-05 (Georgia DOR's
+        # own published schedule), each rate carried to two decimal places
+        # exactly as the source prints it: 4.99%, 5.19%, 5.39%, 5.49%,
+        # 5.75% — never rounded, never collapsed to a single current rate.
+        # The Decimal field below is the rate MULTIPLIER (matching this
+        # schema's convention throughout, e.g. base_rate "0.25" == 25%);
+        # the percentage-as-printed form is preserved in each comment.
+        - effective_from: "2026-01-01"
+          effective_to: null
+          loanout_withholding_rate: "0.0499"  # 4.99% (current), SOURCE-TRUTH.md SRC-05
+        - effective_from: "2025-01-01"
+          effective_to: "2025-12-31"
+          loanout_withholding_rate: "0.0519"  # 5.19%, SOURCE-TRUTH.md SRC-05
+        - effective_from: "2024-01-01"
+          effective_to: "2024-12-31"
+          loanout_withholding_rate: "0.0539"  # 5.39%, SOURCE-TRUTH.md SRC-05
+        - effective_from: "2023-01-01"
+          effective_to: "2023-12-31"
+          loanout_withholding_rate: "0.0549"  # 5.49%, SOURCE-TRUTH.md SRC-05
+        - effective_from: "1900-01-01"
+          effective_to: "2022-12-31"
+          loanout_withholding_rate: "0.0575"  # 5.75% (pre-2023), SOURCE-TRUTH.md SRC-05
+
+    rate_structure:
+      type: flat
+      base_rate: "0.30"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: "illustrative 30% flat rate, not derived from any statute — this fixture exercises engine/credit.py's per-person-ceiling step, not Georgia's real programme"
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
+
+  - id: ga-style-w2-vs-loanout-unconfirmed-synthetic
+    name: "Synthetic: per-person ceiling, identical to the confirmed programme above but loanout_withholding_confirmed is false"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: total_qualified_spend
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: true
+      note: "same illustrative cap and schedule as the confirmed programme, but loanout_withholding_confirmed is false — proves an unconfirmed schedule entry is still USED, but downgrades the resulting figure's confidence to researched"
+      w2_cap_amount:
+        value: "500000"
+        currency: USD
+      loanout_exempt: true
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: false
+      loanout_withholding_schedule:
+        - effective_from: "2026-01-01"
+          effective_to: null
+          loanout_withholding_rate: "0.0499"  # 4.99% (current), SOURCE-TRUTH.md SRC-05
+        - effective_from: "2025-01-01"
+          effective_to: "2025-12-31"
+          loanout_withholding_rate: "0.0519"  # 5.19%, SOURCE-TRUTH.md SRC-05
+        - effective_from: "2024-01-01"
+          effective_to: "2024-12-31"
+          loanout_withholding_rate: "0.0539"  # 5.39%, SOURCE-TRUTH.md SRC-05
+        - effective_from: "2023-01-01"
+          effective_to: "2023-12-31"
+          loanout_withholding_rate: "0.0549"  # 5.49%, SOURCE-TRUTH.md SRC-05
+        - effective_from: "1900-01-01"
+          effective_to: "2022-12-31"
+          loanout_withholding_rate: "0.0575"  # 5.75% (pre-2023), SOURCE-TRUTH.md SRC-05
+
+    rate_structure:
+      type: flat
+      base_rate: "0.30"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: "illustrative 30% flat rate, not derived from any statute"
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null

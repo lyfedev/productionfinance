@@ -29,17 +29,44 @@ finds the boundary in the same directory.
    (`SOURCE-TRUTH.md` SRC-05) is the concrete proof this must be a
    lookup-by-effective-date table. New York's rule file declares
    `per_person_ceiling.applies: false` with a note (the FY2026 budget
-   removed New York's $500,000 above-the-line cap); actual ceiling
-   application is implemented in plan 02-05.
+   removed New York's $500,000 above-the-line cap). **Plan 02-05** landed
+   ceiling application: `engine/credit.py::_apply_per_person_ceiling`
+   reduces the qualifying base by each W-2 compensation's excess over the
+   declared cap (before the rate step, never a post-hoc clip on the
+   credit — the ordering `02-RESEARCH.md` Pitfall 4 verified by
+   execution), and treats a loan-out payment as fully qualifying when
+   `loanout_exempt` is true, instead producing a **separate**
+   withholding-obligation `Figure` (`compute_gross_credit`'s
+   `per_person_compensations` parameter — production-specific data, not
+   rule-file data). That withholding-obligation figure is attached to the
+   credit figure's `inputs` for provenance but is **never subtracted from
+   the credit or from net cash** — it is a liability on the loan-out
+   entity, a different party, and netting it off would misstate both
+   figures (T-02-05). An unconfirmed schedule entry
+   (`loanout_withholding_confirmed: false`) is still used to compute the
+   obligation, but downgrades the resulting figure's confidence to
+   `researched`.
 3. **Rate structures** (INC-03). `RateStructure.type` is closed to `flat`,
    `tiered_by_spend` (cliff lookup —
    `engine/credit.py::lookup_flat_rate_by_band`), `blended_by_ceiling_split`
    (two-rate blend — `engine/credit.py::blend_two_rates_by_ceiling`), and
-   `headcount_scaled` (dispatch shape only). New York exercises `flat` only
-   (`base_rate: "0.25"`); the other three types raise `NotImplementedError`
-   naming plan 02-05. `Uplift` entries (additive to base rate,
-   stackable/non-stackable, separate-application flag) are modelled in the
-   schema; their application is implemented in plan 02-06.
+   `headcount_scaled` (dispatch shape only). New York exercises `flat`
+   (`base_rate: "0.25"`); Connecticut (plan 02-05) exercises
+   `tiered_by_spend` — the whole qualifying base takes the ONE rate of the
+   band it falls in, never a marginal/blended calculation across bands
+   (conflating the two produced a ~$175,000 error against Connecticut's
+   disclosed Christmas Always figure when verified by execution,
+   `02-RESEARCH.md` Finding 3). `blend_two_rates_by_ceiling` (plan 02-05)
+   splits core expenditure at the declared enhanced threshold FIRST, then
+   caps EACH slice to the declared percentage cap, then applies each
+   slice's own rate — capping the whole base before splitting instead
+   gives a different, wrong number (verified against the UK worked
+   example: £7,176,000 correct vs. £7,632,000 for the wrong ordering).
+   `headcount_scaled` still raises `NotImplementedError` naming plan
+   02-05 — no curated jurisdiction needs it yet. `Uplift` entries
+   (additive to base rate, stackable/non-stackable, separate-application
+   flag) are modelled in the schema; their application is implemented in
+   plan 02-06.
 4. **Stacking across national/regional programmes** (INC-03). The schema
    supports multiple `programmes` per jurisdiction with `stacks_with` /
    `mutually_exclusive_with` fields; `engine/pipeline.py::price_jurisdiction`

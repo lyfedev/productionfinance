@@ -1,0 +1,128 @@
+# SYNTHETIC TEST FIXTURE — NOT A REAL JURISDICTION, NOT A CURATED RULE MODEL.
+#
+# The United Kingdom is NEVER a curated jurisdiction for this project (per
+# PROJECT.md Out of Scope and jurisdictions/SCOPE-FREEZE.md): no BFI or
+# HMRC publication ties a title to its £ AVEC/IFTC amount — the figure
+# lives inside a confidential Corporation Tax computation, so the
+# validation loop this project runs against a government-issued figure
+# cannot close for the UK. This file is PURELY an engine-correctness
+# regression fixture, built from the worked example in
+# feasibility-incentives.md ("UK IFTC, £18M film, 100% UK spend") and from
+# `.planning/phases/02-engine-spine-incentive-interpreter/02-RESEARCH.md`
+# "Pitfall 3" and the recorded decision at the top of
+# `02-05-PLAN.md` ("the ceiling split operates on core expenditure, before
+# the cap"). It must NEVER be presented as, or mistaken for, a model of the
+# UK's actual Independent Film Tax Credit programme — the rate, threshold
+# and cap figures below are copied from that one worked example, not
+# independently re-verified against HMRC guidance in this session.
+#
+# £18,000,000 of core expenditure, split at a £15,000,000 enhanced
+# ceiling: enhanced slice £15,000,000, standard slice £3,000,000. Each
+# slice capped at 80% of itself (£12,000,000 / £2,400,000), each capped
+# slice multiplied by its own rate (53% / 34%): £6,360,000 + £816,000 =
+# £7,176,000 gross. This is the D-05-adjacent golden value
+# tests/test_engine_credit.py asserts, and the £7,632,000 cap-before-split
+# figure it explicitly asserts is NOT produced.
+#
+# `jurisdiction.status` is `synthetic_fixture` (never any curated-data
+# status value) and this file lives under `tests/fixtures/jurisdictions/`,
+# never under `jurisdictions/` — the directory-hygiene test in
+# tests/test_engine_qualifying_base.py enforces both structurally.
+#
+# Every numeric value is a quoted YAML string (RD-01 convention). Plan
+# 02-04 reads this same committed file for the net-cash half of the worked
+# example (the taxable mechanism, corporation-tax deduction) and must not
+# need to modify it — the mechanism and tax fields below are declared now
+# even though this plan (02-05) asserts only the gross figure.
+
+jurisdiction:
+  id: zz-synthetic-uk-style
+  name: "SYNTHETIC FIXTURE — UK-style ceiling-split blend (illustrative, not a real curated place)"
+  country_code: ZZ
+  level: national
+  parent_id: null
+  currency: GBP
+  status: synthetic_fixture
+  effective_dates:
+    rule_version_effective_from: "2026-01-01"
+    rule_version_effective_to: null
+    source_checked_date: "2026-08-25"
+  sources:
+    - url: "https://example.invalid/synthetic-fixture-uk-style"
+      title: "Synthetic test fixture, copied from feasibility-incentives.md's worked UK IFTC example — not an HMRC or BFI government source"
+      accessed_date: "2026-08-25"
+      confidence: LOW
+
+programmes:
+  - id: uk-style-ceiling-split-synthetic
+    name: "Synthetic: blended_by_ceiling_split, £18M IFTC worked example"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: nonrefundable_credit
+    taxable: true
+    corporation_tax_rate: "0.25"
+
+    base_definition:
+      type: lesser_of_pct_core_or_actual_local
+      pct_core_cap: "0.80"
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "not modelled by this synthetic fixture — it exercises the rate/blend step only"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: blended_by_ceiling_split
+      base_rate: null
+      tiers: []
+      uplifts: []
+      ceiling_split:
+        enhanced_threshold:
+          value: "15000000"
+          currency: GBP
+        enhanced_rate: "0.53"
+        standard_rate: "0.34"
+      headcount_scale: null
+      source_note: "Illustrative only — the United Kingdom is never a curated jurisdiction for this project (no per-production disclosure exists); this £-denominated worked example (feasibility-incentives.md, £18M IFTC) is used purely as an engine-correctness regression for blend_two_rates_by_ceiling and must never be presented as a model of the UK's actual programme."
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
