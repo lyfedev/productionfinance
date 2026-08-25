@@ -13,11 +13,11 @@
 
 Resolve before modelling. Wrong inputs produce confidently wrong outputs, and the product's entire claim is correctness.
 
-- [ ] **SRC-01**: New York's annual cap is reconciled against a primary source (tax.ny.gov or enacted FY2026 budget bill text). Working hypothesis to confirm or refute: $700M base plus a separate $100M independent-film pool, not a $700M/$800M dispute.
-- [ ] **SRC-02**: Connecticut open-data CSV column headers are confirmed by opening the actual endpoint, before CT's rule model or ingestion logic is written
+- [x] **SRC-01**: New York's annual cap is reconciled against a primary source (tax.ny.gov or enacted FY2026 budget bill text). Working hypothesis to confirm or refute: $700M base plus a separate $100M independent-film pool, not a $700M/$800M dispute.
+- [x] **SRC-02**: Connecticut open-data CSV column headers are confirmed by opening the actual endpoint, before CT's rule model or ingestion logic is written
 - [x] **SRC-03**: All 11 sourced production/award validation pairs are locked into test fixtures with their source document URLs and disclosure stage (issued / allocated / estimated) recorded
 - [x] **SRC-04**: Partner track confirmed — **Parallel** (owner-confirmed 2026-08-24). Parallel's Search API must be called at runtime via the official `parallel-web` SDK. The "Our track: IBM" line in `hackathon-brief.md` refers to the sibling animatic project and does not apply here. *Resolved before planning; re-verify against the submission portal when the entry is filed.*
-- [ ] **SRC-05**: Georgia loan-out withholding rate is confirmed against a dated Georgia DOR source. Working hypothesis: 5.75% is pre-2024-reform, 4.99% is current.
+- [x] **SRC-05**: Georgia loan-out withholding rate is confirmed against a dated Georgia DOR source. Working hypothesis: 5.75% is pre-2024-reform, 4.99% is current.
 
 ### Production Input
 
@@ -194,11 +194,11 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 
 | Requirement | Phase | Milestone | Status |
 |-------------|-------|-----------|--------|
-| SRC-01 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
-| SRC-02 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SRC-01 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
+| SRC-02 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
 | SRC-03 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
 | SRC-04 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
-| SRC-05 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SRC-05 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
 | INP-01 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
 | INP-02 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
 | INP-03 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
