@@ -23,8 +23,9 @@ resolution.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     # Import only for static type-checking. engine.qualifying_base imports
@@ -38,9 +39,7 @@ if TYPE_CHECKING:
 __all__ = ["HANDLER_REGISTRY", "labour_plus_quarter_local_hires", "resolve_handler"]
 
 
-def labour_plus_quarter_local_hires(
-    programme: "Programme", spend: "SpendBreakdown"
-) -> Decimal:
+def labour_plus_quarter_local_hires(programme: Programme, spend: SpendBreakdown) -> Decimal:
     """The registry's first real entry — a qualifying-base formula none of
     the four declarative ``base_definition.type`` values can express:
     labour spend plus one quarter of local-hires spend. Illustrative only,

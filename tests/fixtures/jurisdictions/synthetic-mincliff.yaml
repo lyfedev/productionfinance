@@ -1,0 +1,170 @@
+# SYNTHETIC TEST FIXTURE — NOT A REAL JURISDICTION, NOT GOVERNMENT DATA.
+#
+# Mirrors Connecticut's real $100,000 lower statutory band (see
+# tests/fixtures/validation_pairs/ct_christmas_always.yaml's `notes` block,
+# which documents CT's real three-tier schedule starting at $100,000) so this
+# synthetic minimum-spend cliff matches a real statutory shape in magnitude —
+# but this file is a fixture, not a model of Connecticut or any other real
+# jurisdiction. `jurisdiction.status` is `synthetic_fixture` and this file
+# lives under `tests/fixtures/jurisdictions/`, never under `jurisdictions/`;
+# the directory-hygiene test in tests/test_engine_qualifying_base.py enforces
+# both structurally.
+#
+# Every numeric value is a quoted YAML string (RD-01 convention).
+
+jurisdiction:
+  id: zz-synthetic-mincliff
+  name: "SYNTHETIC FIXTURE — minimum-spend cliff (illustrative, not a real place)"
+  country_code: ZZ
+  level: state
+  parent_id: null
+  currency: USD
+  status: synthetic_fixture
+  effective_dates:
+    rule_version_effective_from: "2026-01-01"
+    rule_version_effective_to: null
+    source_checked_date: "2026-08-25"
+  sources:
+    - url: "https://example.invalid/synthetic-fixture-mincliff"
+      title: "Synthetic test fixture — not a government source"
+      accessed_date: "2026-08-25"
+      confidence: LOW
+
+programmes:
+  - id: with-minimum-spend
+    name: "Synthetic: $100,000 minimum-spend threshold"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: total_qualified_spend
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "synthetic fixture — no real per-person ceiling"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.30"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: "illustrative rate, mirrors CT's real 30% top band in magnitude only"
+
+    minimum_spend:
+      value: "100000"
+      currency: USD
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
+
+  - id: without-minimum-spend
+    name: "Synthetic: no minimum-spend threshold declared"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: total_qualified_spend
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "synthetic fixture — no real per-person ceiling"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.30"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: "illustrative rate, mirrors CT's real 30% top band in magnitude only"
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null

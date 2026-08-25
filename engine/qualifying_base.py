@@ -16,7 +16,7 @@ from engine.figure import Confidence, Figure
 from engine.handlers import resolve_handler
 from engine.models import BaseDefinition, Programme
 
-__all__ = ["SpendBreakdown", "compute_qualifying_base", "CORE_EXPENDITURE_LABEL"]
+__all__ = ["CORE_EXPENDITURE_LABEL", "SpendBreakdown", "compute_qualifying_base"]
 
 # Every qualifying-base handler records the un-capped core expenditure on
 # its returned Figure as an entry in `inputs` whose label is exactly this
@@ -50,7 +50,7 @@ class SpendBreakdown:
     line_items: dict[str, Decimal] = field(default_factory=dict)
 
     @classmethod
-    def from_total(cls, total: Decimal) -> "SpendBreakdown":
+    def from_total(cls, total: Decimal) -> SpendBreakdown:
         """Build a SpendBreakdown from a single total when only a total is
         known. This is the D-02 interpreter-only boundary in code: the
         tracer feeds a disclosed qualified-spend figure straight in, with no

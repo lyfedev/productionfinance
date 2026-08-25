@@ -34,6 +34,7 @@ from engine.qualifying_base import CORE_EXPENDITURE_LABEL, SpendBreakdown, compu
 
 FIXTURE_DIR = "tests/fixtures/jurisdictions"
 BASEDEFS_FIXTURE = f"{FIXTURE_DIR}/synthetic-basedefs.yaml"
+MINCLIFF_FIXTURE = f"{FIXTURE_DIR}/synthetic-mincliff.yaml"
 
 CURATED_DIR = "jurisdictions"
 
@@ -320,3 +321,72 @@ def test_directory_hygiene_fixture_status_vs_curated_status():
             "under jurisdictions/ (curated data) — a synthetic fixture must never "
             "be filed here"
         )
+
+
+# --- Task 2: minimum-spend thresholds as tested cliffs, never ramps -------
+
+
+@pytest.mark.parametrize(
+    ("raw_spend", "expected_base"),
+    [
+        (Decimal("99999"), Decimal("0")),
+        (Decimal("100000"), Decimal("100000")),
+        (Decimal("100001"), Decimal("100001")),
+    ],
+    ids=["threshold_minus_one", "at_threshold", "threshold_plus_one"],
+)
+def test_minimum_spend_cliff(raw_spend, expected_base):
+    """A minimum-spend threshold is a step function: threshold minus one
+    dollar gives exactly Decimal('0'), threshold gives the full base,
+    threshold plus one dollar gives the full base — never a value between
+    zero and the full base. The equality assertion below would fail for any
+    proportionally-reduced non-zero value, not only for a fully-ramped one."""
+    programme = _programme_by_id(MINCLIFF_FIXTURE, "with-minimum-spend")
+    spend = SpendBreakdown.from_total(raw_spend)
+
+    figure = compute_qualifying_base(programme, spend)
+
+    assert figure.value == expected_base
+
+    if expected_base == Decimal("0"):
+        assert "100000" in figure.derivation[-1]
+
+
+def test_minimum_spend_not_declared_still_emits_derivation():
+    """A programme declaring no minimum spend still emits a derivation line
+    stating that no minimum-spend threshold is declared, so silence is never
+    mistaken for 'not considered'."""
+    with_threshold = _programme_by_id(MINCLIFF_FIXTURE, "with-minimum-spend")
+    without_threshold = _programme_by_id(MINCLIFF_FIXTURE, "without-minimum-spend")
+
+    met_figure = compute_qualifying_base(
+        with_threshold, SpendBreakdown.from_total(Decimal("500000"))
+    )
+    undeclared_figure = compute_qualifying_base(
+        without_threshold, SpendBreakdown.from_total(Decimal("500000"))
+    )
+
+    assert len(undeclared_figure.derivation) > 0
+    assert "no minimum-spend threshold is declared" in undeclared_figure.derivation[-1]
+    assert len(undeclared_figure.derivation) >= len(met_figure.derivation)
+
+
+def test_minimum_spend_evaluated_against_base_not_total():
+    """The cliff is evaluated against the qualifying base produced by the
+    base-definition dispatch, not against the raw input total — a labour-only
+    programme reducing $110,000 of total spend to $90,000 of labour falls
+    below a $100,000 threshold even though the total spend does not."""
+    programme = _make_programme(
+        BaseDefinition(type="labour_only"),
+        minimum_spend=Money(value=Decimal("100000"), currency="USD"),
+    )
+    spend = SpendBreakdown(
+        total_spend=Decimal("110000"),
+        labour_spend=Decimal("90000"),
+        local_hires_spend=Decimal("110000"),
+        core_expenditure=Decimal("110000"),
+    )
+
+    figure = compute_qualifying_base(programme, spend)
+
+    assert figure.value == Decimal("0")
