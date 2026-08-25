@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 02
 current_phase_name: Engine Spine & Incentive Interpreter
 status: executing
-stopped_at: Completed 02-07-PLAN.md
-last_updated: "2026-08-25T18:32:39.870Z"
+stopped_at: Completed 02-08-PLAN.md
+last_updated: "2026-08-25T18:42:43.930Z"
 last_activity: 2026-08-25
 last_activity_desc: Phase 02 execution started
-state_head: f14ad18c6304415c2503b2d0e632bf20d58ae2d0
+state_head: df163247911a167b08e7a716a3a073b5c5a6de33
 progress:
   total_phases: 11
   completed_phases: 1
   total_plans: 18
-  completed_plans: 15
+  completed_plans: 16
   percent: 9
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 ## Current Position
 
 Phase: 02 (Engine Spine & Incentive Interpreter) — EXECUTING
-Plan: 2 of 9
+Plan: 3 of 9
 Status: Ready to execute
 Last activity: 2026-08-25 — Phase 02 execution started
 
@@ -75,6 +75,7 @@ Progress: [█░░░░░░░░░] 9%
 | Phase 02 P04 | 18min | 2 tasks | 3 files |
 | Phase 02 P06 | 50min | 3 tasks | 7 files |
 | Phase 02 P07 | 51min | 2 tasks | 4 files |
+| Phase 02 P08 | 22min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,8 @@ Recent decisions affecting current work:
 - [Phase 02]: Phase 02 plan 04: all four net-cash mechanisms (refundable, transferable, rebate_grant, nonrefundable_credit) landed in engine/net_cash.py, sharing a half-open cliff-tiered audit fee lookup that mirrors engine/credit.py's rate-band shape; the UK worked example closes on Decimal('5382000') net cash from Decimal('7176000') gross at 25% corporation tax, putting DMO-02's 44% naive-arithmetic-overstatement claim under test rather than only in a slide. transferable reports a low/high bound with point=None, never a fabricated midpoint. ArrivalTiming now computes an estimated date from a declared payout_lag.typical_days; an unsourced lag still reports a null date with a stated reason.
 - [Phase 02]: Phase 02 plan 06: national+regional stacking sums independent dollar Figures across N declared programmes (never rates); mutual exclusivity resolved before summation, taken and untaken figures both recorded; per-project cap clips at a strictly-greater-than boundary while the annual cap never touches the credit (RD-04); eligibility and availability land as two genuinely independent answers, availability three-state and never defaulted to available. zz-fixture-throwaway.yaml prices correctly with a zero-line diff to engine/, proving JUR-05. Checkpoint decision: regional programmes live as additional entries in the parent jurisdiction's own file (programmes-in-one-file), recorded as RD-06 in SCOPE-FREEZE.md.
 - [Phase 02]: Phase 02 plan 07: closed CR-01 by carrying the minimum-spend, excluded-line-items and per-person-ceiling reductions onto core expenditure before slicing in blended_by_ceiling_split, via an always-attached EXCLUDED_LINE_ITEMS_TOTAL_LABEL marker Figure; a zero-or-below running base now short-circuits to Decimal('0') before any slice is rated. Anora, Christmas Always, the UK worked example and zz-fixture-throwaway all still reproduce byte-identically.
+- [Phase 02]: engine/models.py: both stacks_with and mutually_exclusive_with edges validated in ONE model_validator on JurisdictionRuleSet (WR-02 substance: cannot drift apart), comparing ids via plain string equality with no normalization
+- [Phase 02]: WR-04 fixed at the JurisdictionRuleSet schema boundary (Field min_length=1 on programmes); engine/figure.py::combined_confidence left untouched since its empty-sequence contract is correct for its primary use
 
 ### Pending Todos
 
@@ -135,6 +138,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-25T18:32:39.820Z
-Stopped at: Completed 02-07-PLAN.md
+Last session: 2026-08-25T18:42:43.883Z
+Stopped at: Completed 02-08-PLAN.md
 Resume file: None
