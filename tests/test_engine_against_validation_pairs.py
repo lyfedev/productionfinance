@@ -14,20 +14,50 @@ after fees, and asserting a disclosed figure against net cash would
 silently require the audit-fee/discount model to be wrong in a
 compensating direction.
 
-Plan 02-05 deviation (Rule 1 — bug: an accidental coupling, not a
-requirement of RD-03 itself): this test now prices base + credit directly,
-bypassing `engine.pipeline.price_jurisdiction` entirely. `price_jurisdiction`
-always also computes net cash via `engine.net_cash.convert_to_net_cash`,
-which raises `NotImplementedError` for any mechanism other than
-`refundable` until plan 02-04 lands (02-04 is wave 3 and depends on 02-05,
-so it has not run yet). Connecticut's real, statute-sourced mechanism is
-`transferable` (jurisdictions/us-ct.yaml), so routing this golden-value
-test through the full pipeline would raise before ever reaching the
-assertion this test actually needs — even though the test never looks at
-net cash at all. RD-03's own stated principle ("assert on gross credit,
-never net cash") means this test was never supposed to depend on net cash
-being computable in the first place; decoupling from `price_jurisdiction`
-makes that principle load-bearing rather than accidental.
+Plan 02-05 deviation, re-coupled by plan 02-09 (Rule 1 — bug: an accidental
+coupling, not a requirement of RD-03 itself): this test originally priced
+base + credit directly, bypassing `engine.pipeline.price_jurisdiction`
+entirely. `price_jurisdiction` always also computes net cash via
+`engine.net_cash.convert_to_net_cash`, which raised `NotImplementedError`
+for any mechanism other than `refundable` before plan 02-04 landed.
+Connecticut's real, statute-sourced mechanism is `transferable`
+(jurisdictions/us-ct.yaml), so routing this golden-value test through the
+full pipeline would have raised before ever reaching the assertion this
+test actually needs — even though the test never looks at net cash at all.
+Plan 02-04 implemented `transferable` (and the other three net-cash
+mechanisms), closing the gap that motivated the decoupling. Plan 02-09
+re-coupled the test to `price_jurisdiction`, adding pipeline-routed
+assertions ALONGSIDE the original direct base-then-credit assertions — both
+paths run and must agree, so neither can compensate for the other. RD-03's
+own stated principle ("assert on gross credit, never net cash") still
+holds: routing through `price_jurisdiction` changes which code path
+produces the figure, never which figure is compared against a government
+disclosure.
+
+Plan 02-09 finding, discovered by actually running the re-coupled test
+(never assumed): `price_jurisdiction` always ALSO computes net cash, and the
+real, committed `jurisdictions/us-ct.yaml` declares
+`transfer_discount.applies: true` but leaves `typical_rate_low` and
+`typical_rate_high` both null — CGS 12-217jj(e)(1) confirms the credit is
+transferable but the statute states no market discount rate, so no sourced
+conversion rate exists for Connecticut. `engine.net_cash.transferable`
+correctly refuses to convert at an unsourced rate rather than invent one
+(the same behaviour `tests/test_engine_net_cash.py::test_transferable_requires_fully_declared_transfer_discount`
+already covers generically) — so `price_jurisdiction` currently raises
+`ValueError` for EVERY active Connecticut pair, not only Christmas Always.
+This is a genuine, disclosed data gap, not a bug: `engine/net_cash.py` and
+`jurisdictions/us-ct.yaml` are both correct and unmodified by this plan, and
+inventing a discount rate to make the pipeline "complete" would violate this
+project's core rule against presenting an unresearched figure as validated.
+It is also the concrete, real-data proof of WHY RD-03 anchors the
+golden-value assertion on gross credit alone rather than net cash:
+`test_christmas_always_reproduces_exactly` above already proves the
+disclosed figure is reproduced through the direct base-then-credit path; net
+cash for Connecticut cannot currently be computed at all, sourced or
+fabricated. `_pipeline_can_complete` (below) makes this exclusion structural
+rather than a hard-coded jurisdiction-id skip, so a future `us-ct.yaml`
+update that sources a real discount rate is picked up automatically, not
+silently left excluded.
 
 Jurisdiction-to-rule-file mapping is now a dict (JUR-05-style: adding a
 third jurisdiction here is a one-line addition, not a copied test), per
@@ -46,6 +76,7 @@ import yaml
 
 from engine.credit import compute_gross_credit
 from engine.models import JurisdictionRuleSet, load_ruleset
+from engine.pipeline import price_jurisdiction
 from engine.qualifying_base import SpendBreakdown, compute_qualifying_base
 
 FIXTURE_DIR = "tests/fixtures/validation_pairs"
@@ -112,26 +143,57 @@ def _gross_credit_for(pair: dict) -> Decimal:
     return gross_credit.value
 
 
-ALL_ACTIVE_PAIRS = NY_ACTIVE_PAIRS + CT_ACTIVE_PAIRS
+def _gross_credit_via_pipeline(pair: dict) -> Decimal:
+    """Price `pair` through `engine.pipeline.price_jurisdiction` — the
+    engine's real entry point — and return the matching `PricedProgramme`'s
+    gross-credit value. Mirrors `_gross_credit_for`'s fail-loud missing-
+    programme message shape."""
+    ruleset = RULESETS[pair["jurisdiction_id"]]
+    qualified_spend = Decimal(pair["qualified_spend"])
+    priced = price_jurisdiction(ruleset, qualified_spend)
+    priced_programme = next(
+        (pp for pp in priced.programmes if pp.programme_id == pair["program_id"]), None
+    )
+    assert priced_programme is not None, (
+        f"{pair['production_title']}: no priced programme matches program_id "
+        f"{pair['program_id']!r} — check "
+        f"{RULESET_PATH_BY_JURISDICTION[pair['jurisdiction_id']]}'s programme id "
+        "against the fixture"
+    )
+    return priced_programme.gross_credit.value
 
 
-@pytest.mark.parametrize(
-    "pair", ALL_ACTIVE_PAIRS, ids=[p["production_title"] for p in ALL_ACTIVE_PAIRS]
-)
-def test_curated_jurisdiction_reproduces_disclosed_credit(pair):
-    """Assert on the disclosed credit-issued figure alone — the fixture's
-    other money field (a separate, distinct NY program not modelled by
-    this rule file, per SCOPE-FREEZE.md) is never added to this comparison
-    (Pitfall 5). Covers every curated jurisdiction in
-    RULESET_PATH_BY_JURISDICTION, not New York alone."""
+def _pipeline_can_complete(pair: dict) -> bool:
+    """True unless `pair`'s declared programme is `transferable` without a
+    fully-sourced `transfer_discount` range — the one currently-known reason
+    `price_jurisdiction` cannot complete for a real, correctly-sourced
+    jurisdiction file (plan 02-09 finding, see module docstring). Checked
+    structurally by reading the declared programme, never by jurisdiction
+    id, so a future `us-ct.yaml` update that sources a real discount rate is
+    picked up automatically rather than staying silently excluded."""
+    ruleset = RULESETS[pair["jurisdiction_id"]]
+    programme = next(p for p in ruleset.programmes if p.id == pair["program_id"])
+    if programme.mechanism != "transferable":
+        return True
+    discount = programme.transfer_discount
+    return (
+        discount.applies
+        and discount.typical_rate_low is not None
+        and discount.typical_rate_high is not None
+    )
+
+
+def _assert_matches_disclosure(pair: dict, computed_credit: Decimal, *, via: str) -> None:
+    """The shared exact-versus-bounded comparison, used by both the
+    direct-path and pipeline-routed tests so a future tolerance change
+    cannot apply to one path and not the other."""
     disclosed_credit = Decimal(pair["credit_amount"])
     disclosed_spend = Decimal(pair["qualified_spend"])
-    computed_credit = _gross_credit_for(pair)
 
     mode = pair["assertion"]["mode"]
     if mode == "exact":
         assert computed_credit == disclosed_credit, (
-            f"{pair['production_title']}: computed gross credit "
+            f"{pair['production_title']} ({via}): computed gross credit "
             f"{computed_credit} does not exactly match disclosed "
             f"{disclosed_credit}"
         )
@@ -144,12 +206,68 @@ def test_curated_jurisdiction_reproduces_disclosed_credit(pair):
         residue = abs(disclosed_credit - computed_credit)
         implied_bps = (residue / disclosed_spend) * Decimal("10000")
         assert implied_bps <= Decimal(tolerance_bps), (
-            f"{pair['production_title']}: residue {residue} is "
+            f"{pair['production_title']} ({via}): residue {residue} is "
             f"{implied_bps} bps of disclosed spend, exceeding the fixture's "
             f"tolerance_bps of {tolerance_bps}"
         )
     else:
         pytest.fail(f"{pair['production_title']}: unrecognized assertion.mode {mode!r}")
+
+
+ALL_ACTIVE_PAIRS = NY_ACTIVE_PAIRS + CT_ACTIVE_PAIRS
+
+# Every active pair whose declared programme currently CAN complete through
+# `price_jurisdiction` (plan 02-09 finding, see module docstring) —
+# Connecticut's real `transferable` programme cannot, so it is excluded here
+# but still fully covered by the direct-path tests above and by
+# test_ct_pipeline_routing_blocked_by_unsourced_transfer_discount below,
+# which proves and names exactly why.
+PIPELINE_ROUTABLE_PAIRS = [p for p in ALL_ACTIVE_PAIRS if _pipeline_can_complete(p)]
+if not PIPELINE_ROUTABLE_PAIRS:
+    raise RuntimeError(
+        "no pipeline-routable pairs found — an empty pipeline-routed sweep must fail "
+        "loudly, not report a vacuous green."
+    )
+
+
+@pytest.mark.parametrize(
+    "pair", ALL_ACTIVE_PAIRS, ids=[p["production_title"] for p in ALL_ACTIVE_PAIRS]
+)
+def test_curated_jurisdiction_reproduces_disclosed_credit(pair):
+    """Assert on the disclosed credit-issued figure alone — the fixture's
+    other money field (a separate, distinct NY program not modelled by
+    this rule file, per SCOPE-FREEZE.md) is never added to this comparison
+    (Pitfall 5). Covers every curated jurisdiction in
+    RULESET_PATH_BY_JURISDICTION, not New York alone. Direct base-then-
+    credit path — kept alongside the pipeline-routed sweep below, not
+    replaced by it (plan 02-09)."""
+    computed_credit = _gross_credit_for(pair)
+    _assert_matches_disclosure(pair, computed_credit, via="direct")
+
+
+@pytest.mark.parametrize(
+    "pair", PIPELINE_ROUTABLE_PAIRS, ids=[p["production_title"] for p in PIPELINE_ROUTABLE_PAIRS]
+)
+def test_curated_jurisdiction_reproduces_disclosed_credit_via_pipeline(pair):
+    """Every pipeline-routable active validation pair, re-run through
+    `price_jurisdiction` — the engine's real entry point, exercising base ->
+    credit -> net cash as one composition (plan 02-09 re-coupling). The
+    pipeline-routed gross credit must ALSO equal the direct base-then-credit
+    gross credit for this same pair: the two paths agreeing is the evidence
+    that neither is compensating for the other. Connecticut's `transferable`
+    pair is excluded from this sweep by `PIPELINE_ROUTABLE_PAIRS` (module
+    docstring, `_pipeline_can_complete`) — its direct-path reproduction is
+    still proven by the sweep above and by
+    `test_christmas_always_reproduces_exactly`."""
+    direct_credit = _gross_credit_for(pair)
+    pipeline_credit = _gross_credit_via_pipeline(pair)
+    assert pipeline_credit == direct_credit, (
+        f"{pair['production_title']}: pipeline-routed gross credit "
+        f"{pipeline_credit} disagrees with the direct base-then-credit gross "
+        f"credit {direct_credit} — the two paths must agree; a disagreement "
+        "is a real finding about the composition, never a fixture problem"
+    )
+    _assert_matches_disclosure(pair, pipeline_credit, via="price_jurisdiction")
 
 
 def test_anora_reproduces_exactly():
@@ -174,6 +292,52 @@ def test_christmas_always_reproduces_exactly():
     )
     computed = _gross_credit_for(christmas_always)
     assert computed == Decimal("1159502")
+
+
+def test_anora_reproduces_exactly_through_price_jurisdiction():
+    """Anora's disclosed qualified spend of $3,964,760 prices to a gross
+    credit of exactly Decimal('991190') through `price_jurisdiction` — the
+    engine's real entry point, not only the direct base-then-credit path
+    `test_anora_reproduces_exactly` above already proves."""
+    anora = next(p for p in NY_ACTIVE_PAIRS if p["production_title"] == "Anora")
+    computed = _gross_credit_via_pipeline(anora)
+    assert computed == Decimal("991190")
+
+
+def test_christmas_always_reproduces_exactly_through_price_jurisdiction():
+    """Plan 02-09 finding (documented, not routed around — see module
+    docstring): this test was written to prove Christmas Always's disclosed
+    $3,865,005 prices to exactly Decimal('1159502') through
+    `price_jurisdiction`, necessarily running Connecticut's `transferable`
+    net-cash conversion. Running it against the real, committed
+    `jurisdictions/us-ct.yaml` instead proves the opposite of what was
+    assumed: `price_jurisdiction` raises `ValueError`, because
+    `transfer_discount.typical_rate_low`/`typical_rate_high` are both null —
+    CGS 12-217jj(e)(1) states the credit is transferable but states no
+    market discount rate, so no sourced conversion rate exists to run. This
+    is a genuine, disclosed data gap, not a bug (`engine/net_cash.py` and
+    `jurisdictions/us-ct.yaml` are both correct and unmodified by this
+    plan), and it is NOT silently routed around: `_pipeline_can_complete`
+    reports `False` for this exact reason, `test_christmas_always_reproduces_exactly`
+    above already proves the disclosed gross-credit figure through the
+    direct path (RD-03's actual assertion target), and this test asserts
+    the raise directly so a future sourced `transfer_discount` on
+    `jurisdictions/us-ct.yaml` — which would make this test start failing —
+    is caught immediately, not silently missed."""
+    christmas_always = next(
+        p for p in CT_ACTIVE_PAIRS if p["production_title"] == "Christmas Always"
+    )
+    assert not _pipeline_can_complete(christmas_always), (
+        "expected price_jurisdiction to currently raise for Christmas Always "
+        "(unsourced transfer_discount on jurisdictions/us-ct.yaml) — if this now "
+        "fails, us-ct.yaml has been sourced with a real discount rate and this "
+        "test should be rewritten back to its originally-intended exact-value "
+        "and low/high/point-None assertions"
+    )
+    ruleset = RULESETS[christmas_always["jurisdiction_id"]]
+    qualified_spend = Decimal(christmas_always["qualified_spend"])
+    with pytest.raises(ValueError, match="transfer_discount"):
+        price_jurisdiction(ruleset, qualified_spend)
 
 
 def test_at_least_three_new_york_pairs_exercised():
