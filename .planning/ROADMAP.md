@@ -23,7 +23,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 ### Milestone 1 — Accounts (the submission)
 
 - [ ] **Phase 1: Foundations — Source Truth & Deploy Path** - Confirm every fact the engine will encode and get a public HTTPS URL live, in parallel
-- [ ] **Phase 2: Engine Spine & Incentive Interpreter** - One generic data-driven engine turning a spec plus a rule file into cited net cash
+- [x] **Phase 2: Engine Spine & Incentive Interpreter** - One generic data-driven engine turning a spec plus a rule file into cited net cash (completed 2026-08-25)
 - [ ] **Phase 3: New York End-to-End — The Anora Proof** - The thinnest vertical slice: a real cited government figure reproduced on the hosted URL
 - [ ] **Phase 4: Cost Localization & Landed-Cost Outputs** - The same production priced against each city's real local costs, ranked and gap-decomposed
 - [ ] **Phase 5: Curated Breadth & the Validation Loop** - CA, NJ, CT modelled and Job 1 proving them against government disclosures
@@ -311,7 +311,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundations — Source Truth & Deploy Path | 1 — Accounts | 8/9 | In Progress|  |
-| 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 9/9 | In Progress|  |
+| 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 9/9 | Complete    | 2026-08-25 |
 | 3. New York End-to-End — The Anora Proof | 1 — Accounts | 0/TBD | Not started | - |
 | 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 0/TBD | Not started | - |
 | 5. Curated Breadth & the Validation Loop | 1 — Accounts | 0/TBD | Not started | - |
