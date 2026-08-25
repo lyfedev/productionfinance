@@ -85,3 +85,139 @@ documents:
       12-217jj only (see ct_christmas_always.yaml notes).
     cited_for:
       - "Christmas Always, LLC — issued 2024-10-22, Rocky Hill, CGS 12-217jj"
+      - "SRC-02 — SOURCE-TRUTH.md entry: exact seven-column header row, data-quality artifacts"
+
+  # --- SRC-01 (NY cap conflict) documents, plan 01-05 ---
+
+  - path: sources/ny/2026-08-24-ny-enacted-budget-film-credit-extract.pdf
+    url: https://legislation.nysenate.gov/pdf/bills/2025/S3009C
+    retrieved_at: "2026-08-24T23:24:00-07:00"
+    sha256: "8ce03a1d3d4a0d9c7e658dc7e48eb769adf6174d6c1593531da4ad7f7b07ba1d"
+    jurisdiction: us-ny
+    document_title: "S. 3009--C / A. 3009--C, the 2025-2026 New York State Revenue Budget Bill (signed into law as Chapter 59 of the Laws of 2025 on 2025-05-09), full text as printed by the NY State Senate"
+    note: >
+      The enacted statutory text — top of the D2/PITFALLS.md precedence
+      ordering, and neither of the two ESD PDFs below is itself the statute.
+      Fetched directly from the NY Senate's own bill-PDF endpoint
+      (legislation.nysenate.gov), which serves the official print without
+      the Cloudflare bot-verification challenge that blocked direct access
+      to www.nysenate.gov/legislation/laws/TAX/24 this session (see
+      SOURCE-TRUTH.md SRC-01 for the access-method note). Part I, Section 3
+      (amending Tax Law section 24(e)(4), "Additional pool 2") shows the
+      $700,000,000/year base-program figure UNCHANGED — only the sunset
+      year is amended, from "[thirty-four]" (2034) to "thirty-six" (2036).
+      Part I, Section 9 adds new Tax Law section 24-d, the Empire State
+      Independent Film Production Credit, at $20,000,000/year (sub-$10M
+      qualified-cost productions) plus $80,000,000/year (>=$10M), summing
+      to $100,000,000/year — confirmed directly from the enacted bill text,
+      not from ESD's paraphrase of it.
+    cited_for:
+      - "SRC-01 — SOURCE-TRUTH.md entry: closes the $700M/$800M conflict against the enacted statute"
+
+  - path: sources/ny/2026-08-24-esd-film-credit-guidelines.pdf
+    url: https://esd.ny.gov/sites/default/files/media/document/Film_Credit_Guidelines_W_Appendix_20250418_0.pdf
+    retrieved_at: "2026-08-24T23:21:00-07:00"
+    sha256: "42ffc801a4ff61f00ad71e38d3dc869f52ddf4d227f727181902989a7a489d14"
+    jurisdiction: us-ny
+    document_title: "New York State Film Tax Credit Program Guidelines, dated 2025-04-18"
+    note: >
+      One of the two ESD documents stating $700 million/year (the other is
+      the current esd.ny.gov page, archived separately below) — pre-dates
+      the enacted-bill sunset-date extension from 2034 to 2036, still
+      reading "until 2034" at line "$700 million allocation going forward
+      until 2034."
+    cited_for:
+      - "SRC-01 — the $700M base-program figure, one of the two ESD documents in tension with the AUP document's $800M"
+
+  - path: sources/ny/2026-08-24-esd-film-prod-cpa-aup.pdf
+    url: https://esd.ny.gov/sites/default/files/media/document/Film-Prod-CPA-AUP-May2026.pdf
+    retrieved_at: "2026-08-24T23:21:01-07:00"
+    sha256: "95b60708e11bc26833ce4e860ea8b2c5807d1192052b54a8ef7227dc6e3c2118"
+    jurisdiction: us-ny
+    document_title: "NYS Film Tax Credit Program – Agreed Upon Procedures, dated May 2026"
+    note: >
+      The anomalous document: page 1, "Background", states "Program
+      credits of $800 million per year" using the same sentence
+      construction as the Guidelines PDF's $700M sentence. Resolved in
+      SOURCE-TRUTH.md SRC-01 as the base ($700M) plus the independent-film
+      pool ($100M) combined, not a further statutory change — the enacted
+      bill text (above) does not support an $800M base-program figure.
+    cited_for:
+      - "SRC-01 — the anomalous $800M figure that triggered the conflict"
+
+  - path: sources/ny/2026-08-24-esd-live-film-production-page.html
+    url: https://www.esd.ny.gov/new-york-state-film-tax-credit-program-production
+    retrieved_at: "2026-08-24T23:22:00-07:00"
+    sha256: "6aa32a02893ef19846168c3737d289faec09e5b61549c6f7eabfc257550ccee9"
+    jurisdiction: us-ny
+    document_title: "New York State Film Tax Credit Program — Production (live esd.ny.gov program page)"
+    note: >
+      Raw curl fetch this session (not the WebFetch/LLM-summarized fetch
+      01-RESEARCH.md relied on) — direct byte confirmation of "This tax
+      credit is funded at $700 million a year through 2036," matching the
+      enacted bill's 2036 sunset extension exactly.
+    cited_for:
+      - "SRC-01 — the current live-page restatement of the $700M/2036 figure"
+
+  - path: sources/ny/2026-08-24-esd-independent-film-production-page.html
+    url: https://www.esd.ny.gov/new-york-state-independent-film-production-tax-credit-program
+    retrieved_at: "2026-08-24T23:22:01-07:00"
+    sha256: "716eebc6c016bcb6253af44b3e787641c8b0a10471c48372b5feeefabe580a51"
+    jurisdiction: us-ny
+    document_title: "New York State Independent Film Production Tax Credit Program (live esd.ny.gov program page)"
+    note: >
+      Raw curl fetch this session. Confirms "This tax credit is funded at
+      $100 million per calendar year," split "Pool 1 with approximately
+      $20 million annually... $10 million or less in qualified costs" and
+      "Pool 2 with approximately $80 million annually... more than $10
+      million," matching the enacted bill's new section 24-d exactly.
+    cited_for:
+      - "SRC-01 — the $100M independent-film pool figure and its $20M/$80M sub-pool split"
+
+  # --- SRC-05 (GA loan-out withholding) documents, plan 01-05 ---
+
+  - path: sources/ga/2026-08-24-dor-film-tax-credit-resources.html
+    url: https://dor.georgia.gov/film-tax-credits/film-tax-credit-resources
+    retrieved_at: "2026-08-24T23:25:00-07:00"
+    sha256: "fddc5cc771fffe854a0d4dec5cb1ba2b08c717b2b66e3b0090500d16d8d8a002"
+    jurisdiction: us-ga
+    document_title: "Film Tax Credit Resources (Georgia Department of Revenue)"
+    note: >
+      Under the "Withholding Rate" heading: the five-tier declining
+      schedule (4.99% current back to 5.75% pre-2023), verbatim. This page
+      itself does not contain a sentence explicitly naming loan-out
+      withholding — see the two linked pages below for that.
+    cited_for:
+      - "SRC-05 — the full dated withholding-rate schedule"
+
+  - path: sources/ga/2026-08-24-dor-film-tax-credit-withholding-instructions.html
+    url: https://dor.georgia.gov/film-tax-credit-withholding-instructions-and-forms
+    retrieved_at: "2026-08-24T23:25:01-07:00"
+    sha256: "3d3c45e6fccd0bd50633544c41af0ca1ce0311a8cf08f1c0be594e68468f8939"
+    jurisdiction: us-ga
+    document_title: "Film Tax Credit Withholding - Instructions and Forms (Georgia Department of Revenue)"
+    note: >
+      Hub page linking to the G2-FP/G2-FL claim instructions and the
+      Instructions for Production Companies page (both archived below),
+      which together carry the explicit loan-out sentence this page itself
+      does not state directly.
+    cited_for:
+      - "SRC-05 — the film-withholding-forms index page"
+
+  - path: sources/ga/2026-08-24-dor-instructions-for-production-companies.html
+    url: https://dor.georgia.gov/instructions-production-companies
+    retrieved_at: "2026-08-24T23:26:00-07:00"
+    sha256: "6f9809442d8704855096c609027c6ef94e5dcf0fb5818f00363fd58fbff29c16"
+    jurisdiction: us-ga
+    document_title: "Instructions for Production Companies (Georgia Department of Revenue)"
+    note: >
+      The explicit sentence: "The production company or qualified
+      interactive entertainment production company (or their payroll
+      service providers) shall withhold Georgia Income Tax at the current
+      annual rate on all payments to loan-out companies for services
+      performed in Georgia." Cites O.C.G.A. section 48-7-40.26 and
+      Regulation 560-7-8-45. This is what raises the loan-out-specificity
+      claim in SRC-05 from the MEDIUM caveat 01-RESEARCH.md flagged to a
+      directly-sourced statement.
+    cited_for:
+      - "SRC-05 — the explicit statutory tie of the withholding rate to loan-out-company payments"
