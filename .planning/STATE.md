@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 current_phase: 02
 current_phase_name: Engine Spine & Incentive Interpreter
 status: executing
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-08-25T11:48:52.968Z"
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-08-25T12:16:50.722Z"
 last_activity: 2026-08-25
 last_activity_desc: Phase 02 execution started
-state_head: 3c0ff54aef36d7520b1ece4f51dc0dfccdccb932
+state_head: 8a573a4556188d9191b46e84aa6d3cdd437d916a
 progress:
   total_phases: 11
   completed_phases: 1
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 ## Current Position
 
 Phase: 02 (Engine Spine & Incentive Interpreter) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
 Last activity: 2026-08-25 — Phase 02 execution started
 
@@ -71,6 +71,7 @@ Progress: [█░░░░░░░░░] 9%
 | Phase 02 P01 | 44min | 2 tasks | 15 files |
 | Phase 02 P02 | 12min | 2 tasks | 3 files |
 | Phase 02 P03 | 11min | 2 tasks | 5 files |
+| Phase 02 P05 | 55min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,7 @@ Recent decisions affecting current work:
 - [Phase 02]: Phase 02 plan 01: engine spine tracer reproduces New York's Anora credit exactly ($991,190); RD-01..RD-05 schema deviations recorded in jurisdictions/SCOPE-FREEZE.md; Succession S4 fixture corrected exact->bounded (10bps) after measuring a 1.73bps residue, not silently reconciled.
 - [Phase 02]: Phase 02 plan 02: property-tested PRV-01/02/03 and the pinned-rounding/Decimal-precision/fail-loud-schema contracts against a real Anora-priced Figure tree -- zero engine/ production code changes needed, both plan-anticipated escape hatches went unused, both non-vacuity checks (deleted rounding= arg, removed no-op derivation line) performed and reverted.
 - [Phase 02]: Phase 02 plan 03: all four base-definition types plus the closed HANDLER_REGISTRY escape hatch widened from 02-01's tracer; excluded_line_items and the minimum-spend cliff apply uniformly across every type; lesser-of's 'actual local' candidate is core_expenditure itself under the D-02 no-localisation boundary. — Widens engine/qualifying_base.py per plan 02-03 without restructuring the schema plan 02-01 landed
+- [Phase 02]: Phase 02 plan 05: per-person ceiling reduces the qualifying base before the rate (W-2 excess over cap; loan-out exempt qualifies in full plus a separate, never-netted withholding-obligation Figure selected from a dated schedule); tiered_by_spend (cliff lookup) and blended_by_ceiling_split (split-then-cap-each-slice) landed as two distinct engine/credit.py functions, reproducing Christmas Always ($1,159,502) and the UK worked example ($7,176,000) exactly, each proven not to produce the plausible wrong figure (984502 / 7632000). Connecticut's mechanism (transferable), minimum spend ($100,000) and mandatory audit are sourced from CT General Statutes Sec. 12-217jj, fetched and archived this session -- also independently corroborating the CSV-derived tier bands.
 
 ### Pending Todos
 
@@ -127,6 +129,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-25T11:48:43.961Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-08-25T12:16:50.657Z
+Stopped at: Completed 02-05-PLAN.md
 Resume file: None
