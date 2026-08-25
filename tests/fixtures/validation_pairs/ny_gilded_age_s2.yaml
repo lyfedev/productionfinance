@@ -16,7 +16,7 @@ source_url: "https://esd.ny.gov/sites/default/files/media/document/Q3-Film-Repor
 source_document: "sources/ny/2026-08-24-esd-q3-film-report-2025.pdf"
 source_document_sha256: "824e2f327f7437de06dd4bb5a93b81f1d601068eaa97b57c2d6e568470b7ceb6"
 report_period: "2025-Q3"
-date_checked: "2026-08-25"
+date_checked: "2026-08-24"
 
 assertion:
   mode: bounded
