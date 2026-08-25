@@ -1,0 +1,370 @@
+# SYNTHETIC TEST FIXTURE — NOT A REAL JURISDICTION, NOT A CURATED RULE MODEL.
+#
+# Illustrative engine-correctness fixture for plan 02-04's four net-cash
+# mechanism functions (refundable, rebate_grant, transferable,
+# nonrefundable_credit), the cliff-tiered audit fee schedule, and arrival
+# timing. The audit fee's top-band amount ($25,000) and the transferable
+# discount range (85-92 cents) are copied from feasibility-incentives.md's
+# Georgia worked example ("subtract the mandatory audit fee ($25,000 tier)
+# and apply the ~85-92 cent transfer discount") — illustrative numbers
+# reused for regression testing, NOT independently re-verified against
+# Georgia's own statute or a primary audit-fee schedule this session. This
+# file must never be presented as a model of any real jurisdiction's
+# programme.
+#
+# jurisdiction.status is synthetic_fixture (never a curated-data status
+# value) and this file lives under tests/fixtures/jurisdictions/, never
+# under jurisdictions/ — the directory-hygiene test in
+# tests/test_engine_qualifying_base.py enforces both structurally.
+#
+# Every numeric value is a quoted YAML string (RD-01 convention), except
+# `int`-typed fields (`payout_lag.typical_days`, `timing.decision_sla_days`),
+# which are never Decimal and are therefore never quoted, matching
+# engine/models.py's field typing exactly.
+#
+# All four programmes share one qualified spend ($10,000,000, matching the
+# scale of feasibility-incentives.md's Georgia worked example) and the same
+# three-band audit fee schedule (boundaries at $5,000,000 and $10,000,000,
+# top-band fee $25,000). Each programme's own rate_structure.base_rate
+# differs so the four net-cash results are pairwise different by
+# construction — never by coincidence, and never because a dispatch bug
+# routed every mechanism through the same function.
+
+jurisdiction:
+  id: zz-synthetic-mechanisms
+  name: "SYNTHETIC FIXTURE — four net-cash mechanisms (illustrative, not a real curated place)"
+  country_code: ZZ
+  level: national
+  parent_id: null
+  currency: USD
+  status: synthetic_fixture
+  effective_dates:
+    rule_version_effective_from: "2026-01-01"
+    rule_version_effective_to: null
+    source_checked_date: "2026-08-25"
+  sources:
+    - url: "https://example.invalid/synthetic-fixture-mechanisms"
+      title: "Synthetic test fixture — audit fee and broker discount figures copied from feasibility-incentives.md's Georgia worked example, not an independently sourced government audit-fee schedule"
+      accessed_date: "2026-08-25"
+      confidence: LOW
+
+programmes:
+  - id: mechanisms-refundable
+    name: "Synthetic: refundable mechanism"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: total_qualified_spend
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "not modelled by this synthetic fixture — it exercises the net-cash step only"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.25"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: null
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: true
+      fee_schedule:
+        - spend_threshold_low: "0"
+          spend_threshold_high: "5000000"
+          fee_primary: "5000"
+          fee_third_party_auditor: null
+        - spend_threshold_low: "5000000"
+          spend_threshold_high: "10000000"
+          fee_primary: "15000"
+          fee_third_party_auditor: null
+        - spend_threshold_low: "10000000"
+          spend_threshold_high: null
+          fee_primary: "25000"
+          fee_third_party_auditor: null
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no primary source confirms a payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
+
+  - id: mechanisms-rebate-grant
+    name: "Synthetic: rebate_grant mechanism"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: rebate_grant
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: total_qualified_spend
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "not modelled by this synthetic fixture — it exercises the net-cash step only"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.28"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: null
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: true
+      fee_schedule:
+        - spend_threshold_low: "0"
+          spend_threshold_high: "5000000"
+          fee_primary: "5000"
+          fee_third_party_auditor: null
+        - spend_threshold_low: "5000000"
+          spend_threshold_high: "10000000"
+          fee_primary: "15000"
+          fee_third_party_auditor: null
+        - spend_threshold_low: "10000000"
+          spend_threshold_high: null
+          fee_primary: "25000"
+          fee_third_party_auditor: null
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no primary source confirms a payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
+
+  - id: mechanisms-transferable
+    name: "Synthetic: transferable mechanism"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: transferable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: total_qualified_spend
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "not modelled by this synthetic fixture — it exercises the net-cash step only"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.30"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: null
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: true
+      fee_schedule:
+        - spend_threshold_low: "0"
+          spend_threshold_high: "5000000"
+          fee_primary: "5000"
+          fee_third_party_auditor: null
+        - spend_threshold_low: "5000000"
+          spend_threshold_high: "10000000"
+          fee_primary: "15000"
+          fee_third_party_auditor: null
+        - spend_threshold_low: "10000000"
+          spend_threshold_high: null
+          fee_primary: "25000"
+          fee_third_party_auditor: null
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — illustrative broker-settlement lag; feasibility-incentives.md describes transfer timing only qualitatively, this figure is not independently sourced"
+        typical_days: 45
+        interest_paid: false
+
+    transfer_discount:
+      applies: true
+      typical_rate_low: "0.85"
+      typical_rate_high: "0.92"
+      source_note: "feasibility-incentives.md Georgia worked example: ~85-92 cent broker discount converting credit to cash — illustrative range, not an independently sourced government or broker-market rate"
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
+
+  - id: mechanisms-nonrefundable-credit
+    name: "Synthetic: nonrefundable_credit mechanism (taxable)"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: nonrefundable_credit
+    taxable: true
+    corporation_tax_rate: "0.20"
+
+    base_definition:
+      type: total_qualified_spend
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "not modelled by this synthetic fixture — it exercises the net-cash step only"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.32"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: null
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: true
+      fee_schedule:
+        - spend_threshold_low: "0"
+          spend_threshold_high: "5000000"
+          fee_primary: "5000"
+          fee_third_party_auditor: null
+        - spend_threshold_low: "5000000"
+          spend_threshold_high: "10000000"
+          fee_primary: "15000"
+          fee_third_party_auditor: null
+        - spend_threshold_low: "10000000"
+          spend_threshold_high: null
+          fee_primary: "25000"
+          fee_third_party_auditor: null
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — illustrative payout lag after corporation-tax-return filing; not an independently sourced government schedule"
+        typical_days: 60
+        interest_paid: false
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
