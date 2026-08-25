@@ -45,9 +45,9 @@ Resolve before modelling. Wrong inputs produce confidently wrong outputs, and th
 
 - [x] **INC-01**: Qualifying base is computed under each jurisdiction's own definition — total local spend, labour only, lesser-of formulas, or local-hires-only
 - [x] **INC-02**: Per-person ceilings are applied, including differing loan-out versus W-2 treatment
-- [ ] **INC-03**: Tiers and uplifts are applied in the correct jurisdiction-specific order, including stacking rules between national and regional programmes
-- [ ] **INC-04**: Per-project caps and annual programme caps are both modelled
-- [ ] **INC-05**: Availability is reported separately from eligibility — whether the annual allocation still has money in it is its own answer
+- [x] **INC-03**: Tiers and uplifts are applied in the correct jurisdiction-specific order, including stacking rules between national and regional programmes
+- [x] **INC-04**: Per-project caps and annual programme caps are both modelled
+- [x] **INC-05**: Availability is reported separately from eligibility — whether the annual allocation still has money in it is its own answer
 - [x] **INC-06**: Gross incentive is converted to net cash by mechanism: refundable credit, transferable credit sold at broker discount, direct rebate, or non-refundable, with audit fees deducted
 - [x] **INC-07**: Taxable incentives are reported net of corporation tax
 - [x] **INC-08**: Estimated cash arrival timing is reported alongside value
@@ -79,7 +79,7 @@ The four where per-production government disclosure exists, so every model is pr
 - [ ] **JUR-02**: California — validated model against the Film Commission approved projects list, with allocation-stage figures labelled as such
 - [ ] **JUR-03**: New Jersey — validated model against NJEDA activity reports, with estimated figures labelled as such
 - [ ] **JUR-04**: Connecticut — validated model against the Connecticut open data CSV
-- [ ] **JUR-05**: Adding a jurisdiction is additive — a new rule file, not changes to the engine
+- [x] **JUR-05**: Adding a jurisdiction is additive — a new rule file, not changes to the engine
 
 ### Agentic Jobs
 
@@ -217,9 +217,9 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | COST-08 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
 | INC-01 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
 | INC-02 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
-| INC-03 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
-| INC-04 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
-| INC-05 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| INC-03 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
+| INC-04 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
+| INC-05 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
 | INC-06 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
 | INC-07 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
 | INC-08 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
@@ -240,7 +240,7 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | JUR-02 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
 | JUR-03 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
 | JUR-04 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
-| JUR-05 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| JUR-05 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
 | AGT-01 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
 | AGT-02 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
 | AGT-03 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
