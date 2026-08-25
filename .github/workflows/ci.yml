@@ -55,3 +55,20 @@ jobs:
       - uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  tests:
+    name: tests (source-truth integrity)
+    runs-on: ubuntu-latest
+    # The validation-pair and source-truth suites are the enforcement mechanism
+    # behind this project's central claim — that every figure is sourced, dated,
+    # and provably matches what a government actually paid. They assert manifest
+    # <-> on-disk sha256 reconciliation, fixture -> manifest cross-reference, and
+    # that blocked pairs never leak into an accuracy denominator. Running them
+    # only locally left `main` with no protection against a regression in exactly
+    # the claim the repository exists to substantiate.
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Run the test suite
+        run: uv run --frozen pytest tests/ -q

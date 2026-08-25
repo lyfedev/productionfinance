@@ -38,7 +38,13 @@ if [ "${#PACKAGES[@]}" -eq 0 ]; then
 fi
 
 # Exact forbidden package names (.claude/CLAUDE.md "Forbidden Python packages").
-FORBIDDEN_EXACT=("openai" "anthropic" "langgraph" "crewai" "llama-index" "litellm")
+# google-generativeai is forbidden for a different reason than the vendor bans:
+# it is the DEAD Google SDK (all support ended 2025-11-30, superseded by
+# google-genai). Shipping it would both fail the "current SDK" expectation and
+# signal a stale integration. It is easy to reach for by accident, because most
+# surviving tutorials still import it — which is exactly why the gate must catch
+# it rather than relying on discipline.
+FORBIDDEN_EXACT=("openai" "anthropic" "langgraph" "crewai" "llama-index" "litellm" "google-generativeai")
 
 OFFENDERS=()
 for pkg in "${PACKAGES[@]}"; do
