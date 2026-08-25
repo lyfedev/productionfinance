@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 01
 current_phase_name: Foundations — Source Truth & Deploy Path
 status: executing
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-08-25T05:48:49.503Z"
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-08-25T06:13:41.613Z"
 last_activity: 2026-08-24
 last_activity_desc: Phase 01 execution started
-state_head: 5d6c365c687d1a85c7799cafaf46261676a4fd41
+state_head: b9e908ef3f7373fb5c1a6c1acc83e08f3201077d
 progress:
   total_phases: 11
   completed_phases: 0
   total_plans: 9
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 ## Current Position
 
 Phase: 01 (Foundations — Source Truth & Deploy Path) — EXECUTING
-Plan: 5 of 9
+Plan: 6 of 9
 Status: Ready to execute
 Last activity: 2026-08-24 — Phase 01 execution started
 
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P06 | 12min | 2 tasks | 2 files |
 | Phase 01 P02 | 4min | 3 tasks | 6 files |
 | Phase 01 P03 | 8min | 2 tasks | 6 files |
+| Phase 01 P04 | 33min | 3 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,7 @@ Recent decisions affecting current work:
 - [Phase 01]: productionfinance is public at github.com/lyfedev/productionfinance, MIT-licensed (Licensee-confirmed), push protection enabled, 4 CI gates required on main — SHP-07/08/09/10 all closed; plan 01-08 clones from this URL
 - [Phase 01]: 01-03 Task 1: D-02 resolved interpreter-only — a validation pair proves the incentive interpreter only, never cost localization. Every NY fixture feeds qualified_spend in as a given and asserts only on credit_amount out; no fixture carries an input-vector field.
 - [Phase 01]: 01-03 — three NY issued-stage validation pairs (Anora, Succession S4, The Gilded Age S2) independently transcribed from the archived ESD Q3 2025 PDF (sha256 824e2f32...). Gilded Age's 26.29% rate is assertion.mode: bounded (150bps) — an unlisted uplift the ESD table doesn't itemize; Anora and Succession S4 are the two D-05 exact-mode anchors. Third exact-mode fixture and all CT coverage deferred to plan 01-04.
+- [Phase 01]: 01-04 -- CA/NJ pairs re-verified live (no discrepancy); NJ Trial of the Chicago 7 credit_amount corrected to $5,371,984 (archived primary source) vs $5,371,983 in prior secondary docs -- a $1 discrepancy recorded, not silently reconciled. Connecticut's first validation pair, "Christmas Always" ($3,865,005 -> $1,159,502, clean 30.0%), closes JUR-04's zero-coverage gap and supplies the D-05 third exact-mode anchor. Four MA/PA pairs committed status: blocked with a >40-char blocker naming both reasons (undisclosed spend; no curated rule file). Three new guard tests (jurisdiction coverage, pair count, per-stage denominator) make a jurisdiction gap, a shrinking pair count, or a blended accuracy figure each fail the suite.
 
 ### Pending Todos
 
@@ -109,6 +111,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-25T05:48:49.375Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-08-25T06:13:41.603Z
+Stopped at: Completed 01-04-PLAN.md
 Resume file: None
