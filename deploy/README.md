@@ -169,6 +169,89 @@ this rule *more* load-bearing than the original subdomain plan, not
 less: 01-09 now edits the vhost that serves the live site directly
 (adding a location block) rather than creating an isolated new one.
 
+## Host bootstrap (executed 2026-08-25, plan 01-08 Task 1)
+
+Run as `bitnami` over SSH, `PRODFIN_STATIC_IP` from `deploy/hosting.env`. This is
+the un-resized `nano_2_0` box — 01-07 (snapshot-and-restore to `small_3_0`) was
+**deferred, not completed**, per `.planning/phases/01-foundations-source-truth-deploy-path/01-07-DEFERRED.md`.
+The developer chose to attempt deployment on the existing 472 MB instance first
+and resize only if it actually runs out of memory. Everything below happened on
+that box, not a resized one.
+
+1. **Service account.** `sudo useradd --system --no-create-home --shell /usr/sbin/nologin prodfin`
+   — a dedicated non-login system user, uid/gid 997, no home directory. The
+   service runs as this user, never as `bitnami` and never as `root`.
+2. **App root.** `sudo mkdir -p /opt/prodfin`, temporarily owned by `bitnami`
+   while `uv` writes the venv into it, then `chown -R prodfin:prodfin` once the
+   venv exists (see step 4).
+3. **`uv` install**, as the `bitnami` user (not root, not system-wide):
+   ```
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
+   Installed **uv 0.12.5** to `/home/bitnami/.local/bin`, modifying only
+   `bitnami`'s own shell profile (adds `~/.local/bin` to `PATH`). No system-wide
+   profile was touched.
+4. **Isolated Python 3.12 + venv:**
+   ```
+   uv python install 3.12
+   uv venv --python 3.12 /opt/prodfin/.venv
+   ```
+   Resolved and downloaded **CPython 3.12.14** (32.6 MiB), installed under uv's
+   own managed directory `/home/bitnami/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/`
+   — never under `/usr/bin` or `/opt/bitnami`. The venv was created at
+   `/opt/prodfin/.venv`, then `chown -R prodfin:prodfin /opt/prodfin` handed the
+   whole tree to the service account.
+5. **Isolation verified immediately**, per D-18/SHP-02, before anything else was
+   installed:
+   - `/opt/prodfin/.venv/bin/python --version` → `Python 3.12.14`
+   - `python3 --version` (system) → `Python 3.9.2`, unchanged from the preflight
+     inventory recorded earlier in this document
+   - `which python3` → `/usr/bin/python3` (unchanged symlink to `python3.9`)
+   - `ls -la /usr/bin/python*` → only the pre-existing `python3 -> python3.9`
+     symlink and `python3.9` binary; nothing added or modified
+   - `find /opt/bitnami -maxdepth 1 -newer /opt/prodfin` → empty (no top-level
+     entry under `/opt/bitnami` newer than the moment `/opt/prodfin` was created)
+   - `tail -5 /var/log/apt/history.log` → last entry dated 2026-08-21
+     (`unattended-upgrade`, pre-existing, before this session) — no apt
+     operation ran as part of this bootstrap
+   - `sudo /opt/bitnami/ctlscript.sh status` → `apache already running`,
+     `mariadb already running`, `php-fpm already running`, both before and after
+     every step above
+   - `curl -sSI https://vockell.com` → `301 Moved Permanently` to
+     `https://www.vockell.com/`, identical before and after this bootstrap (see
+     "Known pre-existing redirect" note below)
+
+### Known pre-existing redirect (not caused by this plan)
+
+`curl -I https://vockell.com` returns **301 → `https://www.vockell.com/`**, not
+200 — the vhost redirects the apex to a `www` host that does not currently
+resolve (`curl: (6) Could not resolve host: www.vockell.com`). This is
+pre-existing site configuration, unrelated to ProductionFinance, and unaffected
+by this plan: the 301 was observed identically before and after every step in
+this bootstrap and in Task 2/3. Treat "Apache still answers with its normal
+response for this vhost" (a `Server: Apache` header present) as the live-site
+health signal for this box, not a literal 200 — a strict `curl ... | grep -q
+200` check against the bare apex will not pass on this host as currently
+configured, and that is a pre-existing condition out of this plan's scope, not
+a regression it introduced.
+
+### Post-install memory measurement (D-22)
+
+Taken immediately after `uv python install 3.12` + `uv venv` completed, before
+anything else was installed into the venv — see `.planning/STATE.md` Blockers/Concerns
+for the number and its read on the Milestone 2 data-layer decision. Verbatim:
+
+```
+$ free -h
+               total        used        free      shared  buff/cache   available
+Mem:           472Mi       106Mi        18Mi       0.0Ki       347Mi       353Mi
+Swap:          634Mi        96Mi       538Mi
+
+$ df -h /
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/xvda1       20G  5.5G   14G  30% /
+```
+
 ## How to verify
 
 Commands each later plan uses, collected in one place:
