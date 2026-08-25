@@ -50,6 +50,14 @@ def _resolve_git_sha() -> str:
 
 GIT_SHA: str = _resolve_git_sha()
 
+# The path prefix this deployment is reverse-proxied under, e.g. "/finance"
+# when served at https://vockell.com/finance via Apache ProxyPass. Empty for
+# local/dev runs where the app is served at the root. Used only to build
+# correct absolute links in server-rendered HTML (T-01-51-adjacent: a
+# generated link that omits the prefix silently 404s once proxied) — this
+# app has no router mounted under the prefix, so no ASGI root_path is set.
+PUBLIC_PATH: str = os.environ.get("PRODFIN_PUBLIC_PATH", "").rstrip("/")
+
 app = FastAPI(title="ProductionFinance", version=__version__)
 
 
@@ -71,7 +79,7 @@ def health() -> dict:
 @app.get("/", response_class=HTMLResponse)
 def index() -> str:
     """Holding page. Computes no figure, states no incentive value."""
-    return """<!doctype html>
+    return f"""<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -86,6 +94,6 @@ def index() -> str:
     actually paid.
   </p>
   <p>This is a skeleton deployment. No pricing engine is live yet.</p>
-  <p><a href="/health">/health</a></p>
+  <p><a href="{PUBLIC_PATH}/health">{PUBLIC_PATH}/health</a></p>
 </body>
 </html>"""
