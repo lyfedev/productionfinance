@@ -191,3 +191,182 @@ mirrors described in the Method note, both dated within days of this session.
 Per D-13, this is recorded as a closed answer with its reasoning, not as an
 unresolved conflict — the evidence genuinely closes it, rather than requiring
 an arbitrary pick between two live possibilities.
+
+---
+
+## SRC-02 — Connecticut open-data CSV column headers
+
+**Question (verbatim, REQUIREMENTS.md):** Connecticut open-data CSV column
+headers are confirmed by opening the actual endpoint, before CT's rule model
+or ingestion logic is written.
+
+**Answer: seven columns, verbatim, in this published order:**
+
+```
+"Production Company","Qualified CT Expenditures","Date Issued","Amount of Tax Credit Issued","Program Name","Statutory Reference","Municipality"
+```
+
+`Production Company`, `Qualified CT Expenditures`, `Date Issued`, `Amount of
+Tax Credit Issued`, `Program Name`, `Statutory Reference`, `Municipality`.
+The schema itself implies **issued-stage disclosure** — the columns are
+`Date Issued` and `Amount of Tax Credit Issued`, not an allocation/estimate
+figure — which is what makes Connecticut a strong validation source and what
+plan 01-04's `ct_christmas_always.yaml` fixture relies on.
+
+**Primary source:** endpoint
+`https://data.ct.gov/api/v3/views/kjsu-mdny/export.csv?accessType=DOWNLOAD`
+(dataset landing page `https://data.ct.gov/d/kjsu-mdny`). Plan 01-04 already
+archived this file byte-for-byte at
+`sources/ct/2026-08-24-ct-film-tax-credits-issued.csv` (sha256
+`2b249b80d393d57ff849ee1f1630f3fc6acd0aaecf216c938fc3bb93e7ddfe87`) — this
+entry cites that archived file rather than re-fetching, per plan
+instruction, and every claim below was independently re-verified this
+session directly against those already-archived bytes (not against
+01-RESEARCH.md's prose). The file's original sha256 is unchanged.
+
+**Six data-quality artifacts, each confirmed by direct inspection of the
+archived file this session** — every one of these is a bug waiting to
+happen in Phase 5's ingestion:
+
+1. **A blank row immediately follows the header row** (`,,,,,,`, line 2) — a
+   naive parser reading row 2 as the first data row gets an empty record;
+   must be skipped.
+2. **Monetary values are quoted text strings with a `$` and thousands
+   commas**, e.g. `"$175,772.00"` — not raw numeric; requires stripping
+   `$`/`,` before `Decimal()` parsing.
+3. **At least one inconsistent trailing-period formatting artifact** — two
+   confirmed directly this session: `"$9,937,981.00."` (Stephen David
+   Entertainment, LLC, issued 2022-09-02) and `"$1,732,800.00."` (Christmas
+   Fix, LLC, issued 2023-04-23) — a strict parser must tolerate/strip a
+   trailing period rather than fail outright.
+4. **`Municipality` is blank for some rows.** Confirmed directly this
+   session: four World Wrestling Entertainment / WWE rows dated
+   **2009-07-21** have an empty `Municipality` field (a fifth WWE row on the
+   same date has `Municipality` filled as `Stamford`) — **note this
+   corrects 01-RESEARCH.md's prose, which attributed the blank-Municipality
+   observation to "early... entries from 2007"; the file's actual earliest
+   row (2007-08-10, Orange Lion Productions, LLC) has `Municipality`
+   filled ("Fairfield"), and the blank rows independently re-verified this
+   session are dated 2009-07-21, not 2007.** `Municipality` must be
+   nullable in the fixture/ingestion schema, not required.
+5. **Dates in `Date Issued` are ISO 8601 with a time component**
+   (`YYYY-MM-DDTHH:MM:SS.sss`, e.g. `2007-08-10T00:00:00.000`), even though
+   these are calendar-date events — parse as datetime and truncate to date.
+6. **`Program Name` covers at least three distinct statutory programs
+   sharing this one CSV**, confirmed directly this session by inspecting
+   sample rows for each: `"Film and Digital Media Production Tax Credit"`
+   (`CGS 12-217jj`), `"Film Infrastructure Tax Credit"` (`CGS 12-217kk`),
+   and `"Digital Animation Production Company Tax Credit"`
+   (`CGS 12-217ll`). The CT `JurisdictionRuleSet` (Phase 2/5) needs to
+   decide explicitly whether it models all three or scopes to just the
+   production credit (§12-217jj) — this file does not distinguish them by
+   column, only by row value, so ingestion logic must filter on
+   `Program Name`.
+
+**Row count:** 660 total lines (1 header + 1 blank + 658 data rows), spanning
+2007-08-10 through 2024-10-25.
+
+**date_checked:** 2026-08-24
+
+**Confidence:** HIGH — direct byte-for-byte re-inspection of the already-archived
+live-endpoint export.
+
+**What was refuted or refined (D-12):** REQUIREMENTS.md states no working
+hypothesis for this question (D-12's stated hypotheses cover the New York
+cap and the Georgia rate only). This entry has nothing to confirm or refute
+against a prior guess — what it does refine is 01-RESEARCH.md's own prose:
+the blank-`Municipality` observation is corrected from "2007" to the
+directly-verified "2009-07-21," per artifact 4 above.
+
+---
+
+## SRC-05 — Georgia loan-out withholding rate
+
+**Question (verbatim, REQUIREMENTS.md):** Georgia loan-out withholding rate
+is confirmed against a dated Georgia DOR source. Working hypothesis: 5.75%
+is pre-2024-reform, 4.99% is current.
+
+**Answer: a five-year declining schedule, not a single step.** The
+withholding rate, exactly as the Georgia Department of Revenue's own page
+prints it:
+
+```
+January 1, 2026 - Current = 4.99%
+January 1, 2025 - December 31, 2025 = 5.19%
+January 1, 2024-December 31, 2024 = 5.39%
+January 1, 2023 -December 31, 2023 = 5.49%
+December 31. 2022 - Prior = 5.75%
+```
+
+Each rate is recorded above exactly as the decimal string the source prints
+— `4.99%`, `5.19%`, `5.39%`, `5.49%`, `5.75%` — never rounded, never
+converted to a float, never collapsed to a single current rate. A
+production's terms lock at application; a lookup one day either side of a
+boundary must resolve to the correct band, and only the full five-tier
+schedule supports that.
+
+**Primary source (rate schedule):**
+`https://dor.georgia.gov/film-tax-credits/film-tax-credit-resources`,
+fetched by direct `curl` this session (raw HTML, not an LLM summary),
+archived at `sources/ga/2026-08-24-dor-film-tax-credit-resources.html`
+(sha256 `fddc5cc771fffe854a0d4dec5cb1ba2b08c717b2b66e3b0090500d16d8d8a002`).
+Under the page's `Withholding Rate` heading, verbatim as quoted above. This
+page sits under the DOR site's `Taxes > Tax Credits > Film Tax Credits >
+Film Tax Credit Resources` section specifically — not the general personal
+income tax section — but the sentence on this page alone does not explicitly
+name loan-out withholding; see below for the document that closes that gap.
+
+**Primary source (explicit loan-out tie):**
+`https://dor.georgia.gov/instructions-production-companies`
+("Instructions for Production Companies"), linked from the withholding
+instructions hub page, fetched by direct `curl` this session, archived at
+`sources/ga/2026-08-24-dor-instructions-for-production-companies.html`
+(sha256 `6f9809442d8704855096c609027c6ef94e5dcf0fb5818f00363fd58fbff29c16`).
+Verbatim: `"The production company or qualified interactive entertainment
+production company (or their payroll service providers) shall withhold
+Georgia Income Tax at the current annual rate on all payments to loan-out
+companies for services performed in Georgia."` — citing `O.C.G.A. §
+48-7-40.26` and `Regulation 560-7-8-45`. This is the explicit sentence
+01-RESEARCH.md recommended finding before finalizing this entry: it
+directly names loan-out companies, and states the rate applied to their
+payments is Georgia's "current annual rate" — the same rate the
+`Withholding Rate` table above states.
+
+The withholding-instructions hub page itself
+(`https://dor.georgia.gov/film-tax-credit-withholding-instructions-and-forms`,
+archived at
+`sources/ga/2026-08-24-dor-film-tax-credit-withholding-instructions.html`,
+sha256 `3d3c45e6fccd0bd50633544c41af0ca1ce0311a8cf08f1c0be594e68468f8939`)
+links both the rate-table page and the Instructions for Production
+Companies page from the same "Film Tax Credit Withholding" navigation
+context, and separately links a third page confirming the G2-FP/G2-FL
+forms are issued specifically "to the loan out company" for "the amount of
+film withholding."
+
+**date_checked:** 2026-08-24
+
+**Confidence:** HIGH for the rate figures and the five-year schedule
+(unchanged from 01-RESEARCH.md's direct fetch). **The loan-out-specificity
+claim is raised from 01-RESEARCH.md's MEDIUM caveat to HIGH** — an explicit
+primary-source sentence naming loan-out-company payments and citing the
+governing statute/regulation was found on the second page 01-RESEARCH.md
+recommended opening. One honest caveat kept rather than smoothed over: the
+explicit "loan-out companies... current annual rate" sentence and the
+`Withholding Rate` table with its five-tier schedule live on two different
+DOR pages, not one — the tie between "this specific schedule" and "loan-out
+withholding" is made via the "current annual rate" phrase plus both pages
+sharing the same Film Tax Credit Withholding site section, not by a single
+sentence that states both the schedule and "loan-out" together. This is not
+promoted to a stronger claim than that.
+
+**What was refuted or refined (D-12):** The stated working hypothesis —
+**"5.75% is pre-2024-reform, 4.99% is current"** — is **directionally
+correct but imprecise, and is refined here.** It is not a single
+pre/post-2024 step; it is a five-year declining schedule with three
+intermediate values (5.49% for 2023, 5.39% for 2024, 5.19% for 2025) that
+the hypothesis did not name and that no prior project document had
+recorded. `5.75%` is confirmed as the correct "prior/pre-reform" figure and
+`4.99%` as the current 2026 figure, exactly as hypothesized — but a rule
+file that encodes only those two values, without the three intermediate
+bands, will compute the wrong credit for any production whose terms locked
+in 2023, 2024, or 2025.
