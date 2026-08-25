@@ -106,7 +106,7 @@ Plans:
   4. Whether the production qualifies is answered separately from whether the programme's annual allocation still has money left in it
   5. A new jurisdiction can be added as a rule file alone with no change to engine code — demonstrated by adding a throwaway fixture jurisdiction
 
-**Plans**: 1/6 plans executed in 3 waves
+**Plans**: 2/6 plans executed in 3 waves
 
 Plans:
 **Wave 1**
@@ -115,7 +115,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-02-PLAN.md — Pinned rounding, Decimal-typing regression, and PRV-01/02/03 as property assertions over a real computed tree (wave 2)
+- [x] 02-02-PLAN.md — Pinned rounding, Decimal-typing regression, and PRV-01/02/03 as property assertions over a real computed tree (wave 2)
 - [ ] 02-03-PLAN.md — All four base-definition types, the closed-registry escape hatch, and minimum-spend cliffs (wave 2)
 - [ ] 02-05-PLAN.md — Per-person ceilings, cliff-tier versus ceiling-split rates, and Connecticut reproducing $1,159,502 (wave 2)
 
@@ -305,7 +305,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundations — Source Truth & Deploy Path | 1 — Accounts | 8/9 | In Progress|  |
-| 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 1/6 | In Progress|  |
+| 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 2/6 | In Progress|  |
 | 3. New York End-to-End — The Anora Proof | 1 — Accounts | 0/TBD | Not started | - |
 | 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 0/TBD | Not started | - |
 | 5. Curated Breadth & the Validation Loop | 1 — Accounts | 0/TBD | Not started | - |

@@ -63,9 +63,9 @@ Resolve before modelling. Wrong inputs produce confidently wrong outputs, and th
 
 ### Provenance and Proof
 
-- [ ] **PRV-01**: Every figure carries a source link and the date it was checked
-- [ ] **PRV-02**: Every figure carries a confidence tier — validated or researched — and the two are visually distinguishable, never presented with equal weight
-- [ ] **PRV-03**: Every computed figure carries its derivation reason as readable text (e.g. "only $500K of the $2M lead qualifies — Georgia per-person ceiling")
+- [x] **PRV-01**: Every figure carries a source link and the date it was checked
+- [x] **PRV-02**: Every figure carries a confidence tier — validated or researched — and the two are visually distinguishable, never presented with equal weight
+- [x] **PRV-03**: Every computed figure carries its derivation reason as readable text (e.g. "only $500K of the $2M lead qualifies — Georgia per-person ceiling")
 - [ ] **PRV-04**: A consolidated, printable assumptions panel lists every rate used, each with its own source and date
 - [ ] **PRV-05**: A persistent in-product methodology page explains how figures are computed and is linkable
 - [ ] **PRV-06**: The running validation-loop accuracy figure is visible inside Accounts itself, on the hosted page — not only in Balances
@@ -229,9 +229,9 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | OUT-02 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
 | OUT-03 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
 | OUT-04 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
-| PRV-01 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
-| PRV-02 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
-| PRV-03 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Pending |
+| PRV-01 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
+| PRV-02 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
+| PRV-03 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
 | PRV-04 | Phase 6 — The Interface | 1 — Accounts | Pending |
 | PRV-05 | Phase 6 — The Interface | 1 — Accounts | Pending |
 | PRV-06 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
