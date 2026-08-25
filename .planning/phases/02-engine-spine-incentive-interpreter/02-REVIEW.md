@@ -1,336 +1,237 @@
 ---
 phase: 02-engine-spine-incentive-interpreter
-reviewed: 2026-08-25T16:53:03Z
+reviewed: 2026-08-25T20:00:00Z
 depth: standard
-files_reviewed: 29
+scope: gap-closure-delta (plans 02-07, 02-08, 02-09 only; diff range 6ce2d9d^..HEAD)
+supersedes: previous 02-REVIEW.md (pre-gap-closure pass, covering plans 02-01..02-06)
+files_reviewed: 8
 files_reviewed_list:
-  - engine/__init__.py
   - engine/credit.py
-  - engine/figure.py
-  - engine/handlers/__init__.py
   - engine/models.py
-  - engine/net_cash.py
   - engine/pipeline.py
   - engine/qualifying_base.py
-  - engine/rounding.py
-  - jurisdictions/SCOPE-FREEZE.md
-  - jurisdictions/us-ct.yaml
-  - jurisdictions/us-ny.yaml
-  - pyproject.toml
-  - sources/MANIFEST.yaml
-  - tests/fixtures/jurisdictions/synthetic-basedefs.yaml
-  - tests/fixtures/jurisdictions/synthetic-ga-style.yaml
-  - tests/fixtures/jurisdictions/synthetic-mechanisms.yaml
-  - tests/fixtures/jurisdictions/synthetic-mincliff.yaml
-  - tests/fixtures/jurisdictions/synthetic-stacking.yaml
-  - tests/fixtures/jurisdictions/synthetic-uk-style.yaml
-  - tests/fixtures/jurisdictions/zz-fixture-throwaway.yaml
-  - tests/fixtures/validation_pairs/ny_succession_s4.yaml
+  - tests/fixtures/jurisdictions/synthetic-blend-adjustments.yaml
   - tests/test_engine_against_validation_pairs.py
   - tests/test_engine_credit.py
-  - tests/test_engine_figure_provenance.py
-  - tests/test_engine_jurisdiction_additivity.py
   - tests/test_engine_models.py
-  - tests/test_engine_net_cash.py
-  - tests/test_engine_qualifying_base.py
-  - tests/test_engine_rounding.py
 findings:
-  critical: 1
-  warning: 4
+  critical: 0
+  warning: 1
   info: 2
-  total: 7
+  total: 3
 status: issues_found
 ---
 
-# Phase 02: Code Review Report
+# Phase 2 Gap-Closure Review Report (plans 02-07, 02-08, 02-09)
 
-**Reviewed:** 2026-08-25T16:53:03Z
+**Reviewed:** 2026-08-25T20:00:00Z
 **Depth:** standard
-**Files Reviewed:** 29
-**Status:** issues_found
+**Files Reviewed:** 8
+**Status:** issues_found (1 Warning, 2 Info — no Critical/Blocker findings)
 
 ## Summary
 
-This engine is unusually well-documented and its test suite is disciplined
-(half-open boundary sweeps, negative-value assertions, glob-based
-fail-loud-on-empty guards, closed-enum security gates). Most of the
-domain-critical hazards named in the review brief — cliff-vs-marginal rate
-confusion, cap-before-split ordering, confidence-tier laundering, unsafe
-YAML loading, dynamic handler resolution — are correctly implemented and
-directly tested against their documented failure modes.
+This pass reviews only the delta introduced by the three gap-closure plans (02-07
+CR-01 fix, 02-08 WR-01/WR-02/WR-04, 02-09 WR-03 + validation-pairs re-coupling),
+per `git diff 6ce2d9d^..HEAD`. The previous phase review and verification
+(`02-VERIFICATION.md`) identified CR-01 as a blocking defect — the
+`blended_by_ceiling_split` rate branch silently discarded minimum-spend,
+excluded-line-item, and per-person-ceiling reductions while its derivation
+trail claimed they were applied.
 
-However, one Critical defect was found and confirmed by direct execution:
-`engine/credit.py`'s `blended_by_ceiling_split` rate-structure branch
-computes the credit from the raw, pre-adjustment core-expenditure Figure
-instead of the actually-adjusted running base, silently discarding the
-minimum-spend cliff, excluded-line-items subtraction, and per-person
-ceiling reduction for any programme that uses this rate structure. This is
-not exercised by any committed fixture or test, so it currently ships
-undetected. Several smaller data-validation gaps (self-referencing
-`mutually_exclusive_with`, unchecked `stacks_with` references, an
-inconsistent boundary convention on the loan-out withholding schedule
-lookup) round out the Warning tier.
+I traced the new "effective core expenditure" arithmetic in
+`engine/credit.py` line by line against the hand-worked derivation in the new
+`synthetic-blend-adjustments.yaml` fixture and independently reproduced all
+three programmes' expected values by re-running the arithmetic by hand. The
+fix is **correct** for the one base-definition/rate-structure combination it
+is exercised against (`lesser_of_pct_core_or_actual_local` +
+`blended_by_ceiling_split`) — I initially suspected a percentage-cap
+scale/domain mismatch (subtracting a "post-cap-selection" dollar reduction
+from a "pre-cap" core-expenditure figure), traced it through by hand and by
+direct execution, and confirmed the arithmetic is self-consistent given the
+current D-02 interpreter-only boundary (`actual_local == core_expenditure`
+always, at this phase). All 162 tests pass; the CR-01 regression fixture's
+five new tests are non-vacuous, assert on exact values with named
+wrong-answer guards, and independently verify the derivation trail states
+what actually happened.
 
-## Structural Findings (fallow)
+The WR-01/WR-02 (`engine/models.py`) and WR-04 edge/empty-programme
+validators are sound: exact-string comparison (no case/whitespace
+normalization, correctly tested), self-reference and dangling-reference
+both raise, `Field(min_length=1)` closes the empty-programmes gap at the
+schema boundary rather than patching the aggregation function. WR-03's
+loan-out withholding schedule overlap guard (`engine/credit.py`) implements
+a correct standard closed-interval overlap test and is proven not to
+false-positive on the committed Georgia-style schedule's abutting bands.
 
-None provided for this review.
-
-## Narrative Findings (AI reviewer)
-
-## Critical Issues
-
-### CR-01: `blended_by_ceiling_split` silently bypasses minimum-spend, excluded-line-items, and per-person-ceiling adjustments
-
-**File:** `engine/credit.py:446-467`
-
-**Issue:** For any programme whose `rate_structure.type` is
-`blended_by_ceiling_split`, `_apply_rate` computes the credit from
-`core_expenditure_figure.value` (the **raw, pre-cap, pre-everything**
-`Core expenditure (pre-cap)` Figure reached via
-`_find_core_expenditure_figure`), not from `figure.value` (the running
-credit figure, which is the actual base after the minimum-spend cliff,
-`excluded_line_items` subtraction, and the per-person-ceiling reduction
-have all been applied). Because `core_expenditure_figure` is a separate,
-immutable `Figure` object attached once at `compute_qualifying_base`
-construction time and never touched by any of the subsequent adjustment
-steps (`_apply_minimum_spend_check`, `_apply_excluded_line_items`,
-`_apply_per_person_ceiling`), every one of those adjustments is silently
-discarded for this rate structure, even though their derivation lines are
-still emitted claiming the adjustment happened.
-
-Confirmed by direct execution against this reviewed code (not a
-hypothetical):
-
-1. **Minimum-spend cliff bypassed.** A programme with
-   `minimum_spend.value = 5,000,000` and `blended_by_ceiling_split`
-   priced against `qualified_spend = 3,000,000` (below the threshold):
-   `qualifying_base.value` correctly becomes `0` with derivation
-   `"spend 3000000 USD is below the declared minimum-spend threshold of
-   5000000 USD — qualifying base is $0"`. `compute_gross_credit`'s
-   starting Figure correctly starts at `0` too (`"starting base: 0 USD"`).
-   But the final gross credit is **`700000`**, not `0` — the rate step
-   read `core_expenditure_figure.value = 3000000` and split/rated that
-   instead. A production that does not meet the jurisdiction's declared
-   minimum-spend floor still gets a six-figure credit.
-2. **Per-person ceiling bypassed.** A programme with
-   `per_person_ceiling.applies=true`, `w2_cap_amount=500,000`, and
-   `blended_by_ceiling_split`, priced with a $2,000,000 W-2 compensation
-   line (excess $1,500,000 over the cap): the derivation correctly states
-   `"W-2 compensation 2000000 USD exceeds the declared per-person cap of
-   500000 USD ... base reduced by 1500000"`, but the computed gross credit
-   is **identical** (`700000`) whether or not that compensation line is
-   supplied at all — the reduction the derivation describes never reaches
-   the number.
-3. **`excluded_line_items` bypassed by the same mechanism** (not
-   separately re-verified by execution, but the code path is identical:
-   `_apply_excluded_line_items` only ever mutates the wrapping "Qualifying
-   base" Figure's `.value`, never the `Core expenditure (pre-cap)` input
-   Figure the rate step actually reads).
-
-This is worse than a wrong number: the derivation trail — the thing this
-codebase's entire provenance model exists to make trustworthy — actively
-asserts an adjustment took place that did not affect the reported figure.
-A reader trusting `Figure.derivation` (as `PRV-03` promises they can) would
-be misled about what the reported credit actually reflects.
-
-Note: `engine/qualifying_base.py`'s own comment ("a ceiling split operates
-on core expenditure *before* any percentage cap applies") and
-`jurisdictions/SCOPE-FREEZE.md` dimension 3 document that
-`blended_by_ceiling_split` is *deliberately* meant to re-derive its own
-percentage cap from `base_definition.pct_core_cap` against raw core
-expenditure, rather than trusting whatever `base_definition.type` computed
-(this is why the UK fixture's `lesser_of_pct_core_or_actual_local` base
-type and its `pct_core_cap` are intentionally re-applied per-slice inside
-the blend, not reused from the qualifying base). That documented
-carve-out covers *the percentage cap only*. Nothing in the design record
-extends it to minimum-spend, excluded-line-items, or per-person-ceiling —
-this is scope creep in the implementation beyond what was actually
-decided, not an intentional design choice.
-
-No committed fixture exercises this combination:
-`synthetic-uk-style.yaml` (the only `blended_by_ceiling_split` fixture
-with real spend variation) declares no `minimum_spend`, no
-`excluded_line_items`, and `per_person_ceiling.applies: false`.
-`zz-fixture-throwaway.yaml`'s `primary-throwaway` programme declares
-`per_person_ceiling.applies: true`, but its own header comment records
-that `price_jurisdiction` never supplies `per_person_compensations`, so
-the per-person step is a no-op regardless — it does not exercise the
-ceiling-reduction path this bug affects. `minimum_spend` on that same
-programme (`1,000,000`) is well below the priced spend (`50,000,000`), so
-the cliff never triggers either.
-
-**Fix:** The rate step must operate on the actually-adjusted running base
-(`figure.value`), not on the raw core-expenditure input. If the design
-intent is genuinely "ceiling-split always re-derives its cap from raw core
-expenditure, ignoring `base_definition.type`'s own capping," that intent
-must not also discard minimum-spend and per-person-ceiling — those are
-separate adjustment steps this function already ran, immediately above,
-against `figure.value`. Concretely: track how much the base was already
-reduced by the minimum-spend cliff and the per-person ceiling (e.g., by
-diffing `figure.value` against `core_expenditure_figure.value` at entry to
-`_apply_rate`, or by threading the post-ceiling, pre-rate base value
-explicitly) and apply that same reduction to the raw core expenditure
-before slicing it, or — more simply and more consistent with every other
-branch in this function — slice `figure.value` itself and stop reaching
-into `core_expenditure_figure` except to recover `pct_core_cap`'s
-percentage-cap re-derivation the design record actually asks for. At
-minimum, add a regression test combining `blended_by_ceiling_split` with
-each of minimum-spend-not-met, an excluded line item, and a binding
-per-person ceiling, asserting the credit reflects all three — this gap
-existing uncaught through a full plan/review cycle is itself a signal the
-fixture matrix needs that combination before this rate structure ships.
+The one substantive finding (WR-05, below) is a **latent, currently
+unreachable analogue of CR-01's own root cause**, introduced by this
+gap-closure's own new code: the effective-core-expenditure carry-forward
+logic assumes the qualifying-base value it reads adjustment deltas from is
+scaled consistently with `core_expenditure`. That assumption is only true
+for `base_definition.type: lesser_of_pct_core_or_actual_local` (the only
+type any committed `blended_by_ceiling_split` fixture uses) — it silently
+produces a plausible-looking but arithmetically meaningless "effective core
+expenditure" derivation line for any other `base_definition.type`
+(`total_qualified_spend`, `labour_only`, `local_hires_only`, `custom`)
+combined with `blended_by_ceiling_split` and a binding exclusion or
+per-person ceiling. No currently curated or committed rule file triggers
+this, which is why it is scored Warning rather than Critical — but it is
+exactly the same shape of defect (a derivation trail that reads as true and
+isn't) that this entire gap-closure phase exists to eliminate, and it lives
+in the code this phase just rewrote.
 
 ## Warnings
 
-### WR-01: Self-referencing `mutually_exclusive_with` silently drops a valid programme from the total
+### WR-05: `blended_by_ceiling_split`'s effective-core-expenditure carry-forward silently mixes domains for any `base_definition.type` other than `lesser_of_pct_core_or_actual_local`
 
-**File:** `engine/pipeline.py:140-171`
+**File:** `engine/credit.py:565-576`
 
-**Issue:** `_resolve_mutual_exclusivity` does not reject a programme
-naming its own `id` in its own `mutually_exclusive_with` list. If it did,
-`pair = frozenset({programme.id, other_id})` collapses to a one-element
-set, `other_id in programme_by_id` is trivially true (it is the same
-programme), `this_value >= other_value` is true (comparing the programme's
-contribution to itself), and both `taken_id` and `untaken_id` end up equal
-to `programme.id` — so the programme is simultaneously recorded as "taken"
-and added to `excluded_ids`, and is silently dropped from
-`contributing`/the summed total despite being otherwise fully eligible.
-Every other unrecognised-reference case in this same function (an
-`other_id` absent from `programme_by_id`) correctly raises `ValueError`;
-this one does not, because a self-reference is never "absent."
+**Issue:** The new CR-01 fix computes `total_reduction` (excluded-line-items
+total plus the per-person-ceiling's dollar reduction) as a delta against
+`qualifying_base_input.value` — the *base-definition-typed* qualifying base
+(which may read `spend.total_spend`, `spend.labour_spend`,
+`spend.local_hires_spend`, or a `custom` handler's output) — and then
+subtracts that delta directly from `core_expenditure_figure.value`
+(`spend.core_expenditure`, a *different* `SpendBreakdown` field in general).
+This is arithmetically sound only when the two figures are provably the same
+scale, which today happens to hold for `lesser_of_pct_core_or_actual_local`
+because of the D-02 interpreter-only boundary (`actual_local ==
+core_expenditure`, so `min(pct_cap * core_expenditure, core_expenditure)` is
+always scaled to `core_expenditure`). For any other `base_definition.type`,
+`qualifying_base_input.value` is computed from a field of `SpendBreakdown`
+that is independent of `core_expenditure` — subtracting a reduction measured
+in that other field's domain from `core_expenditure` produces a number with
+no defined meaning, while the derivation line states it plainly as if it
+were a real, connected figure (violating the same PRV-03 "readable
+derivation reason" promise CR-01 was fixed to restore).
 
-**Fix:** Reject a self-referencing `mutually_exclusive_with` entry
-explicitly, either at Pydantic validation time (a `model_validator` on
-`Programme` checking `self.id not in self.mutually_exclusive_with`) or as
-an explicit early raise in `_resolve_mutual_exclusivity`:
-```python
-if other_id == programme.id:
-    raise ValueError(
-        f"programme {programme.id!r} declares mutually_exclusive_with "
-        "itself, which is not a valid mutual-exclusivity edge"
-    )
+Reproduced directly (not hypothetical) with a synthetic programme:
+`base_definition.type: total_qualified_spend`, `spend.total_spend =
+30,000,000`, `spend.core_expenditure = 18,000,000`, one excluded line item
+of `1,000,000` (subtracted from the `total_spend`-domain qualifying base).
+The engine emits:
+
+```
+blended_by_ceiling_split effective core expenditure: raw core
+expenditure 18000000 USD, minus total reduction 1000000 USD (excluded line
+items 1000000 + per-person ceiling 0, ...) = effective core expenditure
+17000000 USD
 ```
 
-### WR-02: `stacks_with` references are never validated against declared programme ids
+— a derivation line that reads as a coherent, traceable computation, but the
+`1,000,000` reduction was never part of the `18,000,000` core-expenditure
+figure it is subtracted from; it came out of an unrelated `30,000,000`
+total. This is not reachable through any currently committed jurisdiction
+file (the only two committed `blended_by_ceiling_split` fixtures —
+`synthetic-uk-style.yaml` and the new `synthetic-blend-adjustments.yaml` —
+both declare `base_definition.type: lesser_of_pct_core_or_actual_local`),
+which is why it is not a Critical/blocker today. It is, however, a defect in
+code this gap-closure plan wrote to fix exactly this class of bug, and it
+will silently mis-price the first future jurisdiction that pairs
+`blended_by_ceiling_split` with any other base-definition type and a binding
+exclusion or per-person ceiling — with no test anywhere to catch it, since
+no fixture exercises the combination.
 
-**File:** `engine/pipeline.py:174-197`
-
-**Issue:** `_resolve_mutual_exclusivity` validates that every
-`mutually_exclusive_with` id resolves to a real declared programme,
-raising `ValueError` naming the unknown id otherwise. `_grinding_clause_lines`
-performs no equivalent check on `stacks_with`: `other_id` is used directly
-to build a derivation line ("no grinding or assistance-reduction clause is
-declared between stacked programmes X and Y") without ever confirming `Y`
-is a real programme in this ruleset. A typo'd or stale `stacks_with`
-reference is never caught — it produces a plausible-looking derivation
-line about a programme that does not exist, rather than raising.
-
-**Fix:** Validate `stacks_with` ids against `programme_by_id` the same way
-`_resolve_mutual_exclusivity` already does for `mutually_exclusive_with`,
-raising `ValueError` naming the unknown id — or add the check to the
-`Programme`/`JurisdictionRuleSet` schema itself (a cross-field
-`model_validator` on `JurisdictionRuleSet` checking every `stacks_with`
-and `mutually_exclusive_with` entry resolves to a declared programme id)
-so both edges are validated in one place at load time.
-
-### WR-03: Loan-out withholding schedule lookup uses closed-interval boundaries, inconsistent with every other tier lookup in this codebase
-
-**File:** `engine/credit.py:125-128`
-
-**Issue:** `_select_loanout_rate`'s schedule lookup matches
-`tier.effective_from <= production_date and (tier.effective_to is None or
-production_date <= tier.effective_to)` — a closed-closed interval. Every
-other tiered lookup in this codebase (`lookup_flat_rate_by_band` in
-`engine/credit.py`, `_select_audit_fee_tier` in `engine/net_cash.py`) is
-explicitly documented and tested as half-open (`low <= x < high`), with
-dedicated boundary tests proving a value exactly at a band's upper edge
-falls into the *next* band. This lookup has no such test and uses the
-opposite convention. Nothing currently validates that a
-`loanout_withholding_schedule`'s entries don't overlap at a boundary (e.g.
-one tier's `effective_to` equal to the next tier's `effective_from`); if
-that ever happens, the first matching entry in declared list order wins
-silently, rather than raising — a rule-file authoring mistake that would
-otherwise surface loudly (as every other closed-enum/tier dispatch in this
-codebase does per the domain's "silent fallthrough" requirement) instead
-picks a rate with no diagnostic.
-
-**Fix:** Either document explicitly why this one lookup is intentionally
-closed-closed (dated "through" ranges read naturally as inclusive, unlike
-a spend-threshold band) and add a boundary test proving the convention is
-deliberate at an adjacency point, or add an overlap-detection check when
-the schedule is loaded/consulted so two schedule entries covering the same
-date raise instead of silently resolving by list order.
-
-### WR-04: An empty `programmes` list yields a spuriously `validated`, unsourced `$0` jurisdiction total
-
-**File:** `engine/pipeline.py:251-261`, `engine/figure.py:98-109`
-
-**Issue:** `JurisdictionRuleSet.programmes` has no minimum-length
-constraint, so a rule file could declare `programmes: []` and still pass
-schema validation. `price_jurisdiction` would then compute
-`total_inputs = []` and call `combined_confidence([])`, which — per its
-own documented contract ("an empty sequence defaults to `validated` —
-there is nothing weaker to inherit from") — returns `"validated"`. The
-resulting `total_net_cash` Figure reports `value=0`, `confidence=
-"validated"`, `source_url=None`, `date_checked=None` for a jurisdiction
-that priced nothing at all. A `"validated"` confidence tag on a figure
-with no actual source and no actual computation is a small instance of
-the confidence-laundering failure mode this review is weighted against,
-even though `combined_confidence`'s empty-sequence behaviour is
-reasonable for its primary (non-empty) use case.
-
-**Fix:** Either require `programmes` to be non-empty at the
-`JurisdictionRuleSet` schema level (a jurisdiction with zero programmes is
-arguably not a meaningful rule file), or have `price_jurisdiction` special-case
-the empty-programmes case to report a Figure whose confidence and
-derivation make the "nothing was priced" state explicit rather than
-routing it through `combined_confidence`'s "nothing to combine" default.
+**Fix:** Either (a) add an explicit guard in the `blended_by_ceiling_split`
+branch raising `ValueError` when `programme.base_definition.type !=
+"lesser_of_pct_core_or_actual_local"` and an exclusion or per-person-ceiling
+reduction is non-zero, naming the unsupported combination explicitly
+(cheapest, matches this codebase's existing "no requirement or curated
+jurisdiction in this phase combines X with Y — extending it speculatively
+would be an unverified guess" pattern already used two paragraphs above this
+exact branch for uplift stacking); or (b) generalize the carry-forward to
+read the reduction against whichever `SpendBreakdown` field
+`base_definition.type` actually draws from, so the subtraction is always
+domain-consistent. Given the 17-day hackathon window and that this
+combination is not required by any curated jurisdiction in this phase,
+option (a) — a loud, named raise — is the appropriate fix, not a silent
+scope-restriction.
 
 ## Info
 
-### IN-01: `AnnualProgrammeCap.escalator_schedule` is accepted by the schema but never referenced by any derivation line
+### IN-03: Zero-or-below short-circuit's derivation line omits excluded line items as a possible cause
 
-**File:** `engine/models.py:230-233`, `engine/credit.py:527-560`
+**File:** `engine/credit.py:547-554`
 
-**Issue:** `AnnualProgrammeCap.escalator_schedule` is a declared,
-validated schema field, but `_apply_annual_programme_cap` never reads it
-or emits any derivation line acknowledging it exists or was considered.
-Every other schema field this engine doesn't yet act on (per-project caps
-alongside annual caps, cap-consumption-check methods, uplift stacking
-edge cases) gets an explicit "considered, here's why nothing happened"
-derivation line per this codebase's own PRV-03 discipline; this field is
-the one exception that is silently invisible to a reader of the
-derivation trail.
+**Issue:** The new short-circuit's derivation line attributes a zero-or-below
+running base to "the declared adjustments (minimum-spend cliff and/or
+per-person ceiling)" — but a sufficiently large `excluded_line_items`
+reduction can, in principle (no `minimum_spend` declared, no per-person
+ceiling), also drive `figure.value` at or below zero on its own (if
+`base_definition.excluded_line_items` sums to more than the raw base). The
+derivation line would then name causes that did not actually apply, which is
+a minor instance of the same "derivation states something not quite true"
+category this phase is otherwise disciplined about.
 
-**Fix:** Add a derivation line in `_apply_annual_programme_cap` naming
-whether `escalator_schedule` is declared, mirroring the treatment every
-other unconsumed-but-schema-present field already gets, or document in
-`jurisdictions/SCOPE-FREEZE.md` that escalator schedules are accepted for
-future use but not yet surfaced anywhere.
+**Fix:** Add "and/or excluded line items" to the short-circuit's derivation
+line, e.g. `"zero or below after the declared adjustments (minimum-spend
+cliff, excluded line items, and/or per-person ceiling)"`.
 
-### IN-02: `Money.currency` and cross-currency fields are unconstrained free-text strings
+### IN-04: Short-circuit skips the "always emit a line, even when zero" convention it sits beside
 
-**File:** `engine/models.py:100-102`
+**File:** `engine/credit.py:541-554` vs. `602-611`
 
-**Issue:** `Money.currency: str` accepts any string, with no validation
-against `Jurisdiction.currency` or an ISO-4217 allow-list. A rule file
-could declare a `w2_cap_amount` or `per_project_cap` in a different
-currency than the jurisdiction's own declared `currency` field, and
-nothing in the schema or the engine would catch the mismatch — the
-engine would silently compare/subtract values across currencies without
-converting, since none of the arithmetic in `engine/credit.py` or
-`engine/net_cash.py` checks that a `Money.currency` it reads matches the
-`Figure.unit` it's about to operate against.
+**Issue:** Two paragraphs below the short-circuit, the code comments
+explicitly that "Both slices ALWAYS emit a derivation line, even when one is
+zero" (PRV-03 discipline). The short-circuit branch itself does not follow
+this: when it fires, neither the "effective core expenditure" line nor
+either slice's line is ever emitted — only the one summary line. This is a
+defensible, deliberate design choice (slicing is meaningless once the base
+is non-positive) and is not incorrect, but it is a slight inconsistency with
+the "no-op steps still get their own line" convention this same function
+otherwise enforces strictly. Purely stylistic; no behavior change needed.
 
-**Fix:** Out of scope for Phase 2's two curated jurisdictions (both
-single-currency, USD/GBP, and hand-verified), but worth a schema-level
-cross-check (`Money.currency == jurisdiction.currency` at
-`JurisdictionRuleSet` validation time, or an explicit currency-conversion
-step where a cross-currency `Money` is intentional) before a future
-multi-currency jurisdiction is curated.
+**Fix:** None required. Noted for consistency awareness only — could
+optionally add a one-line note inside the short-circuit's derivation
+explicitly stating "no slice lines follow" if a future reader finds the
+asymmetry confusing.
+
+## Verification Performed
+
+- `uv run pytest tests/ -q` — 162 passed, 0 failed (matches all three
+  plans' SUMMARY claims).
+- `uv run ruff check` on all 8 in-scope files — all findings are the
+  pre-existing, disclosed `FURB157`/`ISC004`/`RUF022` backlog (tracked in
+  `.planning/WINDOWS.md` entries 2 and 4); no new rule categories.
+- Hand-traced and independently re-derived (by hand and by direct script
+  execution against `engine.credit`/`engine.qualifying_base`) all three
+  `synthetic-blend-adjustments.yaml` programmes' expected gross-credit
+  values (`6,496,000`; `6,904,000`/`6,768,000` split-adjustment values;
+  `0` for the minimum-spend-cliff case) — all confirmed arithmetically
+  correct for the `lesser_of_pct_core_or_actual_local` base type.
+- Independently reproduced the WR-05 domain-mismatch finding via direct
+  script execution (see Warning above) rather than by inspection alone.
+- Confirmed `jurisdictions/us-ct.yaml`'s `transfer_discount.typical_rate_low`
+  /`typical_rate_high` are genuinely `null` in the committed file (not
+  altered by 02-09), corroborating the `unmet-truth` entry in
+  `.planning/WINDOWS.md` (id 3) and the corresponding test's honesty.
+- Confirmed `PerPersonCeilingTier.effective_from` is a required, non-null
+  `date` field — the new overlap-check comparison logic cannot hit a
+  null-comparison bug.
+- Confirmed `stacks_with`/`mutually_exclusive_with` default to `[]` (never
+  `None`) on `Programme`, so the new `model_validator`'s iteration is safe.
+- Confirmed NY/CT curated rule files declare `excluded_line_items: []`, so
+  the validation-pairs pipeline re-coupling (02-09) cannot hit
+  `_apply_excluded_line_items`'s `KeyError` path via `price_jurisdiction`'s
+  `SpendBreakdown.from_total` (empty `line_items`).
+
+## Known, Already-Recorded Items (not re-litigated)
+
+- Repo-wide pre-existing `ruff` backlog (~297 findings, `FURB157`/`RUF022`
+  mostly) — accepted project convention, tracked in `.planning/WINDOWS.md`.
+- `jurisdictions/us-ct.yaml`'s unsourced `transfer_discount` blocking
+  Connecticut's pipeline-routed reproduction (WINDOWS.md entry 3,
+  `unmet-truth`) — deliberate honesty, not a bug. The dedicated test
+  (`test_christmas_always_reproduces_exactly_through_price_jurisdiction`)
+  is well-constructed: it asserts the *raise* directly with a
+  self-invalidating leading assertion (`assert not
+  _pipeline_can_complete(...)`) that will fail loudly the moment
+  `us-ct.yaml` is ever sourced with a real rate, so the test cannot go
+  silently stale. No changes recommended to this test.
 
 ---
 
-_Reviewed: 2026-08-25T16:53:03Z_
+_Reviewed: 2026-08-25T20:00:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
