@@ -57,7 +57,7 @@ The phase's central collision: **INP-08 refuses budget input, but success criter
 
 - **D-36: The spec form does NOT return a credit or cost figure in Phase 3.** Success criterion 1 says a visitor can "**describe** a production" — not price one. Phase 4's goal is "the same identical production is **priced** against each city's real local costs," and Phase 4's stated dependency on Phase 3 is "(input contract)" — the contract, not the model. Building a spec→spend model here would produce a plausible qualified-spend number with **no source**, which would then flow into `price_jurisdiction` and render a credit figure sitting on the same page as a validated one. That is precisely the "never present a researched figure as validated" violation, in the worst possible location. — **Reversibility:** costly — Phase 4 extends this seam rather than replacing it; pricing from the spec in Phase 3 would mean Phase 4 inherits an unsourced number already rendered on a public page.
 
-- **D-37: What Route A *does* return — an honest, non-empty, fully-cited result.** Everything below is derivable from the spec plus `jurisdictions/us-ny.yaml` with zero cost modelling:
+- **D-37: What Route A actually returns — an honest, non-empty, fully-cited result.** Everything below is derivable from the spec plus `jurisdictions/us-ny.yaml` with zero cost modelling:
   1. The normalized spec echoed back — what the system understood, including a tier resolved to a crew headcount.
   2. Per named city: whether a **curated validated** model exists (`jurisdiction.status == curated_validated`), or none does. Never a suggestion, never a substitution.
   3. For New York: the **rule terms that will apply** — rate, mechanism (`refundable`), minimum spend, per-project and annual cap status, audit-fee treatment, estimated payout lag — each carrying its own source URL, `date_checked` and confidence tier straight off the rule file.
@@ -112,8 +112,8 @@ The user answered "none. all good." to the gray-area selection, delegating **all
 
 Two decisions are load-bearing on the project's honesty claim and should be escalated rather than quietly reversed if they become inconvenient during planning or execution:
 
-- **D-33** — no Anora preset spec with a pinned spend.
-- **D-36 / D-39** — no unsourced qualified-spend figure rendered anywhere, and no modelling assumption wearing a `validated` tier.
+- D-33 — no Anora preset spec with a pinned spend.
+- D-36 / D-39 — no unsourced qualified-spend figure rendered anywhere, and no modelling assumption wearing a `validated` tier.
 
 </decisions>
 

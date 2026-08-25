@@ -46,39 +46,73 @@ created: 2026-08-25
 
 ## Per-Task Verification Map
 
-Populated at plan time once `03-0N-PLAN.md` task identifiers exist. The requirement-level rows below
-are the contract each plan task must attach to; every row must be claimed by at least one task.
+Populated at plan time. Task identifiers are `{plan}-T{n}`, numbering tasks in the order they appear
+in each `03-0N-PLAN.md` `<tasks>` block. Every row below is claimed by at least one task.
 
-| Req ID | Behavior | Threat Ref | Test Type | Automated Command | File Exists |
-|--------|----------|------------|-----------|-------------------|-------------|
-| INP-01…INP-07 | `ProductionSpec` accepts every valid combination and rejects invalid ones: missing required field, both-or-neither of `crew_size`/`crew_tier`, imported > total, unknown extra field | T-03-02 (silent coercion) | unit + schema | `uv run pytest tests/test_engine_spec.py -x` | ❌ W0 |
-| INP-08 | Two distinct layers: structurally, an extra field 422s; visibly, a non-empty **Total budget** field returns the friendly circularity explanation — not a generic validation error | T-03-02 | unit + integration | `uv run pytest tests/test_app_spec_route.py::test_budget_field_always_refused -x` | ❌ W0 |
-| JUR-01 (success criterion 3) | Anora reproduces **$991,190** against **$3,964,760** of qualified spend, exact `Decimal` equality, through both the JSON route and the HTML route, with the NY ESD source link rendered beside the figure | T-03-01 (path traversal via `pair_id`) | golden-value + integration | `uv run pytest tests/test_app_validate_route.py::test_anora_reproduces_exactly_via_route -x` | ❌ W0 |
-| SHP-14 | Suite green unmutated; a non-zero count of NY exact-mode assertions is collected; red under a declared one-basis-point mutation of `us-ny.yaml`'s `base_rate`; red **for the right reason**; green again once restored | — | CI job (bash + pytest), not itself a pytest test | `.github/scripts/mutation-check.sh` | ❌ W0 |
-| (success criterion 1) | A full spec round-trips: submitted → echoed back normalized, including a `crew_tier` resolved to a headcount range | — | unit + integration | `uv run pytest tests/test_app_spec_route.py::test_spec_echoes_normalized_input -x` | ❌ W0 |
-| (D-40, success criterion 1 adjacent) | An uncurated city name is accepted and marked `no curated model` — never rejected, never silently substituted, never offered a fuzzy suggestion | — | unit | `uv run pytest tests/test_app_spec_route.py::test_uncurated_city_never_suggested -x` | ❌ W0 |
-| (Phase 2 contract, non-regression) | `Figure` serialization crosses the HTTP boundary as `Decimal`→`str`, never `float` — the JSON response must not reintroduce Phase 2's precision bug | — | unit + property | `uv run pytest tests/test_app_validate_route.py -x` | ❌ W0 |
+| Req ID | Behavior | Threat Ref | Test Type | Automated Command | Claimed by | File Exists |
+|--------|----------|------------|-----------|-------------------|------------|-------------|
+| INP-01…INP-07 | `ProductionSpec` accepts every valid combination and rejects invalid ones: missing required field, both-or-neither of `crew_size`/`crew_tier`, imported > total, unknown extra field | T-03-02 (silent coercion) | unit + schema | `uv run pytest tests/test_engine_spec.py -x` | **03-02-T2** (field contract frozen by **03-02-T1**) | ❌ W0 |
+| INP-08 | Two distinct layers: structurally, an extra field 422s; visibly, a non-empty **Total budget** field returns the friendly circularity explanation — not a generic validation error | T-03-02 | unit + integration | `uv run pytest tests/test_app_spec_route.py::test_budget_field_always_refused -x` | **03-02-T3** (service refusal + `extra="forbid"`), **03-02-T4** (the visible field and the on-screen message) | ❌ W0 |
+| JUR-01 (success criterion 3) | Anora reproduces **$991,190** against **$3,964,760** of qualified spend, exact `Decimal` equality, through both the JSON route and the HTML route, with the NY ESD source link rendered beside the figure | T-03-01 (path traversal via `pair_id`) | golden-value + integration | `uv run pytest tests/test_app_validate_route.py::test_anora_reproduces_exactly_via_route -x` | **03-01-T2** (tracer: JSON + HTML routes, allowlist), **03-01-T3** (form selector path) | ❌ W0 |
+| SHP-14 | Suite green unmutated; a non-zero count of NY exact-mode assertions is collected; red under a declared one-basis-point mutation of `us-ny.yaml`'s `base_rate`; red **for the right reason**; green again once restored | T-03-08, T-03-09 | CI job (bash + pytest), not itself a pytest test | `.github/scripts/mutation-check.sh` | **03-03-T1** (table + five-step script), **03-03-T2** (the blocking CI job) | ❌ W0 |
+| (success criterion 1) | A full spec round-trips: submitted → echoed back normalized, including a `crew_tier` resolved to a headcount range | — | unit + integration | `uv run pytest tests/test_app_spec_route.py::test_spec_echoes_normalized_input -x` | **03-02-T3** (service echo + tier resolution), **03-02-T4** (form and result page) | ❌ W0 |
+| (D-40, success criterion 1 adjacent) | An uncurated city name is accepted and marked `no curated model` — never rejected, never silently substituted, never offered a fuzzy suggestion | — | unit | `uv run pytest tests/test_app_spec_route.py::test_uncurated_city_never_suggested -x` | **03-02-T3** | ❌ W0 |
+| (Phase 2 contract, non-regression) | `Figure` serialization crosses the HTTP boundary as `Decimal`→`str`, never `float` — the JSON response must not reintroduce Phase 2's precision bug | — | unit + property | `uv run pytest tests/test_app_validate_route.py -x` | **03-01-T2** | ❌ W0 |
 
 *Status legend for the populated per-task table: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+
+### Task index
+
+| Task ID | Plan | Task | Type |
+|---------|------|------|------|
+| 03-01-T1 | `03-01-PLAN.md` | Package legitimacy gate — jinja2 and python-multipart | `checkpoint:human-verify` (blocking-human) |
+| 03-01-T2 | `03-01-PLAN.md` | End-to-end "Anora reproduces $991,190" — one path only | `tracer` (tdd) |
+| 03-01-T3 | `03-01-PLAN.md` | The pair selector, the landing page, and the honest unselectable list | `auto` |
+| 03-02-T1 | `03-02-PLAN.md` | Decision — freeze the `ProductionSpec` field contract (INP-01 "and scale") | `checkpoint:decision` (blocking) |
+| 03-02-T2 | `03-02-PLAN.md` | `engine/spec.py` — the `ProductionSpec` contract and the crew-tier table | `auto` (tdd) |
+| 03-02-T3 | `03-02-PLAN.md` | The Route A service — budget refusal, per-city status, and New York's rule terms | `auto` (tdd) |
+| 03-02-T4 | `03-02-PLAN.md` | The spec form, the visible budget refusal on screen, and the result page | `auto` |
+| 03-03-T1 | `03-03-PLAN.md` | The declared mutation table and the five-step non-vacuity gate | `auto` |
+| 03-03-T2 | `03-03-PLAN.md` | Wire `mutation-check` into CI as a sixth blocking job | `auto` |
+
+### Measured fact that changes the SHP-14 assertion
+
+`tests/fixtures/validation_pairs/` was read directly at plan time: **Anora is the only New York
+pair with `assertion.mode: exact`.** `ny_succession_s4.yaml` is `bounded` with `tolerance_bps: 10`
+(corrected in plan 02-01) and `ny_gilded_age_s2.yaml` is `bounded` with `tolerance_bps: 150`.
+`03-RESEARCH.md` Pattern 4's illustrative step-2 check counts items matching a loose `-k "ny"`
+filter, which would also count bounded-mode items that cannot anchor an exact-equality claim.
+`03-03-T1` replaces it with two precise assertions: a count of **active, exact-mode, New York**
+fixtures, and a `--collect-only` count against the declared `expected_red_test` node id
+(`tests/test_engine_against_validation_pairs.py::test_anora_reproduces_exactly_through_price_jurisdiction`).
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `engine/spec.py`, `engine/figure_serialize.py` — do not exist yet
-- [ ] `app/routers/spec.py`, `app/routers/validate.py`, `app/services/spec.py`,
-      `app/services/validate.py`, `app/services/city_lookup.py`, `app/templates/*.html` — none exist
-      yet (only `app/main.py` exists, a single-file skeleton)
-- [ ] `data/crew_tiers.yaml` — new top-level directory and file
-- [ ] `.github/scripts/mutation-check.sh`, `tests/mutation_targets.yaml` — new
-- [ ] `tests/test_engine_spec.py`, `tests/test_app_spec_route.py`, `tests/test_app_validate_route.py`
-      — none exist yet
-- [ ] `jinja2`, `python-multipart` — not yet in `pyproject.toml` / `uv.lock`. **`python-multipart` is
-      required for any HTML `<form>` POST, not only file uploads** — Starlette's form parser raises at
-      request time without it. Both packages returned `SUS` from the package-legitimacy gate on an
-      `unknown-downloads` signal only; both repo URLs were confirmed against the Pallets and Kludex
-      (current Starlette/FastAPI maintainer) organizations, so a `checkpoint:human-verify` here is a
-      formality rather than an open question.
+Every Wave 0 gap below is owned by a named task; none is left to be discovered at execution time.
+
+- [ ] `engine/figure_serialize.py` — does not exist yet → **03-01-T2**
+- [ ] `engine/spec.py` — does not exist yet → **03-02-T2**
+- [ ] `app/services/__init__.py`, `app/services/validate.py`, `app/routers/__init__.py`,
+      `app/routers/validate.py`, `app/templates/base.html`, `app/templates/validate_result.html`
+      — none exist yet (only `app/main.py` exists, a single-file skeleton) → **03-01-T2**
+- [ ] `app/templates/index.html`, `app/templates/validate_form.html` → **03-01-T3**
+- [ ] `app/services/city_lookup.py`, `app/services/spec.py` → **03-02-T3**
+- [ ] `app/routers/spec.py`, `app/templates/spec_form.html`, `app/templates/spec_result.html`
+      → **03-02-T4**
+- [ ] `data/crew_tiers.yaml` — new top-level directory and file → **03-02-T2**
+- [ ] `.github/scripts/mutation-check.sh`, `tests/mutation_targets.yaml` — new → **03-03-T1**
+- [ ] `tests/test_app_validate_route.py` — does not exist yet → **03-01-T2** (extended by 03-01-T3)
+- [ ] `tests/test_engine_spec.py` — does not exist yet → **03-02-T2**
+- [ ] `tests/test_app_spec_route.py` — does not exist yet → **03-02-T3** (extended by 03-02-T4)
+- [ ] `jinja2`, `python-multipart` — not yet in `pyproject.toml` / `uv.lock` → **03-01-T2**, gated
+      by **03-01-T1**. **`python-multipart` is required for any HTML `<form>` POST, not only file
+      uploads** — Starlette's form parser raises at request time without it. Both packages returned
+      `SUS` from the package-legitimacy gate on an `unknown-downloads` signal only; both repo URLs
+      were confirmed against the Pallets and Kludex (current Starlette/FastAPI maintainer)
+      organizations, so the `checkpoint:human-verify` at 03-01-T1 is a formality rather than an open
+      question — but a `[SUS]` verdict is never auto-approvable, so it still blocks.
 
 *No gap in shared test infrastructure: `testpaths = ["tests"]` already collects any new file under
 `tests/`, and `.github/workflows/ci.yml`'s existing `tests` job already runs `pytest tests/`. Only the
@@ -90,8 +124,15 @@ new `mutation-check` job needs adding.*
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| The hosted URL actually serves the Anora result to an anonymous visitor | Success criterion 3 / SHP-14 deploy path | The pytest suite exercises the app in-process via TestClient; "an anonymous visitor at the public URL sees it" is a property of the **deployment**, not of the runtime under test | From a logged-out browser (or `curl` with no cookies/headers), load the public subdomain, submit the spec form naming New York, and confirm the page shows `$991,190` against `$3,964,760` with a working link to the NY ESD source document |
-| The mutation gate is non-vacuous | SHP-14 | A CI job that always passes looks identical to one that works; only observing the deliberate red proves it | Run `.github/scripts/mutation-check.sh` locally, confirm it exits non-zero under the declared mutation, read the failure output to confirm it names the NY exact-mode assertion (right reason, not an unrelated collection error), then confirm it exits zero once `us-ny.yaml` is restored |
+`workflow.human_verify_mode` is `end-of-phase`, so each row below is carried as a
+`<verify><human-check>` block on the owning task rather than as a mid-flight
+`checkpoint:human-verify`; the verifier harvests them into `03-UAT.md` in one batch at end of phase.
+
+| Behavior | Requirement | Carried by | Why Manual | Test Instructions |
+|----------|-------------|------------|------------|-------------------|
+| The hosted URL actually serves the Anora result to an anonymous visitor | Success criterion 3 / SHP-14 deploy path | **03-01-T3** `<human-check>` | The pytest suite exercises the app in-process via TestClient; "an anonymous visitor at the public URL sees it" is a property of the **deployment**, not of the runtime under test | From a logged-out browser (or `curl` with no cookies/headers) on a different network than the development machine, load `https://vockell.com/finance/`, follow "Reproduce a disclosure", submit with Anora selected, and confirm the page shows `$991,190` against `$3,964,760` with a working link to the NY ESD source document. Confirm every other path on the host is unchanged. |
+| The budget refusal and the cited rule terms render for an anonymous visitor | INP-08 / D-37 | **03-02-T4** `<human-check>` | The readability of the refusal — "refused **with an explanation**" — is the requirement, and readability is not assertable by a status-code test | Load `https://vockell.com/finance/spec`, type a number into **Total budget**, submit, and confirm the circularity explanation is legible prose rather than a generic error. Clear it, resubmit, and confirm the echoed spec, New York's cited rule terms, an uncurated city with no suggested alternative, and the explicit not-yet-derived statement — with no spec-derived dollar figure anywhere. |
+| The mutation gate is non-vacuous | SHP-14 | **03-03-T2** `<human-check>` | A CI job that always passes looks identical to one that works; only observing the deliberate red proves it | Run `.github/scripts/mutation-check.sh` locally and read the output, not just the exit code: confirm a non-zero NY exact-mode collected count, then that the mutated suite failed `test_anora_reproduces_exactly_through_price_jurisdiction` by name (right reason, not an unrelated collection error), then green after restore. Then open the GitHub Actions run and confirm `mutation-check (SHP-14)` is a sixth job whose log shows the deliberate red. |
 
 ---
 
