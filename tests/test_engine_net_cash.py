@@ -1,7 +1,8 @@
 """Stage 5 (net-cash conversion) tests: the four mechanism functions
 (`refundable`, `rebate_grant`, `transferable`, `nonrefundable_credit`), the
 cliff-tiered audit fee schedule (INC-06), corporation tax on the taxable
-path (INC-07), and `ArrivalTiming` (INC-08).
+path (INC-07), and `ArrivalTiming` (INC-08) — plus the closing UK worked
+example that puts the 44 percent naive-arithmetic overstatement under test.
 
 Fixture loading follows the same sorted-glob, safe-loader,
 fail-loud-on-empty-glob discipline established in
@@ -41,11 +42,13 @@ from engine.net_cash import (
     refundable,
     transferable,
 )
+from engine.pipeline import price_jurisdiction
 from engine.qualifying_base import SpendBreakdown, compute_qualifying_base
 from engine.rounding import quantize_money
 
 FIXTURE_DIR = "tests/fixtures/jurisdictions"
 MECH_FIXTURE = f"{FIXTURE_DIR}/synthetic-mechanisms.yaml"
+UK_FIXTURE = f"{FIXTURE_DIR}/synthetic-uk-style.yaml"
 
 SHARED_SPEND = Decimal("10000000")
 
@@ -371,3 +374,103 @@ def test_mechanisms_fixture_declares_synthetic_status():
     module sees the guarantee beside the fixture it concerns."""
     ruleset = load_ruleset(MECH_FIXTURE)
     assert ruleset.jurisdiction.status == "synthetic_fixture"
+
+
+# ---------------------------------------------------------------------------
+# Task 2: the UK example closed on net cash — the 44 percent claim under
+# test.
+# ---------------------------------------------------------------------------
+
+# Written directly as a literal per this task's own instruction — the
+# comparison is against a known string, not against another read of the
+# same bytes. Verified this session (uv run python3) to match
+# tests/fixtures/jurisdictions/synthetic-uk-style.yaml's
+# rate_structure.source_note exactly, code point for code point (350 chars).
+EXPECTED_UK_SOURCE_NOTE = (
+    "Illustrative only — the United Kingdom is never a curated jurisdiction for "
+    "this project (no per-production disclosure exists); this £-denominated "
+    "worked example (feasibility-incentives.md, £18M IFTC) is used purely as an "
+    "engine-correctness regression for blend_two_rates_by_ceiling and must never "
+    "be presented as a model of the UK's actual programme."
+)
+
+
+def test_taxable_mechanism_uk_worked_example():
+    """Pricing the UK fixture end to end yields a gross credit of exactly
+    Decimal('7176000') and, net of corporation tax at the declared 0.25, a
+    net cash figure of exactly Decimal('5382000') — the figure a producer
+    actually banks (feasibility-incentives.md, "Is the arithmetic
+    non-trivial?" section: £7.176M gross, net of ~25% corporation tax
+    ≈ £5.38M cash). This is more than 40 percent below the naive
+    Decimal('18000000') * Decimal('0.53') = Decimal('9540000') figure — the
+    44 percent overstatement DMO-02 exists to show, kept under test rather
+    than only in a slide."""
+    ruleset = load_ruleset(UK_FIXTURE)
+    priced = price_jurisdiction(ruleset, Decimal("18000000"))
+    assert len(priced.programmes) == 1
+    programme_result = priced.programmes[0]
+
+    # feasibility-incentives.md: "£15M x 80% = £12M x 53% = £6.36M gross;
+    # £3M x 80% = £2.4M x 34% = £816,000 gross. Total gross £7.176M".
+    assert programme_result.gross_credit.value == Decimal("7176000")
+
+    # 0.25 corporation tax on 7176000 = 1794000; net = 5382000 exactly.
+    assert programme_result.net_cash.point is not None
+    assert programme_result.net_cash.point.value == Decimal("5382000")
+
+    # The naive figure, computed here purely to assert the modelled net
+    # cash is more than 40 percent below it — this is the 44 percent
+    # overstatement DMO-02 exists to show.
+    naive = Decimal("18000000") * Decimal("0.53")
+    assert naive == Decimal("9540000")
+    assert programme_result.net_cash.point.value < naive * Decimal("0.60")
+
+    # The United Kingdom has no per-production disclosure — every figure
+    # derived from this fixture reports 'researched', never 'validated'.
+    all_figures = _walk_figures(
+        programme_result.qualifying_base,
+        programme_result.gross_credit,
+        programme_result.net_cash.point,
+    )
+    assert len(all_figures) >= 4
+    for figure in all_figures:
+        assert figure.confidence == "researched", (
+            f"{figure.label!r} reports confidence={figure.confidence!r} — the UK "
+            "fixture is a synthetic engine-correctness regression, never a "
+            "curated jurisdiction, and nothing derived from it may be labelled "
+            "'validated'"
+        )
+
+
+def test_uk_fixture_source_note_survives_yaml_figure_and_reread_unchanged():
+    """The UK fixture's rate-structure source note carries a pound sign; it
+    survives a YAML safe-load, a Figure construction (via the
+    `blended_by_ceiling_split` derivation line), and a repeat read
+    unchanged, compared code point by code point against a literal written
+    directly in this test file."""
+    ruleset_first = load_ruleset(UK_FIXTURE)
+    programme_first = next(
+        p for p in ruleset_first.programmes if p.id == "uk-style-ceiling-split-synthetic"
+    )
+    source_note_first = programme_first.rate_structure.source_note
+    assert source_note_first == EXPECTED_UK_SOURCE_NOTE
+    assert "£" in source_note_first
+
+    qualifying_base = compute_qualifying_base(
+        programme_first, SpendBreakdown.from_total(Decimal("18000000")), currency="GBP"
+    )
+    gross_credit = compute_gross_credit(programme_first, qualifying_base)
+    derivation_line = next(
+        line for line in gross_credit.derivation if source_note_first in line
+    )
+    assert EXPECTED_UK_SOURCE_NOTE in derivation_line
+
+    ruleset_second = load_ruleset(UK_FIXTURE)
+    programme_second = next(
+        p for p in ruleset_second.programmes if p.id == "uk-style-ceiling-split-synthetic"
+    )
+    source_note_second = programme_second.rate_structure.source_note
+
+    assert source_note_second == EXPECTED_UK_SOURCE_NOTE
+    assert source_note_first == source_note_second
+    assert len(source_note_first) == len(source_note_second) == len(EXPECTED_UK_SOURCE_NOTE)
