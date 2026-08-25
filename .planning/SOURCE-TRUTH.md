@@ -370,3 +370,68 @@ recorded. `5.75%` is confirmed as the correct "prior/pre-reform" figure and
 file that encodes only those two values, without the three intermediate
 bands, will compute the wrong credit for any production whose terms locked
 in 2023, 2024, or 2025.
+
+---
+
+## SRC-04 — Partner track
+
+**Question (verbatim, REQUIREMENTS.md):** Partner track confirmed — Parallel
+(owner-confirmed 2026-08-24). Parallel's Search API must be called at
+runtime via the official `parallel-web` SDK. The "Our track: IBM" line in
+`hackathon-brief.md` refers to the sibling animatic project and does not
+apply here.
+
+**Answer: Parallel.** Parallel's Search API must be called at runtime via
+the official `parallel-web` SDK, per `CLAUDE.md`'s partner-track constraint.
+This makes SHP-06 (the runtime `parallel-web` Search API call) unconditional
+and load-bearing in Phase 7 — not optional, not a documentation-only
+requirement.
+
+**`hackathon-brief.md` line 52 states "Our track: IBM."** This does **not**
+apply to ProductionFinance: that line describes the sibling animatic
+project's track assignment, not this project's. `PROJECT.md` records the
+precedence explicitly — "Where the two briefs disagree,
+`productionfinance-brief.md` governs" — and `productionfinance-brief.md`
+names Parallel. This is recorded here plainly so a later reader who
+encounters the "Our track: IBM" line in isolation does not re-open a
+settled question.
+
+**Source: the project owner's direct confirmation, not a public URL.**
+Unlike SRC-01/02/05, there is no government document or API endpoint to
+cite for this answer — the answer is a decision the project owner made and
+confirmed directly, before planning began. This entry states that plainly
+rather than inventing a citation to make the entry's shape match the others.
+
+**Phase 1 deliberately carries no `parallel-web`, `google-genai` or
+`google-adk` runtime dependency.** Those land in the phases that actually
+exercise them (Phase 5 for `google-genai`, Phase 7 for `parallel-web` and,
+where applicable, `google-adk`) — SRC-04/SHP-05/SHP-06 are not exercised
+until then per `ROADMAP.md`'s own requirement mapping. Adding an unused
+Phase 1 dependency to make the CI forbidden-package gate feel more
+exercised would be dishonest scaffolding, not real coverage.
+
+**date_checked:** 2026-08-24
+
+**Confidence:** HIGH — this is a direct, first-party confirmation from the
+project owner, the highest-confidence source type this project has (higher
+than any government document, which can only ever be read and interpreted).
+
+**What was refuted or refined (D-12):** No working hypothesis was stated for
+this question — it was a decision, not a fact to verify against an external
+source, so there is nothing to refute or refine. This section is included
+per D-11's required entry shape regardless, stating that explicitly rather
+than silently omitting it.
+
+### Re-verification log
+
+- **2026-08-24** — Original owner confirmation: Parallel, before planning
+  began. Recorded in `STATE.md` Blockers/Concerns as "RESOLVED
+  2026-08-24: Parallel. Owner-confirmed."
+
+Phase 8 performs a re-check of this answer against the hackathon submission
+portal at filing time, since a portal-level track assignment is a fact
+external to this project that could in principle differ from the owner's
+recollection. **That re-check appends a new dated line to this log — it does
+not replace the line above.** The original 2026-08-24 confirmation is the
+record of what was believed and decided at planning time; overwriting it
+would erase that record even if a later check confirms the same answer.

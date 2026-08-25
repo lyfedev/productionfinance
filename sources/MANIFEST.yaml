@@ -50,10 +50,27 @@ documents:
       after sorting by "Product Known As" and scrolling the Joker row into
       the virtualized viewport — the same content a screen reader announces,
       not an LLM summary. A corroborating screenshot is saved alongside as
-      2026-08-24-njeda-film-tax-credit-activity-report-joker.png (not
-      separately sha256'd; the .txt is the cited source of the digits).
+      2026-08-24-njeda-film-tax-credit-activity-report-joker.png, indexed
+      separately below (plan 01-05 added its manifest row; the .txt above
+      remains the cited source of the digits, not the screenshot).
     cited_for:
       - "Joker aka Romeo — PROD-00185335, WB Studio Enterprises Inc., approved 08/13/2019"
+
+  - path: sources/nj/2026-08-24-njeda-film-tax-credit-activity-report-joker.png
+    url: https://app.powerbigov.us/view?r=eyJrIjoiYmQ4MDY1ZmEtNTI5Yy00YzZlLTkwOGQtNmM3Njc3NzljYTRkIiwidCI6ImRlZjliNmZhLTM1OTgtNGI0OC1iYjcyLTBiYzM4NDAzMmVhMyJ9
+    retrieved_at: "2026-08-24T22:57:00-07:00"
+    sha256: "dc7f0d088f02e6acb5265aca7c1db12d681de958a0c07d08daeb4218bd949efa"
+    jurisdiction: us-nj
+    document_title: "NJEDA Film Tax Credit Activity Report — Joker row, corroborating screenshot"
+    note: >
+      Corroborating screenshot for the accessibility-tree text extract at
+      sources/nj/2026-08-24-njeda-film-tax-credit-activity-report-joker.txt
+      (same capture session). Not the cited source of any digit — the .txt
+      is — but given a manifest row here (added by plan 01-05) so no
+      archived file in sources/ sits uncited and unhashed
+      (tests/test_source_truth.py's manifest-completeness check).
+    cited_for:
+      - "Corroborating visual evidence for the Joker row extract, not itself the digit source"
 
   - path: sources/nj/2026-08-24-njeda-film-tax-credit-activity-report-trial-of-chicago-7.txt
     url: https://app.powerbigov.us/view?r=eyJrIjoiYmQ4MDY1ZmEtNTI5Yy00YzZlLTkwOGQtNmM3Njc3NzljYTRkIiwidCI6ImRlZjliNmZhLTM1OTgtNGI0OC1iYjcyLTBiYzM4NDAzMmVhMyJ9
@@ -66,9 +83,25 @@ documents:
       Joker entry above — see that entry's note for the full methodology.
       Sorted by "Product Known As", scrolled to the "Trial of the Chicago 7,
       The" row. Corroborating screenshot saved alongside as
-      2026-08-24-njeda-film-tax-credit-activity-report-trial-of-chicago-7.png.
+      2026-08-24-njeda-film-tax-credit-activity-report-trial-of-chicago-7.png,
+      indexed separately below (plan 01-05 added its manifest row).
     cited_for:
       - "Trial of the Chicago 7, The — PROD-00187913, C7 Production Inc., approved 07/14/2020"
+
+  - path: sources/nj/2026-08-24-njeda-film-tax-credit-activity-report-trial-of-chicago-7.png
+    url: https://app.powerbigov.us/view?r=eyJrIjoiYmQ4MDY1ZmEtNTI5Yy00YzZlLTkwOGQtNmM3Njc3NzljYTRkIiwidCI6ImRlZjliNmZhLTM1OTgtNGI0OC1iYjcyLTBiYzM4NDAzMmVhMyJ9
+    retrieved_at: "2026-08-24T22:58:30-07:00"
+    sha256: "5da0edf83c71e036f3522cef245db650b07aea7fc1679066174fb656d0232d65"
+    jurisdiction: us-nj
+    document_title: "NJEDA Film Tax Credit Activity Report — Trial of the Chicago 7 row, corroborating screenshot"
+    note: >
+      Corroborating screenshot for the accessibility-tree text extract at
+      sources/nj/2026-08-24-njeda-film-tax-credit-activity-report-trial-of-chicago-7.txt
+      (same capture session). Not the cited source of any digit — the .txt
+      is — but given a manifest row here (added by plan 01-05) so no
+      archived file in sources/ sits uncited and unhashed.
+    cited_for:
+      - "Corroborating visual evidence for the Trial of the Chicago 7 row extract, not itself the digit source"
 
   - path: sources/ct/2026-08-24-ct-film-tax-credits-issued.csv
     url: https://data.ct.gov/api/v3/views/kjsu-mdny/export.csv?accessType=DOWNLOAD
