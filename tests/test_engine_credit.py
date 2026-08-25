@@ -23,6 +23,7 @@ from engine.credit import (
     Availability,
     Eligibility,
     PerPersonCompensation,
+    _select_loanout_rate,
     assess_availability,
     assess_eligibility,
     blend_two_rates_by_ceiling,
@@ -42,6 +43,7 @@ from engine.models import (
     Money,
     PayoutLag,
     PerPersonCeiling,
+    PerPersonCeilingTier,
     Programme,
     RateStructure,
     Tier,
@@ -309,6 +311,94 @@ def test_per_person_ceiling_unconfirmed_schedule_entry_reports_researched():
     assert gross.confidence == "researched"
     withholding = next(f for f in gross.inputs if "withholding" in f.label.lower())
     assert withholding.confidence == "researched"
+
+
+def test_loanout_withholding_schedule_dated_ranges_are_inclusive_at_both_ends():
+    """WR-03: the closed-closed convention resolves the committed
+    Georgia-style schedule's abutting boundary correctly at both bands'
+    inclusive edges. 2025-12-31 — the LAST day of the 5.19% band's declared
+    `effective_to` — selects 5.19%, not the 4.99% band that starts the very
+    next day. 2026-01-01 — the FIRST day of the 4.99% band's declared
+    `effective_from` — selects 4.99%. A third date, 2024-01-01, lands
+    exactly on the 5.39% band's `effective_from` and selects that band too
+    — the closed-closed convention applies at every dated-band entry, not
+    only the two boundary dates written for the primary WR-03 claim."""
+    programme = _programme_by_id(GA_FIXTURE, "ga-style-w2-vs-loanout-confirmed-synthetic")
+    qualifying_base = compute_qualifying_base(
+        programme, SpendBreakdown.from_total(Decimal("10000000")), currency="USD"
+    )
+
+    def _withholding_rate(production_date: date) -> Decimal:
+        gross = compute_gross_credit(
+            programme,
+            qualifying_base,
+            per_person_compensations=[
+                PerPersonCompensation(
+                    role="Composer", amount=Decimal("1000000"), payment_route="loanout"
+                )
+            ],
+            production_date=production_date,
+        )
+        withholding = next(f for f in gross.inputs if "withholding" in f.label.lower())
+        return withholding.value / Decimal("1000000")
+
+    assert _withholding_rate(date(2025, 12, 31)) == Decimal("0.0519")
+    assert _withholding_rate(date(2026, 1, 1)) == Decimal("0.0499")
+    assert _withholding_rate(date(2024, 1, 1)) == Decimal("0.0539")
+
+
+def test_overlapping_loanout_withholding_bands_raise():
+    """WR-03: two schedule bands whose date ranges overlap raise
+    `ValueError` naming both bands' `effective_from` dates and rates — the
+    engine refuses to resolve an ambiguous schedule by declared list order.
+    A second scenario proves an open-ended (`effective_to` null) band
+    overlapping a dated one raises the same way — a null `effective_to` is
+    treated as unbounded, not as "no overlap possible"."""
+    dated_overlap = PerPersonCeiling(
+        applies=True,
+        loanout_exempt=True,
+        loanout_withholding_confirmed=True,
+        loanout_withholding_schedule=[
+            PerPersonCeilingTier(
+                effective_from=date(2025, 1, 1),
+                effective_to=date(2025, 12, 31),
+                loanout_withholding_rate=Decimal("0.05"),
+            ),
+            PerPersonCeilingTier(
+                effective_from=date(2025, 6, 1),
+                effective_to=date(2026, 12, 31),
+                loanout_withholding_rate=Decimal("0.06"),
+            ),
+        ],
+    )
+    with pytest.raises(ValueError) as excinfo:
+        _select_loanout_rate(dated_overlap, date(2025, 7, 1))
+    message = str(excinfo.value)
+    assert "2025-01-01" in message
+    assert "2025-06-01" in message
+
+    open_ended_overlap = PerPersonCeiling(
+        applies=True,
+        loanout_exempt=True,
+        loanout_withholding_confirmed=True,
+        loanout_withholding_schedule=[
+            PerPersonCeilingTier(
+                effective_from=date(2025, 1, 1),
+                effective_to=None,
+                loanout_withholding_rate=Decimal("0.05"),
+            ),
+            PerPersonCeilingTier(
+                effective_from=date(2026, 1, 1),
+                effective_to=date(2026, 12, 31),
+                loanout_withholding_rate=Decimal("0.06"),
+            ),
+        ],
+    )
+    with pytest.raises(ValueError) as excinfo2:
+        _select_loanout_rate(open_ended_overlap, date(2026, 3, 1))
+    message2 = str(excinfo2.value)
+    assert "2025-01-01" in message2
+    assert "2026-01-01" in message2
 
 
 def test_per_person_ceiling_no_compensations_supplied_leaves_base_unchanged():

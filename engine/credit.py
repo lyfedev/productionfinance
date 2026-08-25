@@ -19,7 +19,7 @@ from decimal import Decimal
 from typing import Literal
 
 from engine.figure import Figure
-from engine.models import PerPersonCeiling, Programme, Tier
+from engine.models import PerPersonCeiling, PerPersonCeilingTier, Programme, Tier
 from engine.qualifying_base import CORE_EXPENDITURE_LABEL, EXCLUDED_LINE_ITEMS_TOTAL_LABEL
 from engine.rounding import quantize_money
 
@@ -108,6 +108,39 @@ def _w2_excess(compensation: Decimal, cap: Decimal) -> Decimal:
     return max(Decimal("0"), compensation - cap)
 
 
+def _loanout_schedule_bands_overlap(
+    a: PerPersonCeilingTier, b: PerPersonCeilingTier
+) -> bool:
+    """Two bands overlap when each one's start is on or before the other's
+    end, treating a null `effective_to` as unbounded (standard closed-
+    interval overlap test)."""
+    a_starts_before_or_on_b_end = b.effective_to is None or a.effective_from <= b.effective_to
+    b_starts_before_or_on_a_end = a.effective_to is None or b.effective_from <= a.effective_to
+    return a_starts_before_or_on_b_end and b_starts_before_or_on_a_end
+
+
+def _check_loanout_schedule_for_overlaps(schedule: list[PerPersonCeilingTier]) -> None:
+    """WR-03: a `loanout_withholding_schedule` declaring two bands that cover
+    the same date is a rule-file authoring error, not something the engine
+    resolves by declared list order — picking a rate with no diagnostic is
+    exactly the silent-fallthrough failure this codebase forbids everywhere
+    else. Every pair is checked; bands are not assumed to arrive sorted (the
+    committed Georgia-style fixture is declared newest-first, and a future
+    rule file may declare them in any other order)."""
+    for i, a in enumerate(schedule):
+        for b in schedule[i + 1 :]:
+            if _loanout_schedule_bands_overlap(a, b):
+                a_desc = f"{a.effective_from} through {a.effective_to or 'open-ended'}"
+                b_desc = f"{b.effective_from} through {b.effective_to or 'open-ended'}"
+                raise ValueError(
+                    "loanout_withholding_schedule declares two overlapping bands — "
+                    f"{a_desc} (rate {a.loanout_withholding_rate}) and {b_desc} (rate "
+                    f"{b.loanout_withholding_rate}) both cover at least one shared date. "
+                    "A schedule covering the same date twice is a rule-file authoring "
+                    "error; the engine does not resolve it by declared list order."
+                )
+
+
 def _select_loanout_rate(
     ceiling: PerPersonCeiling, production_date: date | None
 ) -> tuple[Decimal, str]:
@@ -117,12 +150,28 @@ def _select_loanout_rate(
     must be a lookup-by-effective-date table). Falls back to the scalar
     `loanout_withholding_rate` only when no schedule is declared at all."""
     if ceiling.loanout_withholding_schedule:
+        _check_loanout_schedule_for_overlaps(ceiling.loanout_withholding_schedule)
         if production_date is None:
             raise ValueError(
                 "a loanout_withholding_schedule is declared but no production_date "
                 "was supplied to select a band from it"
             )
         for tier in ceiling.loanout_withholding_schedule:
+            # WR-03: dated "through" ranges are inclusive at BOTH ends by
+            # design — a production date exactly on a band's declared
+            # `effective_to` selects THAT band, not the next one. This is
+            # deliberately different from the half-open `low <= x < high`
+            # convention `lookup_flat_rate_by_band` (this module) and
+            # `engine/net_cash.py::_select_audit_fee_tier` use for numeric
+            # spend and fee bands: the committed Georgia-style schedule's
+            # bands ABUT rather than overlap (effective_to 2025-12-31
+            # immediately beside effective_from 2026-01-01), so a half-open
+            # comparison over abutting dated bands would leave each band's
+            # final day unmatched. The two conventions are not
+            # interchangeable — do not convert this one to half-open. Proven
+            # at the adjacency point by
+            # test_loanout_withholding_schedule_dated_ranges_are_inclusive_at_both_ends
+            # in tests/test_engine_credit.py.
             if tier.effective_from <= production_date and (
                 tier.effective_to is None or production_date <= tier.effective_to
             ):
