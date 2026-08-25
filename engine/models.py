@@ -326,6 +326,45 @@ class JurisdictionRuleSet(StrictModel):
     jurisdiction: Jurisdiction
     programmes: list[Programme]
 
+    @model_validator(mode="after")
+    def _programme_edges_resolve_to_declared_ids(self) -> JurisdictionRuleSet:
+        """WR-01/WR-02 (INC-03): every `stacks_with` and `mutually_exclusive_with`
+        entry, on every declared programme, must name a DIFFERENT programme
+        that is actually declared in this ruleset — checked here, once, so
+        the two edge kinds cannot drift apart (that single-place requirement
+        is WR-02's substance, not a style preference).
+
+        Ids are compared with plain Python string equality on exactly the
+        values PyYAML returned: no whitespace trimming, no case folding,
+        no fuzzy matching. An id differing only by case or surrounding
+        whitespace from a declared id is a DIFFERENT id — silently coercing
+        it into a match would be the same class of failure as silently
+        dropping the programme it was meant to reference (T-02-02).
+
+        A self-reference (a programme naming its own id in either field) and
+        a dangling reference (an id no declared programme carries) both
+        raise `ValueError`, because an unresolvable edge must never be
+        silently dropped from a jurisdiction's summed total — a dropped
+        programme is indistinguishable from one that was never modelled.
+        """
+        declared_ids = {programme.id for programme in self.programmes}
+        for programme in self.programmes:
+            for field_name in ("stacks_with", "mutually_exclusive_with"):
+                for other_id in getattr(programme, field_name):
+                    if other_id == programme.id:
+                        raise ValueError(
+                            f"programme {programme.id!r} declares itself in its own "
+                            f"{field_name!r} list — a programme cannot be mutually "
+                            "exclusive with, or stack with, itself"
+                        )
+                    if other_id not in declared_ids:
+                        raise ValueError(
+                            f"programme {programme.id!r} declares {field_name}="
+                            f"{other_id!r}, which is not a declared programme id in "
+                            f"this ruleset (declared ids: {sorted(declared_ids)})"
+                        )
+        return self
+
 
 def load_ruleset(path: str | Path) -> JurisdictionRuleSet:
     """The single rule-file read path in the codebase.

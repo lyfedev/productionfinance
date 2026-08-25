@@ -144,6 +144,15 @@ def _resolve_mutual_exclusivity(
                 continue
             resolved_pairs.add(pair)
 
+            # Defence-in-depth only (WR-01/WR-02, 02-08-PLAN.md): every
+            # `JurisdictionRuleSet` — loaded from a rule file via
+            # `load_ruleset` or constructed in-memory — already passed
+            # `JurisdictionRuleSet._programme_edges_resolve_to_declared_ids`
+            # in engine/models.py, which raises at construction time for
+            # exactly this condition. This branch is unreachable through any
+            # ruleset that satisfies that validator; it is kept as a second
+            # line of defence, not deleted as dead code, in case a future
+            # caller ever bypasses the schema.
             if other_id not in programme_by_id:
                 raise ValueError(
                     f"programme {programme.id!r} declares mutually_exclusive_with "

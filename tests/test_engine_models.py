@@ -18,15 +18,30 @@ from __future__ import annotations
 
 import copy
 import re
+from datetime import date
+from decimal import Decimal
 from glob import glob
 
 import pytest
 import yaml
 from pydantic import ValidationError
 
-from decimal import Decimal
-
-from engine.models import JurisdictionRuleSet, RateStructure
+from engine.models import (
+    Audit,
+    BaseDefinition,
+    Caps,
+    EffectiveDates,
+    Jurisdiction,
+    JurisdictionRuleSet,
+    PayoutLag,
+    PerPersonCeiling,
+    Programme,
+    RateStructure,
+    Timing,
+    TransferDiscount,
+    Validation,
+    load_ruleset,
+)
 
 # ---------------------------------------------------------------------------
 # Shared helper: strip comment-only lines before scanning source text.
@@ -210,3 +225,156 @@ def test_unexpected_extra_top_level_key_raises():
     doc["unexpected_top_level_key"] = "surprise"
     with pytest.raises(ValidationError):
         JurisdictionRuleSet.model_validate(doc)
+
+
+# ---------------------------------------------------------------------------
+# WR-01/WR-02 (INC-03): every declared `stacks_with` and
+# `mutually_exclusive_with` edge must resolve to a different declared
+# programme id, or the ruleset raises at load time (02-08-PLAN.md Task 1).
+# WR-04 (PRV-02): a zero-programme ruleset raises rather than pricing a
+# confident, source-less $0 total (02-08-PLAN.md Task 2).
+# ---------------------------------------------------------------------------
+
+
+def _make_programme(
+    *,
+    programme_id: str = "synthetic-model-test-programme",
+    stacks_with: list[str] | None = None,
+    mutually_exclusive_with: list[str] | None = None,
+) -> Programme:
+    """A minimal, valid `Programme` for tests that only need to vary the
+    declared edge fields — every other required field is filled with an
+    inert default, mirroring `tests/test_engine_credit.py::_make_programme`."""
+    return Programme(
+        id=programme_id,
+        name=f"Synthetic model test programme {programme_id}",
+        stacks_with=stacks_with or [],
+        mutually_exclusive_with=mutually_exclusive_with or [],
+        mechanism="refundable",
+        taxable=False,
+        corporation_tax_rate=None,
+        base_definition=BaseDefinition(type="total_qualified_spend"),
+        per_person_ceiling=PerPersonCeiling(applies=False),
+        rate_structure=RateStructure(type="flat", base_rate=Decimal("0.20")),
+        minimum_spend=None,
+        caps=Caps(),
+        audit=Audit(mandatory=False),
+        timing=Timing(
+            terms_lock_at="application",
+            payout_lag=PayoutLag(description="synthetic test programme — not a real payout schedule"),
+        ),
+        transfer_discount=TransferDiscount(applies=False),
+        validation=Validation(validated=False),
+    )
+
+
+def _make_two_programme_ruleset(programmes: list[Programme]) -> JurisdictionRuleSet:
+    """An in-memory `JurisdictionRuleSet` for edge-validation tests, mirroring
+    `tests/test_engine_credit.py::_make_jurisdiction_ruleset`."""
+    jurisdiction = Jurisdiction(
+        id="zz-synthetic-model-edge-test",
+        name="Synthetic in-memory jurisdiction for a programme-edge test — never a real place",
+        country_code="ZZ",
+        level="national",
+        parent_id=None,
+        currency="USD",
+        status="synthetic_fixture",
+        effective_dates=EffectiveDates(
+            rule_version_effective_from=date(2026, 1, 1),
+            rule_version_effective_to=None,
+            source_checked_date=date(2026, 8, 25),
+        ),
+        sources=[],
+    )
+    return JurisdictionRuleSet(jurisdiction=jurisdiction, programmes=programmes)
+
+
+def test_self_referencing_mutual_exclusivity_raises():
+    """A programme naming its own id in `mutually_exclusive_with` raises,
+    naming the offending programme id (WR-01) — it must never make a
+    programme simultaneously taken and excluded and disappear from the sum."""
+    other = _make_programme(programme_id="other-programme")
+    self_referencing = _make_programme(
+        programme_id="self-referencing-programme",
+        mutually_exclusive_with=["self-referencing-programme"],
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        _make_two_programme_ruleset([self_referencing, other])
+    assert "self-referencing-programme" in str(excinfo.value)
+
+
+def test_self_referencing_stacks_with_raises():
+    """A programme cannot stack with itself any more than it can exclude
+    itself — same treatment, same place (WR-02)."""
+    other = _make_programme(programme_id="other-programme")
+    self_referencing = _make_programme(
+        programme_id="self-referencing-programme",
+        stacks_with=["self-referencing-programme"],
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        _make_two_programme_ruleset([self_referencing, other])
+    assert "self-referencing-programme" in str(excinfo.value)
+
+
+def test_unknown_stacks_with_reference_raises():
+    """A `stacks_with` entry naming an id no declared programme carries
+    raises at load time now, naming both the unknown id and the declared ids
+    (WR-02) — the same treatment `mutually_exclusive_with` already gets."""
+    declared = _make_programme(programme_id="declared-programme")
+    dangling = _make_programme(
+        programme_id="dangling-reference-programme",
+        stacks_with=["no-such-programme-id"],
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        _make_two_programme_ruleset([declared, dangling])
+    message = str(excinfo.value)
+    assert "no-such-programme-id" in message
+    assert "declared-programme" in message
+
+
+def test_unknown_mutually_exclusive_with_reference_raises():
+    """A `mutually_exclusive_with` entry naming an unknown id raises at load
+    time now, rather than at `price_jurisdiction` time as before this plan."""
+    declared = _make_programme(programme_id="declared-programme")
+    dangling = _make_programme(
+        programme_id="dangling-reference-programme",
+        mutually_exclusive_with=["no-such-programme-id"],
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        _make_two_programme_ruleset([declared, dangling])
+    message = str(excinfo.value)
+    assert "no-such-programme-id" in message
+    assert "declared-programme" in message
+
+
+def test_edge_id_differing_only_by_case_is_treated_as_unknown():
+    """An id differing only by letter case or surrounding whitespace from a
+    declared id is a DIFFERENT id — compared as an exact string, never
+    normalized into a match. `Declared-Programme` (capitalised) does not
+    resolve against a declared `declared-programme`."""
+    declared = _make_programme(programme_id="declared-programme")
+    near_miss = _make_programme(
+        programme_id="near-miss-programme",
+        stacks_with=["Declared-Programme"],
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        _make_two_programme_ruleset([declared, near_miss])
+    assert "Declared-Programme" in str(excinfo.value)
+
+
+def test_every_committed_rule_file_still_loads():
+    """Every currently-committed rule file — both under `jurisdictions/` and
+    both fixture directories — still loads: this plan's validators are
+    additive constraints on genuinely invalid data, never a tightening that
+    invalidates existing curated files (JUR-05)."""
+    paths = sorted(glob("jurisdictions/*.yaml")) + sorted(
+        glob("tests/fixtures/jurisdictions/*.yaml")
+    )
+    if not paths:
+        raise RuntimeError(
+            "No rule files found under jurisdictions/*.yaml or "
+            "tests/fixtures/jurisdictions/*.yaml — a glob-driven test over an "
+            "empty file list must fail loudly, not report a vacuous green."
+        )
+    for path in paths:
+        load_ruleset(path)
