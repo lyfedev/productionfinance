@@ -289,6 +289,65 @@ so `sudo -u prodfin uv ...` resolves regardless of which user's shell
 invokes it — `/usr/local/bin` is the standard place for locally-installed
 tools on Debian and is never touched by `apt`, unlike `/usr/bin`.
 
+## Reboot test (executed 2026-08-25, plan 01-08 Task 3, D-23)
+
+Executed, not assumed: `systemctl enable` alone proves nothing about boot
+behaviour until the box is actually rebooted and observed coming back
+unaided (SHP-04). This was a real `sudo reboot` over SSH on the live
+`vockell.com` host — the site was offline for the duration, deliberately.
+
+**Pre-reboot state recorded:** `prodfin.service` active, Apache/MariaDB/
+php-fpm all running via `sudo /opt/bitnami/ctlscript.sh status`, `curl -I
+https://vockell.com` returning the same baseline `301` documented above.
+No pre-resize snapshot exists to check as a rollback position — 01-07's
+resize was deferred (see `01-07-DEFERRED.md`); this is still the single,
+original `vockell_dot_com_LAMP` instance (`nano_2_0`), confirmed via `aws
+lightsail get-instance` immediately before the reboot.
+
+**Reboot issued:** `2026-08-25T06:59:25Z`. The SSH connection returned
+normally (the `sudo reboot` command itself exits before the box actually
+goes down) and polling began immediately, without touching the box —
+specifically, without starting `prodfin` by hand.
+
+**Recovery, in order, no manual intervention:**
+- SSH answered again within one 5-second poll interval (roughly 5-10s after
+  the reboot command).
+- `uptime -s` on the host reported a new boot timestamp: `2026-08-25
+  06:59:38`, confirming a genuine reboot occurred (not a stale SSH session)
+  — `06:59:38 > 06:59:25`, after the reboot command.
+- `systemctl is-active prodfin` → `active`, with no manual start. `systemctl
+  status` showed the unit started by `systemd[1]` itself at `06:59:42`
+  (`WantedBy=multi-user.target` working as intended).
+- `curl -fsS http://127.0.0.1:8000/health` → 200, body: `{"status":"ok",
+  "version":"0.1.0","git_sha":"a99e4f6","boot_time":
+  "2026-08-25T06:59:44.869996+00:00"}`. The app's own `boot_time`
+  (`06:59:44`) is later than the host's `uptime -s` boot timestamp
+  (`06:59:38`) — this is the evidence distinguishing "survived a reboot"
+  from "was started again after a reboot": a process that predated the
+  reboot cannot report a `boot_time` after it.
+- Apache and MariaDB confirmed running as processes (`ps aux`: `httpd`
+  workers and `mysqld`, both with post-reboot start timestamps `06:59`/
+  `07:00`) and via `systemctl list-units` (`bitnami.service` active). One
+  transient false negative during this check: `ctlscript.sh status` briefly
+  reported "Cannot find any running daemon to contact" because Bitnami's
+  `gonit` supervisor (pid confirmed started at `07:00`) had not finished its
+  own startup yet, a few seconds behind Apache/MariaDB themselves; a 5-second
+  wait and re-run of `ctlscript.sh status` then correctly reported all three
+  services running. This is a gonit-startup-ordering artifact, not evidence
+  of any actual outage — `httpd`/`mysqld` process timestamps and the
+  externally-observed `vockell.com` response prove otherwise.
+- `curl -I https://vockell.com` from off the box → `301 Moved Permanently`
+  to `https://www.vockell.com/` (identical to the pre-reboot and
+  pre-existing baseline, see "Known pre-existing redirect" above),
+  `Server: Apache` header present, confirmed at `2026-08-25T07:00:04Z`.
+
+**Elapsed recovery time:** approximately 19 seconds from the reboot command
+to the application's own recorded `boot_time` (`06:59:25` → `06:59:44`);
+full external confirmation (vockell.com + health both independently
+verified) completed by `07:00:04Z`, about 39 seconds after the reboot
+command. No fix to `deploy/prodfin.service` was required — the unit worked
+on the first reboot.
+
 ## How to verify
 
 Commands each later plan uses, collected in one place:
