@@ -254,3 +254,38 @@ documents:
       directly-sourced statement.
     cited_for:
       - "SRC-05 — the explicit statutory tie of the withholding rate to loan-out-company payments"
+
+  # --- Connecticut mechanism/minimum-spend/audit source, plan 02-05 ---
+
+  - path: sources/ct/2026-08-25-cga-ct-general-statutes-chap208-sec-12-217jj.html
+    url: https://www.cga.ct.gov/current/pub/chap_208.htm
+    retrieved_at: "2026-08-25T04:54:01-07:00"
+    sha256: "09db866137339fa1c9e33a44d485f812c8a86b5b3fb5eb5eb6afbcf39751d02d"
+    jurisdiction: us-ct
+    document_title: "Connecticut General Statutes, Chapter 208 (Corporation Business Tax) — Sec. 12-217jj, Film production tax credit"
+    note: >
+      The state's own codified statute text (cga.ct.gov, the Connecticut
+      General Assembly's own domain), fetched by direct curl this session —
+      the full chapter (771,812 bytes; Sec. 12-217jj is one section among
+      many sharing the file, matched by three occurrences of the literal
+      string "12-217jj"). Closes the source gap 02-05-PLAN.md's Task 3
+      identifies: Phase 1 verified Connecticut's open-data CSV schema
+      (SRC-02) but not the programme's mechanism, minimum spend or audit
+      requirement. This statute text directly states: (b)(2) the three-band
+      rate schedule (10%/$100k-$500k, 15%/$500k-$1M, 30%/>$1M) — an
+      independent statutory confirmation of the same structure
+      ct_christmas_always.yaml's `notes` block derives empirically from the
+      open-data export, corroborating rather than contradicting that
+      derivation; (b)(2)(i) the $100,000 minimum-spend floor ("not less than
+      one hundred thousand dollars"); (e)(1) the credit "may be sold,
+      assigned or otherwise transferred, in whole or in part, to one or more
+      taxpayers" up to three times — the statutory basis for encoding
+      `mechanism: transferable`, never `refundable`; (h)(2)(B) a mandatory
+      "independent certification... provided by an audit professional
+      chosen from a list compiled by the department" — the statutory basis
+      for `audit.mandatory: true`. No dollar audit-fee amount or transfer-
+      discount rate is stated anywhere in this text, so those fields stay
+      explicit nulls in jurisdictions/us-ct.yaml rather than invented
+      figures.
+    cited_for:
+      - "jurisdictions/us-ct.yaml — mechanism (transferable), minimum_spend ($100,000), audit.mandatory (true), and independent corroboration of the tiered_by_spend rate bands"

@@ -1,0 +1,172 @@
+# Connecticut — Film and Digital Media Production Tax Credit (curated, validated)
+#
+# This rule set models the Film and Digital Media Production Tax Credit
+# under CGS 12-217jj ONLY. It deliberately does NOT model:
+#   - The Film Infrastructure Tax Credit under CGS 12-217kk
+#   - The Digital Animation Production Company Tax Credit under CGS 12-217ll
+# All three statutes share ONE open-data CSV export (SOURCE-TRUTH.md SRC-02
+# artifact 6); a validation pair drawn from the wrong statute would validate
+# a rule model that does not exist. tests/fixtures/validation_pairs/ct_*.yaml
+# are pre-filtered to "Statutory Reference" == "CGS 12-217jj" for exactly
+# this reason.
+#
+# Every numeric value below is a quoted YAML string (RD-01: PyYAML parses an
+# unquoted decimal like 0.10 as a native float, which corrupts through naive
+# Decimal() conversion — engine/models.py types every such field Decimal and
+# requires the quoted-string convention).
+#
+# Two sources back this file:
+#   1. The open-data export at data.ct.gov (dataset kjsu-mdny), archived by
+#      plan 01-04 — confirms the CSV schema (SRC-02) and supplies the
+#      row-level data the rate_structure.source_note below derives from.
+#   2. Connecticut General Statutes, Chapter 208, Sec. 12-217jj itself —
+#      the codified statute text, fetched directly from cga.ct.gov this
+#      session (sources/ct/2026-08-25-cga-ct-general-statutes-chap208-sec-12-217jj.html).
+#      This closes the source gap Phase 1 left open (Phase 1 verified the
+#      CSV schema but not the programme's mechanism, minimum spend or audit
+#      requirement) and independently CORROBORATES the empirically-derived
+#      tier structure below — see rate_structure.source_note.
+#
+# Disclosed simplification (not a silent gap): CGS 12-217jj(a)(5)(C)(i)
+# excludes, from "production expenses or costs" entirely, compensation in
+# excess of $15,000,000 paid to any one individual (or entity representing
+# an individual), and separately excludes aggregate "star talent"
+# compensation in excess of $20,000,000. This is a real Connecticut rule,
+# but it is NOT the W-2-cap-with-loan-out-exemption mechanism
+# engine/models.py's PerPersonCeiling schema models (Georgia's structure,
+# implemented in plan 02-05 Task 1) — it is a hard base-exclusion cliff on
+# star-talent compensation with no loan-out distinction. Modeling it
+# correctly would require a new schema field this plan's files_modified
+# does not include (engine/models.py is not in scope for plan 02-05).
+# per_person_ceiling.applies is therefore false, and this exclusion is
+# named here explicitly rather than silently mismodeled as Georgia's
+# structure or silently dropped. Closing this requires a schema extension
+# in a future plan, not a guess encoded now.
+#
+# Also left as explicit nulls rather than invented figures: audit.fee_schedule
+# (the statute states a mandatory independent CPA certification, subsection
+# (h)(2)(B), but no dollar fee schedule — the "reasonable administrative
+# fee" in (h)(3) is the department's own processing fee, not a spend-tiered
+# audit-fee schedule like Georgia's) and transfer_discount.typical_rate_low/
+# high (the statute confirms the credit is transferable up to three times,
+# subsection (e)(1), but states no market discount rate).
+
+jurisdiction:
+  id: us-ct
+  name: Connecticut
+  country_code: US
+  level: state
+  parent_id: null
+  currency: USD
+  status: curated_validated
+  effective_dates:
+    rule_version_effective_from: "2010-01-01"
+    rule_version_effective_to: null
+    source_checked_date: "2026-08-25"
+  sources:
+    - url: "https://data.ct.gov/api/v3/views/kjsu-mdny/export.csv?accessType=DOWNLOAD"
+      title: "Connecticut Film and Digital Media Tax Credits Issued (data.ct.gov open-data export, dataset kjsu-mdny)"
+      accessed_date: "2026-08-24"
+      confidence: HIGH
+    - url: "https://www.cga.ct.gov/current/pub/chap_208.htm"
+      title: "Connecticut General Statutes, Chapter 208 — Sec. 12-217jj, Film production tax credit"
+      accessed_date: "2026-08-25"
+      confidence: HIGH
+
+programmes:
+  - id: ct-film-digital-media-production-tax-credit
+    name: "Connecticut Film and Digital Media Production Tax Credit"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: transferable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: total_qualified_spend
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "CGS 12-217jj(a)(5)(C)(i) excludes compensation over $15,000,000/individual (or $20,000,000 aggregate star talent) from qualifying production expenses entirely — a different mechanism from this schema's W-2-cap-with-loan-out-exemption PerPersonCeiling model; not modeled here, see header comment"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: tiered_by_spend
+      tiers:
+        - threshold_low: "100000"
+          threshold_high: "500000"
+          rate: "0.10"
+        - threshold_low: "500000"
+          threshold_high: "1000000"
+          rate: "0.15"
+        - threshold_low: "1000000"
+          threshold_high: null
+          rate: "0.30"
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: >
+        These three bands are DERIVED empirically from Connecticut's own
+        issued-credits open-data export (data.ct.gov, dataset kjsu-mdny,
+        sha256 2b249b80d393d57ff849ee1f1630f3fc6acd0aaecf216c938fc3bb93e7ddfe87)
+        filtered to Statutory Reference "CGS 12-217jj" only — excluding the
+        two other statutes (12-217kk, 12-217ll) this one CSV mixes in — by
+        computing the implied rate across every 12-217jj row: 10% checked
+        against 85 rows in the $100,000-$500,000 band, 15% against 37 rows
+        in the $500,000-$1,000,000 band, and 30% against the large majority
+        of rows above $1,000,000, with essentially zero unexplained residue
+        anywhere observed (see tests/fixtures/validation_pairs/ct_christmas_always.yaml
+        notes). This is a derivation, not a statute quotation. It is
+        independently CORROBORATED — not superseded — by CGS 12-217jj(b)(2)
+        itself (sources[1] above, fetched 2026-08-25), which states the
+        identical three-band structure directly: "(i) ... not less than one
+        hundred thousand dollars, but not more than five hundred thousand
+        dollars, a credit equal to ten per cent... (ii) ... more than five
+        hundred thousand dollars, but not more than one million dollars, a
+        credit equal to fifteen per cent... (iii) ... more than one million
+        dollars... a credit equal to thirty per cent."
+
+    minimum_spend:
+      value: "100000"
+      currency: USD
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: true
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: "not later than ninety days after the first production expenses or costs are incurred (CGS 12-217jj(h)(1))"
+      decision_sla_days: null
+      payout_lag:
+        description: "Connecticut issues a tax credit voucher usable against specified state taxes (CGS 12-217jj(b)(2)); the credit is nonrefundable and is typically monetized by sale, assignment or transfer — up to three times, CGS 12-217jj(e)(1) — rather than a direct cash payout. No statutory disbursement-lag schedule is stated in the archived text."
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: true
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: "CGS 12-217jj(e)(1): the credit 'may be sold, assigned or otherwise transferred, in whole or in part, to one or more taxpayers,' after issuance no more than three times. No typical market discount rate is stated in the statute — left as an explicit null rather than an invented figure."
+
+    residency_rules: null
+
+    validation:
+      validated: true
+      validation_pair_fixture_glob: "tests/fixtures/validation_pairs/ct_*.yaml"
+      mean_error_pct: null
+      last_checked_against_disclosure: "2026-08-24"
