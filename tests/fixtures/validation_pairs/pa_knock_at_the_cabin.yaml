@@ -1,0 +1,41 @@
+production_title: "Knock at the Cabin"
+jurisdiction_id: us-pa
+program_id: null
+production_type: feature
+season: null
+
+qualified_spend: null
+credit_amount: "5000000"
+diversity_credit_amount: null
+
+disclosure_stage: null
+status: blocked
+blocker: >
+  Qualifying spend is not publicly disclosed for this production — only the
+  awarded credit amount is, obtained via a public-records request (reported
+  by the Philadelphia Inquirer via Pennsylvania DCED's periodic named-award
+  announcements, not a standing browsable disclosure list) — and no curated
+  jurisdiction rule file exists for Pennsylvania within Milestone 1 scope,
+  where JUR-01 through JUR-04 cover New York, California, New Jersey and
+  Connecticut only.
+
+source_url: "https://www.inquirer.com/news/pennsylvania/film-tax-credits-netflix-shane-gillis-philadelphia-economic-impact-20241116.html"
+source_document: null
+source_document_sha256: null
+report_period: null
+date_checked: "2026-08-24"
+
+assertion:
+  mode: exact
+  tolerance_bps: null
+  variance_reason: null
+
+notes: >
+  Same unusable-pair reasoning as pa_creed_ii.yaml (see that fixture's
+  notes for the full explanation): feasibility-incentives.md marks
+  "Qualified spend disclosed?" as "No" for this row, and Pennsylvania is
+  not a curated jurisdiction in Milestone 1 scope. Committed per D-06 —
+  counts toward the 11 named pairs, status blocked, excluded from the
+  accuracy denominator, exclusion visible not silent. No sources/ archive
+  exists: the source is newspaper reporting on a periodic DCED award
+  announcement, not a government-published document.

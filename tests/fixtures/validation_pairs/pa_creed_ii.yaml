@@ -1,0 +1,45 @@
+production_title: "Creed II"
+jurisdiction_id: us-pa
+program_id: null
+production_type: feature
+season: null
+
+qualified_spend: null
+credit_amount: "16000000"
+diversity_credit_amount: null
+
+disclosure_stage: null
+status: blocked
+blocker: >
+  Qualifying spend is not publicly disclosed for this production — only the
+  awarded credit amount is, obtained via a public-records request (reported
+  by the Philadelphia Inquirer via Pennsylvania DCED's periodic named-award
+  announcements, not a standing browsable disclosure list) — and no curated
+  jurisdiction rule file exists for Pennsylvania within Milestone 1 scope,
+  where JUR-01 through JUR-04 cover New York, California, New Jersey and
+  Connecticut only.
+
+source_url: "https://www.inquirer.com/news/pennsylvania/film-tax-credits-netflix-shane-gillis-philadelphia-economic-impact-20241116.html"
+source_document: null
+source_document_sha256: null
+report_period: null
+date_checked: "2026-08-24"
+
+assertion:
+  mode: exact
+  tolerance_bps: null
+  variance_reason: null
+
+notes: >
+  This pair is one of the four named in feasibility-incentives.md's
+  11-pair validation table that 01-RESEARCH.md's SRC-03 Critical scope
+  finding #1 identified as unusable: the source table itself marks
+  "Qualified spend disclosed?" as "No" for this row. Per D-02, a validation
+  pair with no disclosed qualifying-spend figure has nothing to feed into
+  the interpreter as a given. Committed per D-06: counts toward the 11
+  named pairs, status blocked, excluded from the accuracy denominator, with
+  the exclusion visible here rather than silent. No sources/ archive
+  exists: Pennsylvania's DCED has no browsable master list, and this
+  figure's source is a newspaper's reporting on periodic DCED award
+  announcements, not a government-published disclosure document — an
+  explicit absence, not an oversight.

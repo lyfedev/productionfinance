@@ -1,0 +1,40 @@
+production_title: "Madame Web"
+jurisdiction_id: us-ma
+program_id: null
+production_type: feature
+season: null
+
+qualified_spend: null
+credit_amount: "23688438"
+diversity_credit_amount: null
+
+disclosure_stage: null
+status: blocked
+blocker: >
+  Qualifying spend is not publicly disclosed for this production — only the
+  awarded credit amount is, obtained via a public-records request (WBUR's
+  2025 reporting on Massachusetts DOR film tax credit data) rather than a
+  standing government disclosure — and no curated jurisdiction rule file
+  exists for Massachusetts within Milestone 1 scope, where JUR-01 through
+  JUR-04 cover New York, California, New Jersey and Connecticut only.
+
+source_url: "https://www.wbur.org/news/2025/02/13/massachusetts-film-tax-credits"
+source_document: null
+source_document_sha256: null
+report_period: null
+date_checked: "2026-08-24"
+
+assertion:
+  mode: exact
+  tolerance_bps: null
+  variance_reason: null
+
+notes: >
+  Same unusable-pair reasoning as ma_dont_look_up.yaml (see that fixture's
+  notes for the full explanation): feasibility-incentives.md marks
+  "Qualified spend disclosed?" as "No" for this row, and Massachusetts is
+  not a curated jurisdiction in Milestone 1 scope. Committed per D-06 —
+  counts toward the 11 named pairs, status blocked, excluded from the
+  accuracy denominator, exclusion visible not silent. No sources/ archive
+  exists: the source is journalism reporting on a public-records response,
+  not a government-published document.

@@ -1,0 +1,48 @@
+production_title: "Don't Look Up"
+jurisdiction_id: us-ma
+program_id: null
+production_type: feature
+season: null
+
+qualified_spend: null
+credit_amount: "46000000"
+diversity_credit_amount: null
+
+disclosure_stage: null
+status: blocked
+blocker: >
+  Qualifying spend is not publicly disclosed for this production — only the
+  awarded credit amount is, obtained via a public-records request (WBUR's
+  2025 reporting on Massachusetts DOR film tax credit data) rather than a
+  standing government disclosure — and no curated jurisdiction rule file
+  exists for Massachusetts within Milestone 1 scope, where JUR-01 through
+  JUR-04 cover New York, California, New Jersey and Connecticut only.
+
+source_url: "https://www.wbur.org/news/2025/02/13/massachusetts-film-tax-credits"
+source_document: null
+source_document_sha256: null
+report_period: null
+date_checked: "2026-08-24"
+
+assertion:
+  mode: exact
+  tolerance_bps: null
+  variance_reason: null
+
+notes: >
+  This pair is one of the four named in feasibility-incentives.md's
+  11-pair validation table that 01-RESEARCH.md's SRC-03 Critical scope
+  finding #1 identified as unusable: the source table itself marks
+  "Qualified spend disclosed?" as "No" for this row. Per D-02, a validation
+  pair with no disclosed qualifying-spend figure has nothing to feed into
+  the interpreter as a given — there is no re-derivation test possible,
+  only a bare credit-amount number with no input. Committed per D-06:
+  counts toward the 11 named pairs, status blocked, excluded from the
+  accuracy denominator (see accuracy_denominator_by_stage in
+  tests/test_validation_pair_fixtures.py), with the exclusion visible here
+  rather than silent. assertion.mode is inert while blocked — this fixture
+  asserts nothing until (if ever) it is unblocked. No sources/ archive
+  exists for this pair: its source is journalism reporting on a
+  public-records response, not a government-published disclosure document,
+  so there is no primary document to archive byte-for-byte — an explicit
+  absence, not an oversight (see 01-04-SUMMARY.md).
