@@ -115,7 +115,7 @@ The four where per-production government disclosure exists, so every model is pr
 Stage One judging is pass/fail and partly automated. Each of these is a gate, not a nicety.
 
 - [ ] **SHP-01**: The vockell.com Lightsail instance is resized to 2 GB via snapshot-and-restore, preserving its static IP
-- [ ] **SHP-02**: Python 3.10 or newer is installed on the host, isolated from the system Python that Bitnami and Apache depend on
+- [x] **SHP-02**: Python 3.10 or newer is installed on the host, isolated from the system Python that Bitnami and Apache depend on
 - [ ] **SHP-03**: A subdomain DNS record exists and resolves — created early, as it is the only item carrying propagation delay
 - [ ] **SHP-04**: The application runs under systemd and is reverse-proxied through Apache with a valid TLS certificate, without disturbing the live vockell.com site
 - [ ] **SHP-05**: A permitted Google SDK is imported and genuinely called at runtime, verified by a timestamped log line at the call site
@@ -265,7 +265,7 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | UI-11 | Phase 6 — The Interface | 1 — Accounts | Pending |
 | UI-12 | Phase 6 — The Interface | 1 — Accounts | Pending |
 | SHP-01 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
-| SHP-02 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SHP-02 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
 | SHP-03 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
 | SHP-04 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
 | SHP-05 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
