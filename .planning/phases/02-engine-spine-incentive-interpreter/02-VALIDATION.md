@@ -44,10 +44,28 @@ created: 2026-08-25
 
 ## Per-Task Verification Map
 
-*Not yet populated — PLAN.md task IDs do not exist at seed time. `/gsd-plan-phase` step 13
-and `/gsd-validate-phase` populate this table once plans are written. The requirement-level
-map below is the source the per-task rows must be derived from; every row here must end up
-attached to at least one task ID.*
+Populated at plan time (2026-08-25). Every requirement-level row below is attached to at
+least one plan task. Plan and task identifiers refer to `02-0N-PLAN.md` task numbers.
+
+| Req ID | Plan / Task | Automated command |
+|--------|-------------|-------------------|
+| INC-01 | 02-01 T1 (tracer, `total_qualified_spend` end to end) · 02-03 T1 (all four types + escape hatch) | `uv run pytest tests/test_engine_qualifying_base.py::test_base_definition_types -x` |
+| INC-02 | 02-05 T1 | `uv run pytest tests/test_engine_credit.py::test_per_person_ceiling_w2_vs_loanout -x` |
+| INC-03 | 02-05 T2 (cliff vs blend dispatch) · 02-06 T1 (stacking, uplift order) | `uv run pytest tests/test_engine_credit.py::test_tier_dispatch_and_stacking -x` and `::test_stacking_prices_every_declared_programme -x` |
+| INC-04 | 02-06 T2 | `uv run pytest tests/test_engine_credit.py::test_cap_boundaries -x` |
+| INC-05 | 02-06 T2 | `uv run pytest tests/test_engine_credit.py::test_availability_separate_from_eligibility -x` |
+| INC-06 | 02-01 T1 (`refundable` on the tracer path) · 02-04 T1 (remaining three + audit fee cliffs) | `uv run pytest tests/test_engine_net_cash.py::test_mechanism_conversions -x` |
+| INC-07 | 02-04 T1 (corporation tax) · 02-04 T2 (UK golden value) | `uv run pytest tests/test_engine_net_cash.py::test_taxable_mechanism_uk_worked_example -x` |
+| INC-08 | 02-04 T1 | `uv run pytest tests/test_engine_net_cash.py::test_arrival_timing_present -x` |
+| INC-09 | 02-03 T2 | `uv run pytest tests/test_engine_qualifying_base.py::test_minimum_spend_cliff -x` |
+| JUR-05 | 02-06 T3 | `uv run pytest tests/test_engine_jurisdiction_additivity.py -x` plus the recorded diff check |
+| PRV-01 | 02-01 T1 (contract) · 02-02 T2 (property assertions) | `uv run pytest tests/test_engine_figure_provenance.py::test_every_figure_has_source_or_explicit_null -x` |
+| PRV-02 | 02-01 T1 (closed enum) · 02-02 T2 (assertions) | `uv run pytest tests/test_engine_figure_provenance.py::test_confidence_is_closed_enum -x` |
+| PRV-03 | 02-01 T1 (never-silent derivation) · 02-02 T2 (assertions) | `uv run pytest tests/test_engine_figure_provenance.py::test_derivation_never_empty_including_noops -x` |
+| Rounding contract | 02-02 T1 | `uv run pytest tests/test_engine_rounding.py -x` |
+| Decimal typing + fail-loud schema + 3 security gates | 02-02 T1 | `uv run pytest tests/test_engine_models.py -x` |
+| D-02 interpreter proof (NY + CT) | 02-01 T1 (New York) · 02-05 T3 (Connecticut) | `uv run pytest tests/test_engine_against_validation_pairs.py -x` |
+| Scope-freeze note | 02-01 T2 | `test -f jurisdictions/SCOPE-FREEZE.md` plus the human check in 02-06 T3 |
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists |
 |--------|----------|-----------|-------------------|-------------|
@@ -64,7 +82,19 @@ attached to at least one task ID.*
 | PRV-01 | Every `Figure` in a computed tree carries `source_url` and `date_checked`, or an explicit documented null | property | `uv run pytest tests/test_engine_figure_provenance.py::test_every_figure_has_source_or_explicit_null -x` | ❌ W0 |
 | PRV-02 | `Figure.confidence` is always exactly `"validated"` or `"researched"` — no third value, no default | schema | `uv run pytest tests/test_engine_figure_provenance.py::test_confidence_is_closed_enum -x` | ❌ W0 |
 | PRV-03 | Every adjustment step appends a non-empty derivation line, including no-op steps | property | `uv run pytest tests/test_engine_figure_provenance.py::test_derivation_never_empty_including_noops -x` | ❌ W0 |
-| D-02 (interpreter proof) | NY rule file reproduces Anora ($991,190 exact), Succession S4 ($25,747,913 exact), Gilded Age S2 (bounded, 150bps); CT rule file reproduces Christmas Always ($1,159,502 exact) | golden-value, imports Phase 1's committed validation-pair fixtures | `uv run pytest tests/test_engine_against_validation_pairs.py -x` | ❌ W0 |
+| D-02 (interpreter proof) | NY rule file reproduces Anora ($991,190 **exact**), Gilded Age S2 (bounded, 150bps), and Succession S4 (**bounded, corrected at plan time — see the note below**); CT rule file reproduces Christmas Always ($1,159,502 exact) | golden-value, imports Phase 1's committed validation-pair fixtures | `uv run pytest tests/test_engine_against_validation_pairs.py -x` | ❌ W0 |
+
+> **Correction, 2026-08-25 (plan time).** This row previously claimed Succession S4
+> reproduces `$25,747,913` **exactly**. Checked against the committed fixture, that is
+> false under a flat 25% New York model: `$102,920,384 × 0.25 = $25,730,096`, a residue of
+> `$17,817` — an implied rate of 25.0173%, not 25.0000%. It is the same class of
+> un-itemised uplift `ny_gilded_age_s2.yaml` already concedes, 75× smaller. Plan 02-01
+> Task 1 resolves this visibly: either a newly cited modelled rule explains the residue and
+> the fixture stays `exact`, or `ny_succession_s4.yaml`'s assertion is amended to `bounded`
+> with `tolerance_bps` at most `10` and a written `variance_reason` stating the measured
+> residue. Widening a tolerance without a written reason is forbidden by the plan's own
+> prohibitions. **Anora remains the phase's one clean exact-mode New York anchor;
+> Christmas Always is the second exact anchor, in Connecticut.**
 
 *Status legend for the populated per-task table: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

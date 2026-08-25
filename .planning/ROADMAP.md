@@ -106,7 +106,24 @@ Plans:
   4. Whether the production qualifies is answered separately from whether the programme's annual allocation still has money left in it
   5. A new jurisdiction can be added as a rule file alone with no change to engine code — demonstrated by adding a throwaway fixture jurisdiction
 
-**Plans**: TBD
+**Plans**: 6 plans in 3 waves
+
+Plans:
+**Wave 1**
+
+- [ ] 02-01-PLAN.md — Tracer: New York priced end-to-end from rule file to the cited $991,190, plus the full schema and the dated scope-freeze note (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 02-02-PLAN.md — Pinned rounding, Decimal-typing regression, and PRV-01/02/03 as property assertions over a real computed tree (wave 2)
+- [ ] 02-03-PLAN.md — All four base-definition types, the closed-registry escape hatch, and minimum-spend cliffs (wave 2)
+- [ ] 02-05-PLAN.md — Per-person ceilings, cliff-tier versus ceiling-split rates, and Connecticut reproducing $1,159,502 (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 02-04-PLAN.md — Four net-cash mechanisms, audit-fee cliffs, corporation tax, arrival timing, and the UK £5.382M net (wave 3)
+- [ ] 02-06-PLAN.md — Stacking across programmes, caps, availability separate from eligibility, and the JUR-05 additivity proof (wave 3)
+
 **Critical path**: This is the hard gate. Nothing in Phases 3-8 starts meaningfully before it lands. Scope is fixed by ARCHITECTURE.md's already-specified schemas — the `JurisdictionRuleSet` YAML schema, the immutable `Figure` value object carrying its own derivation DAG, and the generic rule interpreter with a small named Python handler registry as the escape hatch. No fresh research needed; implement against the specified design.
 **Scope discipline**: Write a dated scope-freeze note listing the fixed set of modelled rule dimensions before moving on. Unbounded normalization scope is the #3 project-sinking risk.
 
@@ -288,7 +305,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundations — Source Truth & Deploy Path | 1 — Accounts | 8/9 | In Progress|  |
-| 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 0/TBD | Not started | - |
+| 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 0/6 | Planned | - |
 | 3. New York End-to-End — The Anora Proof | 1 — Accounts | 0/TBD | Not started | - |
 | 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 0/TBD | Not started | - |
 | 5. Curated Breadth & the Validation Loop | 1 — Accounts | 0/TBD | Not started | - |
