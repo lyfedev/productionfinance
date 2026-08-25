@@ -53,7 +53,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. The app runs under systemd on Python 3.10 or newer, isolated from the system Python that Bitnami and Apache depend on, survives a host reboot, and is reached through Apache's reverse proxy
   5. CI fails the build if the resolved lockfile contains a forbidden package, if a secret is committed, or if a commit falls outside the contest window — and GitHub's About section displays an OSI-approved licence
 
-**Plans**: 2/9 plans executed in 4 waves
+**Plans**: 4/9 plans executed in 4 waves
 
 Plans:
 **Wave 1**
@@ -64,7 +64,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 01-02-PLAN.md — Four blocking compliance CI gates proven fail-first, then publish the repository (wave 2)
-- [ ] 01-03-PLAN.md — Source-truth pipeline tracer on Anora, plus the three New York validation pairs (wave 2)
+- [x] 01-03-PLAN.md — Source-truth pipeline tracer on Anora, plus the three New York validation pairs (wave 2)
 - [ ] 01-07-PLAN.md — Snapshot-and-restore resize to 2 GB, preserving the static IP (wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
@@ -276,7 +276,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Foundations — Source Truth & Deploy Path | 1 — Accounts | 2/9 | In Progress|  |
+| 1. Foundations — Source Truth & Deploy Path | 1 — Accounts | 4/9 | In Progress|  |
 | 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 0/TBD | Not started | - |
 | 3. New York End-to-End — The Anora Proof | 1 — Accounts | 0/TBD | Not started | - |
 | 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 0/TBD | Not started | - |
