@@ -1,0 +1,333 @@
+# SYNTHETIC TEST FIXTURE — NOT A REAL JURISDICTION, NOT A CURATED RULE MODEL.
+#
+# Purpose: reproduce CR-01 (02-REVIEW.md / 02-VERIFICATION.md) and prove its
+# fix. `synthetic-uk-style.yaml` and `zz-fixture-throwaway.yaml` both declare
+# `blended_by_ceiling_split`, but neither combines it with a BINDING
+# minimum-spend cliff, a non-empty `excluded_line_items` list, and a binding
+# per-person ceiling all at once — the exact combination CR-01 silently
+# discarded while its derivation trail claimed each adjustment was applied.
+# This file exercises that combination. It models no real place; every
+# figure below is invented to exercise engine arithmetic, not sourced from
+# any government disclosure.
+#
+# All three programmes share one production spend fact: Decimal('18000000')
+# GBP core expenditure with a Decimal('1000000') `completion_bond` line
+# item present in the SpendBreakdown regardless of whether a given
+# programme's `base_definition.excluded_line_items` actually names it — the
+# programme's own declaration decides whether the item is subtracted, not
+# the production's spend breakdown. They also share
+# `base_definition.pct_core_cap` "0.80" and the same
+# `blended_by_ceiling_split` rate shape: `enhanced_threshold` "15000000"
+# GBP, `enhanced_rate` "0.53", `standard_rate` "0.34" — identical to
+# synthetic-uk-style.yaml's worked example, so the UK fixture's own
+# Decimal('7176000') golden value is the no-adjustment control every
+# programme here is measured against.
+#
+# Hand-worked derivation of every declared programme's expected gross
+# credit (verified by hand, not by running the engine on itself):
+#
+# Qualifying base under lesser_of_pct_core_or_actual_local, before any
+# exclusion: pct_candidate = 18,000,000 x 0.80 = 14,400,000; actual
+# candidate = 18,000,000; the lesser is 14,400,000 — identical to the UK
+# fixture's own raw base, since both share the same core expenditure and
+# pct_core_cap.
+#
+# blend-adjustments-both (excluded_line_items: [completion_bond],
+# per_person_ceiling: applies, w2_cap_amount 500,000, minimum_spend: null):
+#   qualifying base = 14,400,000 - 1,000,000 (completion_bond) = 13,400,000
+#   no minimum_spend declared -> no cliff
+#   per-person ceiling (W-2 2,000,000 against a 500,000 cap): excess
+#     1,500,000 -> running base 13,400,000 - 1,500,000 = 11,900,000
+#   total reduction NOT caused by the percentage cap: excluded item
+#     1,000,000 + per-person-ceiling reduction 1,500,000 = 2,500,000
+#   effective core expenditure = 18,000,000 - 2,500,000 = 15,500,000
+#   enhanced_slice = min(15,500,000, 15,000,000) = 15,000,000, capped
+#     (x0.80) to 12,000,000, x 0.53 = 6,360,000
+#   standard_slice = max(0, 15,500,000 - 15,000,000) = 500,000, capped
+#     (x0.80) to 400,000, x 0.34 = 136,000
+#   gross credit = 6,360,000 + 136,000 = **6,496,000**
+#   (with no compensations supplied — the excluded item alone): total
+#     reduction = 1,000,000, effective core = 17,000,000, enhanced slice
+#     15,000,000 capped to 12,000,000 x 0.53 = 6,360,000, standard slice
+#     2,000,000 capped to 1,600,000 x 0.34 = 544,000, gross = **6,904,000**
+#
+# blend-adjustments-ceiling-only (excluded_line_items: [], same per-person
+# ceiling, minimum_spend: null):
+#   qualifying base = 14,400,000 (no exclusion)
+#   per-person ceiling (2,000,000 against 500,000 cap): excess 1,500,000 ->
+#     running base 14,400,000 - 1,500,000 = 12,900,000
+#   total reduction = 0 (excluded) + 1,500,000 (ceiling) = 1,500,000
+#   effective core expenditure = 18,000,000 - 1,500,000 = 16,500,000
+#   enhanced_slice = min(16,500,000, 15,000,000) = 15,000,000, capped to
+#     12,000,000, x 0.53 = 6,360,000
+#   standard_slice = max(0, 16,500,000 - 15,000,000) = 1,500,000, capped to
+#     1,200,000, x 0.34 = 408,000
+#   gross credit = 6,360,000 + 408,000 = **6,768,000**
+#   (with no compensations supplied): total reduction = 0, effective core
+#     = 18,000,000, identical to the UK fixture's own worked example ->
+#     **7,176,000**
+#
+# blend-adjustments-cliff (same excluded_line_items and per-person ceiling
+# as blend-adjustments-both, plus minimum_spend "14000000" GBP):
+#   qualifying base (post-exclusion) = 14,400,000 - 1,000,000 = 13,400,000
+#   — the minimum-spend threshold binds against THIS post-exclusion
+#   qualifying base, not against the 18,000,000 core expenditure: 13,400,000
+#   is below the declared 14,000,000 threshold, so the cliff fires and the
+#   qualifying base is Decimal('0') (step function, never interpolated).
+#   The running base is then further reduced by the per-person ceiling
+#   (excess 1,500,000), driving it to Decimal('-1500000'); the rate step's
+#   zero-or-below short circuit returns gross credit **Decimal('0')**
+#   without rating any slice.
+#
+# jurisdiction.status is synthetic_fixture (never any curated-data status
+# value) and this file lives under tests/fixtures/jurisdictions/, never
+# under jurisdictions/ — the directory-hygiene test in
+# tests/test_engine_qualifying_base.py enforces both structurally.
+#
+# Every numeric value is a quoted YAML string (RD-01 convention).
+
+jurisdiction:
+  id: zz-synthetic-blend-adjustments
+  name: "SYNTHETIC FIXTURE — blended_by_ceiling_split combined with a binding minimum-spend cliff, excluded line items and a per-person ceiling (CR-01 regression, not a real place)"
+  country_code: ZZ
+  level: national
+  parent_id: null
+  currency: GBP
+  status: synthetic_fixture
+  effective_dates:
+    rule_version_effective_from: "2026-01-01"
+    rule_version_effective_to: null
+    source_checked_date: "2026-08-25"
+  sources:
+    - url: "https://example.invalid/synthetic-fixture-blend-adjustments"
+      title: "Synthetic test fixture, invented to reproduce CR-01 — not a government source, models no real jurisdiction"
+      accessed_date: "2026-08-25"
+      confidence: LOW
+
+programmes:
+  - id: blend-adjustments-both
+    name: "Synthetic: blended_by_ceiling_split with excluded line item AND per-person ceiling both binding"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: lesser_of_pct_core_or_actual_local
+      pct_core_cap: "0.80"
+      excluded_line_items: ["completion_bond"]
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: true
+      note: "binding W-2 ceiling — CR-01 regression"
+      w2_cap_amount:
+        value: "500000"
+        currency: GBP
+      loanout_exempt: false
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: blended_by_ceiling_split
+      base_rate: null
+      tiers: []
+      uplifts: []
+      ceiling_split:
+        enhanced_threshold:
+          value: "15000000"
+          currency: GBP
+        enhanced_rate: "0.53"
+        standard_rate: "0.34"
+      headcount_scale: null
+      source_note: "Invented — CR-01 regression fixture, combines an excluded line item with a binding per-person ceiling"
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
+
+  - id: blend-adjustments-ceiling-only
+    name: "Synthetic: blended_by_ceiling_split with per-person ceiling binding, no excluded line items"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: lesser_of_pct_core_or_actual_local
+      pct_core_cap: "0.80"
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: true
+      note: "binding W-2 ceiling, no excluded line items declared on this programme — isolates the ceiling's own effect"
+      w2_cap_amount:
+        value: "500000"
+        currency: GBP
+      loanout_exempt: false
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: blended_by_ceiling_split
+      base_rate: null
+      tiers: []
+      uplifts: []
+      ceiling_split:
+        enhanced_threshold:
+          value: "15000000"
+          currency: GBP
+        enhanced_rate: "0.53"
+        standard_rate: "0.34"
+      headcount_scale: null
+      source_note: "Invented — CR-01 regression fixture, isolates the per-person-ceiling adjustment alone"
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
+
+  - id: blend-adjustments-cliff
+    name: "Synthetic: blended_by_ceiling_split with a binding minimum-spend cliff evaluated post-exclusion"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: lesser_of_pct_core_or_actual_local
+      pct_core_cap: "0.80"
+      excluded_line_items: ["completion_bond"]
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: true
+      note: "binding W-2 ceiling — reduces the running base further below zero once the cliff has already fired"
+      w2_cap_amount:
+        value: "500000"
+        currency: GBP
+      loanout_exempt: false
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: blended_by_ceiling_split
+      base_rate: null
+      tiers: []
+      uplifts: []
+      ceiling_split:
+        enhanced_threshold:
+          value: "15000000"
+          currency: GBP
+        enhanced_rate: "0.53"
+        standard_rate: "0.34"
+      headcount_scale: null
+      source_note: "Invented — CR-01 regression fixture. minimum_spend 14,000,000 binds against the POST-EXCLUSION qualifying base of 13,400,000, not against the 18,000,000 core expenditure."
+
+    minimum_spend:
+      value: "14000000"
+      currency: GBP
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null

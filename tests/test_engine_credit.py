@@ -60,6 +60,7 @@ FIXTURE_DIR = "tests/fixtures/jurisdictions"
 GA_FIXTURE = f"{FIXTURE_DIR}/synthetic-ga-style.yaml"
 UK_FIXTURE = f"{FIXTURE_DIR}/synthetic-uk-style.yaml"
 STACKING_FIXTURE = f"{FIXTURE_DIR}/synthetic-stacking.yaml"
+BLEND_ADJUSTMENTS_FIXTURE = f"{FIXTURE_DIR}/synthetic-blend-adjustments.yaml"
 
 
 def _programme_by_id(path: str, programme_id: str) -> Programme:
@@ -899,3 +900,248 @@ def test_directory_hygiene_synthetic_fixtures_declare_synthetic_status():
             f"{path}: expected jurisdiction.status 'synthetic_fixture', "
             f"got {ruleset.jurisdiction.status!r}"
         )
+
+
+# ---------------------------------------------------------------------------
+# CR-01 regression (02-07): blended_by_ceiling_split combined with a binding
+# minimum-spend cliff, a non-empty excluded_line_items list and a binding
+# per-person ceiling. Drives compute_qualifying_base then compute_gross_credit
+# directly (never price_jurisdiction — price_programme builds its
+# SpendBreakdown via from_total, whose line_items is empty, and
+# _apply_excluded_line_items raises KeyError on a name it cannot find).
+# ---------------------------------------------------------------------------
+
+
+def _blend_spend() -> SpendBreakdown:
+    """The shared production spend for every blend-adjustments-* programme:
+    Decimal('18000000') GBP core expenditure with a Decimal('1000000')
+    completion_bond line item present regardless of whether a given
+    programme's base_definition.excluded_line_items actually names it — the
+    programme's own declaration decides whether the item is subtracted, not
+    the production's spend breakdown. Never built via SpendBreakdown.from_total,
+    whose line_items is always empty."""
+    return SpendBreakdown(
+        total_spend=Decimal("18000000"),
+        labour_spend=Decimal("18000000"),
+        local_hires_spend=Decimal("18000000"),
+        core_expenditure=Decimal("18000000"),
+        line_items={"completion_bond": Decimal("1000000")},
+    )
+
+
+def _all_derivation_lines(figure: Figure) -> list[str]:
+    """Every derivation line reachable from `figure`, walking the whole
+    inputs DAG — not just `figure.derivation` itself. The "qualifying base
+    is $0" line PRV-03 requires the cliff test to find lives on the nested
+    Qualifying base input Figure, not on the top-level gross-credit Figure's
+    own derivation tuple."""
+    lines = list(figure.derivation)
+    for inp in figure.inputs:
+        lines.extend(_all_derivation_lines(inp))
+    return lines
+
+
+def test_blend_honours_excluded_items_and_per_person_ceiling():
+    """blend-adjustments-both at core expenditure 18,000,000 with a
+    1,000,000 excluded completion_bond line item and a 2,000,000 W-2 line
+    under a 500,000 cap returns exactly Decimal('6496000') — currently
+    (pre-fix) returns Decimal('7176000'), byte-identical to the
+    no-adjustment UK control, because the blended rate branch reads the raw
+    core-expenditure Figure instead of the actually-adjusted running base."""
+    programme = _programme_by_id(BLEND_ADJUSTMENTS_FIXTURE, "blend-adjustments-both")
+    qualifying_base = compute_qualifying_base(programme, _blend_spend(), currency="GBP")
+
+    gross = compute_gross_credit(
+        programme,
+        qualifying_base,
+        per_person_compensations=[
+            PerPersonCompensation(role="Lead actor", amount=Decimal("2000000"), payment_route="w2")
+        ],
+    )
+
+    assert gross.value == Decimal("6496000")
+
+    # 7176000 is the unfixed engine reading raw core expenditure directly —
+    # byte-identical to the no-adjustment UK worked example, the exact
+    # signature of CR-01.
+    # 6307000 is the running (adjusted) base sliced with the percentage-cap
+    # re-derivation dropped (treating the base as already capped).
+    # 5045600 is the running (adjusted) base sliced with the percentage cap
+    # applied a SECOND time on top of the qualifying-base computation's own
+    # cap.
+    # 7632000 is the cap-before-split misreading test_blend_two_rates_by_ceiling_...
+    # above already guards against on the plain function.
+    for wrong_value in (
+        Decimal("7176000"),
+        Decimal("6307000"),
+        Decimal("5045600"),
+        Decimal("7632000"),
+    ):
+        assert gross.value != wrong_value, f"{gross.value} matches the wrong-answer signature {wrong_value}"
+
+
+def test_blend_each_adjustment_moves_the_number_independently():
+    """Each adjustment moves the number independently: the excluded line
+    item alone gives Decimal('6904000'), the per-person ceiling alone gives
+    Decimal('6768000'), both together give Decimal('6496000') — three
+    pairwise-distinct values, so a fix honouring only one of the two
+    adjustments fails."""
+    both_programme = _programme_by_id(BLEND_ADJUSTMENTS_FIXTURE, "blend-adjustments-both")
+    ceiling_only_programme = _programme_by_id(
+        BLEND_ADJUSTMENTS_FIXTURE, "blend-adjustments-ceiling-only"
+    )
+
+    # Excluded item alone: blend-adjustments-both, no per-person
+    # compensations supplied — the ceiling step's no-op branch runs.
+    both_base = compute_qualifying_base(both_programme, _blend_spend(), currency="GBP")
+    excluded_alone = compute_gross_credit(both_programme, both_base)
+
+    # Per-person ceiling alone: blend-adjustments-ceiling-only declares no
+    # excluded_line_items, so the exclusion step is a no-op regardless of
+    # what _blend_spend()'s line_items carries.
+    ceiling_only_base = compute_qualifying_base(
+        ceiling_only_programme, _blend_spend(), currency="GBP"
+    )
+    ceiling_alone = compute_gross_credit(
+        ceiling_only_programme,
+        ceiling_only_base,
+        per_person_compensations=[
+            PerPersonCompensation(role="Lead actor", amount=Decimal("2000000"), payment_route="w2")
+        ],
+    )
+
+    # Both together.
+    both_base_again = compute_qualifying_base(both_programme, _blend_spend(), currency="GBP")
+    both_together = compute_gross_credit(
+        both_programme,
+        both_base_again,
+        per_person_compensations=[
+            PerPersonCompensation(role="Lead actor", amount=Decimal("2000000"), payment_route="w2")
+        ],
+    )
+
+    assert excluded_alone.value == Decimal("6904000")
+    assert ceiling_alone.value == Decimal("6768000")
+    assert both_together.value == Decimal("6496000")
+
+    values = {excluded_alone.value, ceiling_alone.value, both_together.value}
+    assert len(values) == 3, (
+        f"expected three pairwise-distinct values, got {values} — a fix honouring only "
+        "one of the two adjustments fails this"
+    )
+
+
+def test_blend_minimum_spend_cliff_zeroes_the_credit_and_the_derivation_agrees():
+    """blend-adjustments-cliff, whose declared minimum_spend of
+    Decimal('14000000') binds against a post-exclusion qualifying base of
+    Decimal('13400000'), returns a gross credit of exactly Decimal('0') —
+    and the derivation trail actually says the qualifying base is $0,
+    the number and the claim checked together, which is the assertion that
+    would have caught CR-01."""
+    programme = _programme_by_id(BLEND_ADJUSTMENTS_FIXTURE, "blend-adjustments-cliff")
+    qualifying_base = compute_qualifying_base(programme, _blend_spend(), currency="GBP")
+
+    assert qualifying_base.value == Decimal("0")
+
+    gross = compute_gross_credit(
+        programme,
+        qualifying_base,
+        per_person_compensations=[
+            PerPersonCompensation(role="Lead actor", amount=Decimal("2000000"), payment_route="w2")
+        ],
+    )
+
+    assert gross.value == Decimal("0")
+
+    all_lines = _all_derivation_lines(gross)
+    assert any("qualifying base is" in line and "$0" in line for line in all_lines), (
+        "expected a derivation line stating the qualifying base is $0 — the number and "
+        f"the claim must agree; derivation lines were: {all_lines}"
+    )
+
+    # INC-09 boundary edge: a qualifying base exactly equal to the declared
+    # minimum_spend does not trigger the cliff; one unit below zeroes both
+    # the base and the credit. Isolated from the fixture's own numbers via a
+    # directly-constructed blended_by_ceiling_split programme so the
+    # boundary is exercised through compute_gross_credit too, not only at
+    # the qualifying-base layer (already covered generically by
+    # tests/test_engine_qualifying_base.py::test_minimum_spend_cliff).
+    boundary_programme = _make_programme(
+        rate_structure=RateStructure(
+            type="blended_by_ceiling_split",
+            ceiling_split=CeilingSplit(
+                enhanced_threshold=Money(value=Decimal("1000000"), currency="USD"),
+                enhanced_rate=Decimal("0.5"),
+                standard_rate=Decimal("0.3"),
+            ),
+        ),
+        minimum_spend=Money(value=Decimal("100000"), currency="USD"),
+    )
+
+    at_threshold_base = compute_qualifying_base(
+        boundary_programme, SpendBreakdown.from_total(Decimal("100000")), currency="USD"
+    )
+    assert at_threshold_base.value == Decimal("100000")
+    at_threshold_credit = compute_gross_credit(boundary_programme, at_threshold_base)
+    assert at_threshold_credit.value == Decimal("50000"), "cliff must not fire exactly at the threshold"
+
+    below_threshold_base = compute_qualifying_base(
+        boundary_programme, SpendBreakdown.from_total(Decimal("99999")), currency="USD"
+    )
+    assert below_threshold_base.value == Decimal("0")
+    below_threshold_credit = compute_gross_credit(boundary_programme, below_threshold_base)
+    assert below_threshold_credit.value == Decimal("0"), (
+        "one dollar below the threshold must zero both the qualifying base and the credit"
+    )
+
+
+def test_blend_enhanced_threshold_boundary():
+    """Core expenditure exactly at the declared enhanced_threshold puts the
+    whole slice in the enhanced band and produces a zero standard slice that
+    still emits its own derivation line; one unit above puts exactly one
+    unit into the standard band — swept at one unit below, at, and one unit
+    above the threshold."""
+    programme = _make_programme(
+        rate_structure=RateStructure(
+            type="blended_by_ceiling_split",
+            ceiling_split=CeilingSplit(
+                enhanced_threshold=Money(value=Decimal("15000000"), currency="GBP"),
+                enhanced_rate=Decimal("0.53"),
+                standard_rate=Decimal("0.34"),
+            ),
+        ),
+    )
+
+    for core_expenditure, expected_standard_slice in (
+        (Decimal("14999999"), Decimal("0")),
+        (Decimal("15000000"), Decimal("0")),
+        (Decimal("15000001"), Decimal("1")),
+    ):
+        qualifying_base = compute_qualifying_base(
+            programme, SpendBreakdown.from_total(core_expenditure), currency="GBP"
+        )
+        gross = compute_gross_credit(programme, qualifying_base)
+
+        standard_lines = [line for line in gross.derivation if "standard slice" in line]
+        assert len(standard_lines) == 1, (
+            f"core_expenditure={core_expenditure}: expected exactly one standard-slice "
+            f"derivation line, got {standard_lines}"
+        )
+        assert str(expected_standard_slice) in standard_lines[0], (
+            f"core_expenditure={core_expenditure}: expected the standard slice "
+            f"{expected_standard_slice} named in {standard_lines[0]!r}"
+        )
+
+
+def test_blend_uk_worked_example_unchanged():
+    """The UK worked example is unchanged: synthetic-uk-style.yaml priced
+    at Decimal('18000000') still yields gross Decimal('7176000') — asserted
+    in this same module so a regression here is caught in the same run as
+    the blend-adjustments-* fixture's own assertions."""
+    programme = _programme_by_id(UK_FIXTURE, "uk-style-ceiling-split-synthetic")
+    spend = SpendBreakdown.from_total(Decimal("18000000"))
+    qualifying_base = compute_qualifying_base(programme, spend, currency="GBP")
+
+    gross = compute_gross_credit(programme, qualifying_base)
+
+    assert gross.value == Decimal("7176000")
