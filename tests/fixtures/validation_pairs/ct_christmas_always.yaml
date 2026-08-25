@@ -1,0 +1,74 @@
+production_title: "Christmas Always"
+jurisdiction_id: us-ct
+program_id: ct-film-digital-media-production-tax-credit
+production_type: feature
+season: null
+
+qualified_spend: "3865005"
+credit_amount: "1159502"
+diversity_credit_amount: null
+
+disclosure_stage: issued
+status: active
+blocker: null
+
+source_url: "https://data.ct.gov/api/v3/views/kjsu-mdny/export.csv?accessType=DOWNLOAD"
+source_document: "sources/ct/2026-08-24-ct-film-tax-credits-issued.csv"
+source_document_sha256: "2b249b80d393d57ff849ee1f1630f3fc6acd0aaecf216c938fc3bb93e7ddfe87"
+report_period: "2024-10-22"
+date_checked: "2026-08-24"
+
+assertion:
+  mode: exact
+  tolerance_bps: null
+  variance_reason: null
+
+notes: >
+  Selected this session from Connecticut's open-data export
+  (data.ct.gov, dataset kjsu-mdny — SRC-02) to close the JUR-04 coverage
+  gap 01-RESEARCH.md's SRC-03 Critical scope finding #2 identified: zero of
+  the 11 pre-sourced validation pairs are Connecticut. This is the twelfth
+  fixture the research recommended, not a pre-sourced pair — the "Flagged
+  planner assumption" section of 01-04-PLAN.md records that this is a
+  research recommendation, not a locked CONTEXT.md decision.
+
+  Selection method: parsed the archived CSV with csv.reader honouring every
+  documented gotcha (skipped the blank row after the header; stripped the
+  dollar sign and thousands commas before Decimal conversion; the trailing-
+  period artifact and blank-Municipality gotchas were not encountered on
+  this row specifically but the parser tolerates both; Date Issued parsed
+  as a datetime and truncated to a calendar date). Filtered to
+  Statutory Reference "CGS 12-217jj" (Film and Digital Media Production Tax
+  Credit) only, excluding the two other statutes this one CSV mixes in
+  (12-217kk Film Infrastructure, 12-217ll Digital Animation) per the
+  research's explicit warning that a pair from the wrong statute would
+  validate a rule model that does not exist.
+
+  Computing the implied rate across every 12-217jj row in the 658-row
+  dataset (2007-08-10 through 2024-10-25) surfaces a clean three-tier
+  statutory schedule with essentially zero unexplained residue anywhere
+  observed: 10% for qualified expenditures $100,000-$500,000 (85 rows
+  checked), 15% for $500,000-$1,000,000 (37 rows checked), 30% for over
+  $1,000,000 (the large majority of rows, including this one). This
+  production's implied rate is 1,159,502 / 3,865,005 = 30.00001%, i.e. a
+  clean 30% statutory rate with only the same sub-dollar half-cent rounding
+  residue Anora's own 25.0% ($991,190 / $3,964,760) carries — not an
+  unexplained uplift. That makes this the D-05 third exact-mode anchor
+  deferred from 01-03-SUMMARY.md ("Carried bar for 01-04": Anora and
+  Succession S4 supply the first two exact-mode fixtures, Gilded Age S2 is
+  deliberately bounded).
+
+  "Christmas Always, LLC" was preferred over the many recurring production
+  companies in the dataset (e.g. "National Media Connection LLC" appears 8+
+  times across years) precisely for the D-05 principle applied in 01-03:
+  a single, one-off, small-to-mid production with nothing to
+  reverse-engineer is the best test case. Production Company is the only
+  name the CSV discloses — there is no separate "production title" column,
+  so production_title above is the disclosed Production Company name
+  itself (minus the LLC suffix), consistent with how a reader would
+  identify this production from the government source.
+
+  D-02 interpreter-only boundary holds: qualified_spend is fed in as a
+  given from the disclosure; no input-vector field is asserted against.
+  diversity_credit_amount is omitted as null — Connecticut's CSV has no
+  such column at all.
