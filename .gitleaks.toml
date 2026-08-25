@@ -1,0 +1,39 @@
+# .gitleaks.toml
+#
+# Extends gitleaks' upstream default ruleset unchanged (SHP-10's secret-scan
+# CI gate stays fully armed for every rule) and adds one narrowly-scoped
+# allowlist entry for a confirmed false positive.
+#
+# False positive, found 2026-08-25 when plan 01-08 first pushed the accumulated
+# 01-03 through 01-07 commits and secret-scan went red on `main`:
+#
+# Gitleaks' built-in `grafana-api-key` rule matches any base64 blob starting
+# with `eyJrIjoi` — the base64 encoding of the JSON prefix `{"k":"` — because
+# that is the envelope Grafana uses for its own service-account tokens.
+# Microsoft Power BI Government's "publish/embed" view-URL query parameter
+# (`?r=<base64 of {"k":<reportId GUID>,"t":<tenantId GUID>}>`) happens to use
+# the identical `{"k":...}` JSON envelope, so the public, view-only NJEDA
+# Power BI Government dashboard citation collides with the Grafana rule's
+# prefix + entropy match.
+#
+# This is not a credential. Decoding the flagged string yields only:
+#   {"k":"bd8065fa-529c-4c6e-908d-6c767779ca4d","t":"def9b6fa-3598-4b48-bb72-0bc384032ea3"}
+# — a Power BI report GUID and tenant GUID, both public identifiers embedded
+# in a shareable, view-only report link. It is the literal citation URL for
+# the NJEDA Film Tax Credit Activity Report (plans 01-04/01-05), central to
+# this project's "every figure sourced, dated" requirement — recorded in
+# sources/MANIFEST.yaml, sources/nj/*.txt, and two validation-pair fixtures.
+# Redacting it would remove the provenance chain the project exists to prove.
+#
+# Scope: this allowlist entry matches only this exact literal token (not a
+# domain wildcard), so it exempts nothing else — any other secret gitleaks'
+# ruleset can detect, including a different Power BI URL with a different
+# token, still fails the gate.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public NJEDA Power BI Government embed-view URL (report/tenant GUIDs only) — false-matched by grafana-api-key's shared eyJrIjoi base64 prefix, see file header"
+regexes = [
+  '''eyJrIjoiYmQ4MDY1ZmEtNTI5Yy00YzZlLTkwOGQtNmM3Njc3NzljYTRkIiwidCI6ImRlZjliNmZhLTM1OTgtNGI0OC1iYjcyLTBiYzM4NDAzMmVhMyJ9''',
+]
