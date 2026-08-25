@@ -13,19 +13,48 @@ exact same schema, and an unconstrained dynamic-resolution pattern
 established now becomes a code-execution vector once that YAML's provenance
 is no longer "human-reviewed, git-committed."
 
-Empty at this point — no ``custom_handler_id`` is registered yet. Plans that
-add a genuinely irregular jurisdiction (e.g. Canada's federal/provincial
-residency-pool mismatch) add a named function here and register it in this
-same literal, never by dynamic resolution.
+Plan 02-03 adds the registry's first real entry
+(``labour_plus_quarter_local_hires``), exercising the escape hatch rather
+than merely declaring it. Plans that add a genuinely irregular jurisdiction
+(e.g. Canada's federal/provincial residency-pool mismatch) add a named
+function here and register it in this same literal, never by dynamic
+resolution.
 """
 
 from __future__ import annotations
 
-from typing import Callable
+from decimal import Decimal
+from typing import TYPE_CHECKING, Callable
 
-__all__ = ["HANDLER_REGISTRY", "resolve_handler"]
+if TYPE_CHECKING:
+    # Import only for static type-checking. engine.qualifying_base imports
+    # this module (to resolve custom_handler_id strings), so a runtime
+    # import of SpendBreakdown here would be a circular import; the
+    # `from __future__ import annotations` at the top of both modules keeps
+    # every annotation a lazily-evaluated string, so this guard is enough.
+    from engine.models import Programme
+    from engine.qualifying_base import SpendBreakdown
 
-HANDLER_REGISTRY: dict[str, Callable[..., object]] = {}
+__all__ = ["HANDLER_REGISTRY", "labour_plus_quarter_local_hires", "resolve_handler"]
+
+
+def labour_plus_quarter_local_hires(
+    programme: "Programme", spend: "SpendBreakdown"
+) -> Decimal:
+    """The registry's first real entry — a qualifying-base formula none of
+    the four declarative ``base_definition.type`` values can express:
+    labour spend plus one quarter of local-hires spend. Illustrative only,
+    referenced by ``tests/fixtures/jurisdictions/synthetic-basedefs.yaml``'s
+    ``custom`` programme, proving the escape hatch is genuinely exercised
+    rather than merely declared.
+    """
+    del programme  # unused by this particular formula; kept for signature parity
+    return spend.labour_spend + (spend.local_hires_spend * Decimal("0.25"))
+
+
+HANDLER_REGISTRY: dict[str, Callable[..., object]] = {
+    "labour_plus_quarter_local_hires": labour_plus_quarter_local_hires,
+}
 
 
 def resolve_handler(handler_id: str) -> Callable[..., object]:

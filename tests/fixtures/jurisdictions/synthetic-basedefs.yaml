@@ -1,0 +1,373 @@
+# SYNTHETIC TEST FIXTURE — NOT A REAL JURISDICTION, NOT GOVERNMENT DATA.
+#
+# Every number below is illustrative only, invented to exercise
+# engine/qualifying_base.py's four base-definition types plus the `custom`
+# escape hatch over one shared budget in tests/test_engine_qualifying_base.py.
+# `jurisdiction.status` is `synthetic_fixture` (never any of the three
+# curated-data status values) and this file lives under
+# `tests/fixtures/jurisdictions/`, never under `jurisdictions/` — the
+# directory-hygiene test in tests/test_engine_qualifying_base.py enforces
+# both structurally. This file must never be presented as, or mistaken for,
+# a curated government-sourced rule model.
+#
+# Every numeric value is a quoted YAML string (RD-01 convention, carried
+# forward from jurisdictions/us-ny.yaml).
+
+jurisdiction:
+  id: zz-synthetic-basedefs
+  name: "SYNTHETIC FIXTURE — base-definition types (illustrative, not a real place)"
+  country_code: ZZ
+  level: state
+  parent_id: null
+  currency: USD
+  status: synthetic_fixture
+  effective_dates:
+    rule_version_effective_from: "2026-01-01"
+    rule_version_effective_to: null
+    source_checked_date: "2026-08-25"
+  sources:
+    - url: "https://example.invalid/synthetic-fixture-basedefs"
+      title: "Synthetic test fixture — not a government source"
+      accessed_date: "2026-08-25"
+      confidence: LOW
+
+programmes:
+  - id: basedef-total-qualified-spend
+    name: "Synthetic: total_qualified_spend"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: total_qualified_spend
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "synthetic fixture — no real per-person ceiling"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.25"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: "illustrative rate, not derived from any statute"
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
+
+  - id: basedef-labour-only
+    name: "Synthetic: labour_only"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: labour_only
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "synthetic fixture — no real per-person ceiling"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.25"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: "illustrative rate, not derived from any statute"
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
+
+  - id: basedef-local-hires-only
+    name: "Synthetic: local_hires_only"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: local_hires_only
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "synthetic fixture — no real per-person ceiling"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.25"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: "illustrative rate, not derived from any statute"
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
+
+  - id: basedef-lesser-of
+    name: "Synthetic: lesser_of_pct_core_or_actual_local"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: lesser_of_pct_core_or_actual_local
+      pct_core_cap: "0.80"
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "synthetic fixture — no real per-person ceiling"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.25"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: "illustrative rate, not derived from any statute"
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
+
+  - id: basedef-custom
+    name: "Synthetic: custom escape hatch (labour_plus_quarter_local_hires)"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: custom
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: "labour_plus_quarter_local_hires"
+
+    per_person_ceiling:
+      applies: false
+      note: "synthetic fixture — no real per-person ceiling"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.25"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: "illustrative rate, not derived from any statute"
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap: null
+      cap_consumption_check: null
+
+    audit:
+      mandatory: false
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "synthetic fixture — no real payout schedule"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: false
+      validation_pair_fixture_glob: null
+      mean_error_pct: null
+      last_checked_against_disclosure: null
