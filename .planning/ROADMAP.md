@@ -53,7 +53,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. The app runs under systemd on Python 3.10 or newer, isolated from the system Python that Bitnami and Apache depend on, survives a host reboot, and is reached through Apache's reverse proxy
   5. CI fails the build if the resolved lockfile contains a forbidden package, if a secret is committed, or if a commit falls outside the contest window — and GitHub's About section displays an OSI-approved licence
 
-**Plans**: 7/9 plans executed in 4 waves
+**Plans**: 8/9 plans executed in 4 waves
 
 Plans:
 **Wave 1**
@@ -75,7 +75,7 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 01-05-PLAN.md — SOURCE-TRUTH.md: NY cap run down against the statute, CT schema, GA rate, partner track (wave 4)
-- [ ] 01-09-PLAN.md — Apache reverse proxy and Let's Encrypt TLS on the subdomain (wave 4)
+- [x] 01-09-PLAN.md — Apache reverse proxy and Let's Encrypt TLS on the subdomain (wave 4)
 
 **Parallel tracks**: Track A (source verification, SRC-*) and Track B (host and deploy path, SHP-*) share no state and run concurrently. Track B is day 2-3 work and must not wait on Track A — the subdomain DNS record and Let's Encrypt issuance have propagation clocks independent of build progress, and a working app with no reachable URL fails the submission.
 **Gate notes**: SRC-04 (partner track) is **RESOLVED — Parallel**, owner-confirmed 2026-08-24 before planning began. Parallel Search is therefore a runtime requirement and is load-bearing in Phase 7; SHP-06 is no longer conditional. Re-verify against the submission portal when the entry is filed. SHP-01 (snapshot-and-restore resize to 2 GB) takes the live vockell.com site briefly offline and is a discrete, schedulable task. Measure free memory immediately after the Python install — it gates the Milestone 2 data-layer decision.
@@ -276,7 +276,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Foundations — Source Truth & Deploy Path | 1 — Accounts | 7/9 | In Progress|  |
+| 1. Foundations — Source Truth & Deploy Path | 1 — Accounts | 8/9 | In Progress|  |
 | 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 0/TBD | Not started | - |
 | 3. New York End-to-End — The Anora Proof | 1 — Accounts | 0/TBD | Not started | - |
 | 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 0/TBD | Not started | - |

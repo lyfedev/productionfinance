@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 01
 current_phase_name: Foundations — Source Truth & Deploy Path
 status: executing
-stopped_at: Completed 01-08-PLAN.md
-last_updated: "2026-08-25T07:05:10.549Z"
+stopped_at: Completed 01-09-PLAN.md
+last_updated: "2026-08-25T07:28:31.368Z"
 last_activity: 2026-08-24
 last_activity_desc: Phase 01 execution started
-state_head: 29dfc14514ad8df45e96254e7be576ef7ea8ea72
+state_head: b347521998d69f04e7b4ce93f9f8bafab67606e8
 progress:
   total_phases: 11
   completed_phases: 0
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
   percent: 0
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 ## Current Position
 
 Phase: 01 (Foundations — Source Truth & Deploy Path) — EXECUTING
-Plan: 8 of 9
+Plan: 9 of 9
 Status: Ready to execute
 Last activity: 2026-08-24 — Phase 01 execution started
 
@@ -67,6 +67,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P04 | 33min | 3 tasks | 17 files |
 | Phase 01 P05 | 46min | 3 tasks | 11 files |
 | Phase 01 P08 | 19min | 3 tasks | 5 files |
+| Phase 01 P09 | 16min | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,7 @@ Recent decisions affecting current work:
 - [Phase 01]: [Phase 01] 01-08: 01-07 resize deferral holds -- Task 1/3 ran entirely on the original un-resized nano_2_0 (472MB) box. Measured 353MB available immediately after uv python install 3.12, 284MB available with prodfin.service running post-reboot (buff/cache still cold). Comfortable headroom for the bare FastAPI skeleton; not yet evidence either way for Milestone 2's data-layer decision since no AI-SDK or DB has been imported yet.
 - [Phase 01]: [Phase 01] 01-08: pushed 17 previously-unpushed local commits (plans 01-03 through 01-07) to origin/main for the first time, a Rule-3 blocking-issue fix -- D-19's git-pull deploy path is meaningless against a stale remote. Push tripped secret-scan (SHP-10) on a genuine gitleaks grafana-api-key false positive against a public NJEDA Power BI Government citation URL (shared base64 {"k":...} envelope by coincidence, not a credential); fixed with a single scoped .gitleaks.toml literal-string allowlist entry, re-verified green on every subsequent push.
 - [Phase 01]: [Phase 01] 01-08: prodfin.service (systemd) deployed on 127.0.0.1:8000 as the dedicated non-login prodfin user, deploy/deploy.sh proven idempotent (two consecutive runs), and a real sudo reboot executed and recovered unaided -- prodfin.service's own boot_time (06:59:44Z) later than the host's post-reboot uptime -s (06:59:38Z), the evidence distinguishing survived-a-reboot from restarted-after-one per D-23/SHP-04. vockell.com's pre-existing 301-to-www redirect (unrelated to this plan) is documented in deploy/README.md so it isn't mistaken for a regression.
+- [Phase 01]: 01-09 executed a revised plan: ProxyPass /finance added inline to the EXISTING vockell.com Apache vhost, reusing its existing Let's Encrypt certificate -- not the dedicated subdomain vhost + new bncert-tool certificate 01-09-PLAN.md was originally written for (superseded by D-14's path-mount decision, 01-06). No AWS resource (snapshot/resize) was touched; a file-level backup + configtest + graceful reload substituted. Two live Apache bugs found and fixed during verification (a www-redirect swallowing /finance; a doubled-slash ProxyPass target) plus one app-code bug (an absolute-path link breaking under the /finance mount, fixed via PRODFIN_PUBLIC_PATH). https://vockell.com/finance is now confirmed reachable by an anonymous off-box visitor over valid TLS; vockell.com's pre-existing behaviour on every other path is unchanged.
 
 ### Pending Todos
 
@@ -119,6 +121,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-25T07:05:10.536Z
-Stopped at: Completed 01-08-PLAN.md
+Last session: 2026-08-25T07:28:31.357Z
+Stopped at: Completed 01-09-PLAN.md
 Resume file: None

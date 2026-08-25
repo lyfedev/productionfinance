@@ -116,8 +116,8 @@ Stage One judging is pass/fail and partly automated. Each of these is a gate, no
 
 - [ ] **SHP-01**: The vockell.com Lightsail instance is resized to 2 GB via snapshot-and-restore, preserving its static IP
 - [x] **SHP-02**: Python 3.10 or newer is installed on the host, isolated from the system Python that Bitnami and Apache depend on
-- [ ] **SHP-03**: A subdomain DNS record exists and resolves — created early, as it is the only item carrying propagation delay
-- [ ] **SHP-04**: The application runs under systemd and is reverse-proxied through Apache with a valid TLS certificate, without disturbing the live vockell.com site
+- [x] **SHP-03**: A subdomain DNS record exists and resolves — created early, as it is the only item carrying propagation delay
+- [x] **SHP-04**: The application runs under systemd and is reverse-proxied through Apache with a valid TLS certificate, without disturbing the live vockell.com site
 - [ ] **SHP-05**: A permitted Google SDK is imported and genuinely called at runtime, verified by a timestamped log line at the call site
 - [ ] **SHP-06**: Parallel's Search API is genuinely called at runtime via the official `parallel-web` SDK, verified the same way — unconditional, the track is confirmed as Parallel
 - [x] **SHP-07**: The resolved lockfile contains none of litellm, openai, anthropic, langchain, langgraph, crewai or llama-index — checked automatically, and `google-adk` is installed bare, never with `[all]`, `[extensions]` or `[test]`
@@ -266,8 +266,8 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | UI-12 | Phase 6 — The Interface | 1 — Accounts | Pending |
 | SHP-01 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
 | SHP-02 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
-| SHP-03 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
-| SHP-04 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
+| SHP-03 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
+| SHP-04 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
 | SHP-05 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
 | SHP-06 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |
 | SHP-07 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
