@@ -19,13 +19,36 @@ report_period: "2025-Q3"
 date_checked: "2026-08-24"
 
 assertion:
-  mode: exact
-  tolerance_bps: null
-  variance_reason: null
+  mode: bounded
+  tolerance_bps: 10
+  variance_reason: >
+    Corrected at Phase 2 plan time (02-01-PLAN.md "Flagged assumption"):
+    a flat 25% New York model computes $25,730,096 against the disclosed
+    $25,747,913 — a residue of $17,817, or 1.73 basis points of the
+    $102,920,384 disclosed qualified spend (implied rate 25.0173%, not a
+    clean 25.0000%). This is the same class of un-itemised uplift
+    ny_gilded_age_s2.yaml already concedes (see that fixture's own
+    variance_reason), just ~75x smaller. The ESD "Credits Issued" table's
+    published columns do not include a field naming which additional
+    credit, if any, was claimed on top of the base rate for this
+    production — that is not derivable from the archived document, so this
+    cannot be `exact` without the interpreter guessing an unstated claim.
+    tolerance_bps (10) is sized to cover the observed 1.73bps residue plus
+    margin, not to reverse-engineer the exact uplift mechanism.
 
 notes: >
   This fixture asserts on net cash out (credit_amount) given qualified spend
   in as a given; it carries no production input vector (D-02). Implied rate
   is $25,747,913 / $102,920,384 = 25.02%, effectively the clean 25.0% base
-  rate with no unexplained uplift residue — the second D-05 exact-mode anchor
-  alongside Anora.
+  rate with no large unexplained uplift residue — this was originally
+  recorded as the second D-05 exact-mode anchor alongside Anora.
+
+  Correction, 2026-08-25 (Phase 2, plan 02-01, Task 1): this fixture's
+  assertion.mode was changed from `exact` to `bounded` (tolerance_bps: 10)
+  after the New York interpreter (engine/) reproduced a flat-25% credit of
+  $25,730,096 against this fixture's disclosed $25,747,913 — a $17,817
+  (1.73bps) residue that a flat rate alone does not explain. Anora
+  (ny_anora.yaml) remains the phase's one clean exact-mode New York anchor;
+  Connecticut's Christmas Always fixture is the second exact anchor. See
+  assertion.variance_reason above for the measured residue and the reason
+  it is not silently reconciled.

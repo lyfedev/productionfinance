@@ -1,0 +1,120 @@
+# New York — Film Production Tax Credit (curated, validated)
+#
+# Every numeric value below is a quoted YAML string (RD-01: PyYAML parses an
+# unquoted decimal like 0.25 as a native float, which corrupts through naive
+# Decimal() conversion — engine/models.py types every such field Decimal and
+# requires the quoted-string convention).
+#
+# This file models the base Film Production and Post-Production Tax Credit
+# Program (Tax Law section 24) only. It deliberately does NOT model:
+#   - New York's separate $100M Empire State Independent Film Production
+#     Credit (Tax Law 24-d) — its $20M/$80M pool split is confirmed
+#     (SOURCE-TRUTH.md SRC-01) but its rate is not confirmed against a
+#     primary source, and encoding an unsourced rate is forbidden.
+#   - New York's diversity and equity bonus credit — disclosed in the source
+#     data (diversity_credit_amount in the validation-pair fixtures) but not
+#     itemized; assertions are made against credit_amount alone.
+# See jurisdictions/SCOPE-FREEZE.md for the full, dated list of disclosed
+# simplifications.
+
+jurisdiction:
+  id: us-ny
+  name: New York
+  country_code: US
+  level: state
+  parent_id: null
+  currency: USD
+  status: curated_validated
+  effective_dates:
+    rule_version_effective_from: "2024-01-01"
+    rule_version_effective_to: null
+    source_checked_date: "2026-08-24"
+  sources:
+    - url: "https://legislation.nysenate.gov/pdf/bills/2025/S3009C"
+      title: "S. 3009--C / A. 3009--C, NY State 2025-2026 Revenue Budget Bill (Chapter 59 of the Laws of 2025)"
+      accessed_date: "2026-08-24"
+      confidence: HIGH
+    - url: "https://esd.ny.gov/sites/default/files/media/document/Film_Credit_Guidelines_W_Appendix_20250418_0.pdf"
+      title: "NYS Film Tax Credit Program Guidelines (dated 2025-04-18)"
+      accessed_date: "2026-08-24"
+      confidence: HIGH
+    - url: "https://esd.ny.gov/sites/default/files/media/document/Q3-Film-Report-2025.pdf"
+      title: "ESD Q3 2025 Film Report ('Credits Issued' disclosure table)"
+      accessed_date: "2026-08-24"
+      confidence: HIGH
+
+programmes:
+  - id: ny-film-production-tax-credit
+    name: "New York Film Production Tax Credit"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: refundable
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: total_qualified_spend
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "FY2026 budget removed New York's $500,000 above-the-line compensation cap"
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.25"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: "25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch — see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml"
+
+    minimum_spend: null
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap:
+        amount:
+          value: "700000000"
+          currency: USD
+        period: calendar_year
+        escalator_schedule: null
+      cap_consumption_check:
+        method: live_research
+        source_url: null
+
+    audit:
+      mandatory: true
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "New York pays refundable film credits across multiple tax years above statutory amount thresholds; the exact schedule has no SOURCE-TRUTH entry yet"
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: null
+
+    residency_rules: null
+
+    validation:
+      validated: true
+      validation_pair_fixture_glob: "tests/fixtures/validation_pairs/ny_*.yaml"
+      mean_error_pct: null
+      last_checked_against_disclosure: "2026-08-24"
