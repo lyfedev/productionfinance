@@ -28,6 +28,19 @@ from app.services.spec import (
 client = TestClient(app)
 
 
+def test_ruleset_path_by_jurisdiction_is_shared_between_spec_and_validate():
+    # Regression for WR-04: REPO_ROOT/RULESET_PATH_BY_JURISDICTION used to
+    # be declared identically in both app/services/spec.py and
+    # app/services/validate.py, with no test guarding the two dicts stayed
+    # in sync. Both now import the same object from app/services/_paths.py
+    # — asserting object identity (not just equal contents) is what
+    # actually proves there is a single source of truth.
+    from app.services.spec import RULESET_PATH_BY_JURISDICTION as spec_dict
+    from app.services.validate import RULESET_PATH_BY_JURISDICTION as validate_dict
+
+    assert spec_dict is validate_dict
+
+
 def _base_form_kwargs(**overrides: object) -> dict:
     kwargs = {
         "production_type": "feature",

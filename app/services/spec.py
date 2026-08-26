@@ -19,11 +19,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
+from app.services._paths import REPO_ROOT, RULESET_PATH_BY_JURISDICTION
 from app.services.city_lookup import resolve_city_to_jurisdiction
 from engine.models import load_ruleset
 from engine.spec import CrewHeadcount, CrewTier, ProductionSpec, resolve_crew_tier
@@ -40,14 +40,6 @@ __all__ = [
     "SpecResult",
     "handle_spec_submission",
 ]
-
-REPO_ROOT = Path(__file__).resolve().parents[2]
-
-# New York only in Phase 3 — matches app/services/validate.py's identical
-# jurisdiction scoping.
-RULESET_PATH_BY_JURISDICTION: dict[str, Path] = {
-    "us-ny": REPO_ROOT / "jurisdictions" / "us-ny.yaml",
-}
 
 # D-35's visible half — the exact sentence a visitor reads after typing a
 # number into the "Total budget" field.

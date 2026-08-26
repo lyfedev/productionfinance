@@ -21,6 +21,7 @@ from pathlib import Path
 
 import yaml
 
+from app.services._paths import REPO_ROOT, RULESET_PATH_BY_JURISDICTION
 from engine.figure import Figure
 from engine.models import load_ruleset
 from engine.pipeline import price_jurisdiction
@@ -37,15 +38,7 @@ __all__ = [
     "selectable_pairs",
 ]
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
 VALIDATION_PAIRS_DIR = REPO_ROOT / "tests" / "fixtures" / "validation_pairs"
-
-# New York only in Phase 3 — every other jurisdiction_id a fixture may
-# declare (us-ct, us-ma, us-ca, us-nj, us-pa) is real data but has no
-# curated rule model wired into this route yet.
-RULESET_PATH_BY_JURISDICTION: dict[str, Path] = {
-    "us-ny": REPO_ROOT / "jurisdictions" / "us-ny.yaml",
-}
 
 
 class UnknownPairError(Exception):
