@@ -32,7 +32,7 @@ Resolve before modelling. Wrong inputs produce confidently wrong outputs, and th
 
 ### Cost Model
 
-- [ ] **COST-01**: One identical budget model is localized per city — comparison is never made against published rates
+- [x] **COST-01**: One identical budget model is localized per city — comparison is never made against published rates
 - [ ] **COST-02**: Labour is localized against published union rate cards (IATSE locals, SAG-AFTRA, DGA, WGA, BECTU, ACTRA)
 - [ ] **COST-03**: Labour cost includes fringe and payroll burden, not bare card rates
 - [ ] **COST-04**: Housing and meals use GSA per diem by US county and State Department foreign per diem, displayed with an explicit label that these are reimbursement ceilings and not market hotel rates
@@ -59,7 +59,7 @@ Resolve before modelling. Wrong inputs produce confidently wrong outputs, and th
 - [ ] **OUT-01**: Total landed cost is reported per candidate city, ranked
 - [ ] **OUT-02**: Cost gap between any two cities is reported, decomposed by component
 - [ ] **OUT-03**: Sensitivity is displayed — which single input most moves the gap, shown as a delta and never as a prescriptive recommendation
-- [ ] **OUT-04**: Cost breakdown is available aligned to the standard ATL / BTL / Post chart of accounts *(stretch for Accounts; full treatment in Balances)*
+- [x] **OUT-04**: Cost breakdown is available aligned to the standard ATL / BTL / Post chart of accounts *(stretch for Accounts; full treatment in Balances)*
 
 ### Provenance and Proof
 
@@ -207,7 +207,7 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | INP-06 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
 | INP-07 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
 | INP-08 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
-| COST-01 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| COST-01 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Complete |
 | COST-02 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
 | COST-03 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
 | COST-04 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
@@ -228,7 +228,7 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | OUT-01 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
 | OUT-02 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
 | OUT-03 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
-| OUT-04 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| OUT-04 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Complete |
 | PRV-01 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
 | PRV-02 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
 | PRV-03 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
