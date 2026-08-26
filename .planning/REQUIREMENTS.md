@@ -35,10 +35,10 @@ Resolve before modelling. Wrong inputs produce confidently wrong outputs, and th
 - [x] **COST-01**: One identical budget model is localized per city — comparison is never made against published rates
 - [ ] **COST-02**: Labour is localized against published union rate cards (IATSE locals, SAG-AFTRA, DGA, WGA, BECTU, ACTRA)
 - [x] **COST-03**: Labour cost includes fringe and payroll burden, not bare card rates
-- [ ] **COST-04**: Housing and meals use GSA per diem by US county and State Department foreign per diem, displayed with an explicit label that these are reimbursement ceilings and not market hotel rates
-- [ ] **COST-05**: Flights and housing are computed for imported crew and cast specifically
+- [x] **COST-04**: Housing and meals use GSA per diem by US county and State Department foreign per diem, displayed with an explicit label that these are reimbursement ceilings and not market hotel rates
+- [x] **COST-05**: Flights and housing are computed for imported crew and cast specifically
 - [ ] **COST-06**: Stage, equipment, permit, location and trucking costs are included, with estimated lines labelled as estimates
-- [ ] **COST-07**: Start quarter drives seasonal cost variation, not only incentive availability
+- [x] **COST-07**: Start quarter drives seasonal cost variation, not only incentive availability
 - [ ] **COST-08**: Multi-currency costs are converted via a dated FX rate carried as a cited figure
 
 ### Incentive Engine
@@ -210,10 +210,10 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | COST-01 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Complete |
 | COST-02 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
 | COST-03 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Complete |
-| COST-04 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
-| COST-05 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| COST-04 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Complete |
+| COST-05 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Complete |
 | COST-06 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
-| COST-07 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| COST-07 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Complete |
 | COST-08 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
 | INC-01 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
 | INC-02 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
