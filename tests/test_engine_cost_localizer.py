@@ -11,15 +11,40 @@ guarantee. Task 3 widens this file with the rounding/precision assertions.
 from __future__ import annotations
 
 from datetime import date
-from decimal import Decimal
+from decimal import ROUND_HALF_EVEN, Decimal
 
 import pytest
 
-from engine.budget import build_canonical_budget
+import engine.cost_localizer as cost_localizer_module
+from engine.budget import CanonicalBudget, build_canonical_budget
 from engine.cost_localizer import localize, quarter_start_date
-from engine.cost_profile import CityCostProfile, CostLine, load_cost_profile
+from engine.cost_profile import (
+    CityCostProfile,
+    CostLine,
+    CraftMapping,
+    LabourBlock,
+    load_cost_profile,
+)
 from engine.landed_cost import aggregate
 from engine.spec import CrewHeadcount, ProductionSpec
+from engine.union_rates import FringeComponent, FringeSchedule, RateRow
+
+# The exact department NAMES (not labels) crew_tiers.yaml declares —
+# needed to satisfy CityCostProfile's "labour.crafts covers every
+# department" validator even in a synthetic fixture whose cost_lines only
+# prices ONE of them.
+_ALL_DEPARTMENT_NAMES = (
+    "production",
+    "camera",
+    "grip_and_electric",
+    "art",
+    "wardrobe",
+    "hair_and_makeup",
+    "sound",
+    "transportation",
+    "locations",
+    "post",
+)
 
 
 def _spec(candidate_cities: list[str] | None = None) -> ProductionSpec:
@@ -212,7 +237,7 @@ def test_los_angeles_localizes_and_produces_a_real_cost_total():
     on_date = quarter_start_date(spec.start_quarter, spec.start_year)
     localized = localize(budget, _la_profile(), on_date=on_date)
     landed = aggregate(localized)
-    assert landed.cost_total.value > Decimal("0")
+    assert landed.cost_total.value > Decimal(0)
 
 
 # ---------------------------------------------------------------------------
@@ -287,3 +312,190 @@ def test_route_a_prices_both_cities_and_la_incentive_is_not_modelled_not_zero():
 
     ny_cost = next(c for c in result.city_costs if c.city_id == "us-ny-new-york")
     assert ny_cost.incentive_state == "modelled"
+
+
+# ---------------------------------------------------------------------------
+# Task 3 — precision: ROUND_HALF_UP, single quantization, Decimal end to end
+# ---------------------------------------------------------------------------
+
+
+def _zero_fringe_component() -> FringeComponent:
+    return FringeComponent(value="0", basis="sourced", source_url="https://example.invalid/zero")
+
+
+def _synthetic_camera_profile(region: str) -> CityCostProfile:
+    """A synthetic profile pricing ONLY the camera department, still
+    satisfying the "every department has a craft mapping" validator by
+    mapping every other department to an inert general_crew craft no
+    CostLine in this fixture ever looks up."""
+    crafts = {name: CraftMapping(union="TESTUNION", craft="general_crew") for name in
+              _ALL_DEPARTMENT_NAMES}
+    crafts["camera"] = CraftMapping(union="TESTUNION", craft="camera")
+    return CityCostProfile(
+        city_id="synthetic-precision",
+        city_label="Synthetic Precision City",
+        jurisdiction_id=None,
+        currency="USD",
+        provenance_note="synthetic precision fixture for tests/test_engine_cost_localizer.py",
+        cost_lines=[
+            CostLine(
+                line_id="camera-labour",
+                label="Camera labour days",
+                category="labour",
+                account="BTL",
+                spend_class="local_labour",
+            )
+        ],
+        labour=LabourBlock(region=region, crafts=crafts),
+    )
+
+
+def _synthetic_budget(quantity: Decimal) -> CanonicalBudget:
+    return CanonicalBudget(
+        line_quantities={"Camera labour days": quantity},
+        accounts={"Camera labour days": "BTL"},
+        shoot_days=Decimal(1),
+        crew_headcount=CrewHeadcount(low=1, high=1, basis="test", provenance_note="test fixture"),
+    )
+
+
+def test_half_dollar_labour_product_rounds_up_not_half_even(monkeypatch):
+    """901.00 x 12.5 = 11262.50 exactly — 11262 is EVEN, so Python's
+    ambient ROUND_HALF_EVEN would round DOWN (already even) to 11262,
+    while the pinned ROUND_HALF_UP rounds UP to 11263. This is the
+    specific case where the two modes disagree, proving the wage Figure
+    goes through `quantize_money`'s pinned rounding, not a bare
+    `.quantize()` using the default context."""
+    synthetic_row = RateRow(
+        row_id="synthetic-half-dollar",
+        union="TESTUNION",
+        region="us-test",
+        craft="camera",
+        rate="901.00",
+        rate_unit="day",
+        effective_from=date(2020, 1, 1),
+        effective_to=None,
+        basis="sourced",
+        source_url="https://example.invalid/synthetic",
+    )
+    synthetic_fringe = FringeSchedule(
+        union="TESTUNION",
+        pension_health_pct=_zero_fringe_component(),
+        payroll_tax_pct=_zero_fringe_component(),
+        other_burden_pct=_zero_fringe_component(),
+    )
+    monkeypatch.setattr(cost_localizer_module, "load_union_rates", lambda: [synthetic_row])
+    monkeypatch.setattr(
+        cost_localizer_module, "load_fringe_schedules", lambda: {"TESTUNION": synthetic_fringe}
+    )
+
+    profile = _synthetic_camera_profile("us-test")
+    budget = _synthetic_budget(Decimal("12.5"))
+    localized = localize(budget, profile, on_date=date(2026, 1, 1))
+    wage = next(line for line in localized.lines if line.label == "Camera labour days")
+
+    raw_product = Decimal("901.00") * Decimal("12.5")
+    assert raw_product == Decimal("11262.50")
+    assert raw_product.quantize(Decimal(1), rounding=ROUND_HALF_EVEN) == Decimal(11262)
+    assert wage.value == Decimal(11263)
+    assert isinstance(wage.value, Decimal)
+
+
+def test_wage_value_equals_quantize_money_once_not_a_double_quantize(monkeypatch):
+    """quantity=0.5, rate=2.00: quantize_money(0.5 x 2.00) = quantize_money(1.00) = 1.
+    A BUGGY implementation that rounded `quantity` to a whole day FIRST
+    (0.5 -> 1 under ROUND_HALF_UP) and only then multiplied by the rate
+    would get 1 x 2.00 = 2 instead — differing from the correct answer by
+    exactly one dollar. This proves the actual code never does that."""
+    synthetic_row = RateRow(
+        row_id="synthetic-single-quantize",
+        union="TESTUNION",
+        region="us-test",
+        craft="camera",
+        rate="2.00",
+        rate_unit="day",
+        effective_from=date(2020, 1, 1),
+        effective_to=None,
+        basis="sourced",
+        source_url="https://example.invalid/synthetic",
+    )
+    synthetic_fringe = FringeSchedule(
+        union="TESTUNION",
+        pension_health_pct=_zero_fringe_component(),
+        payroll_tax_pct=_zero_fringe_component(),
+        other_burden_pct=_zero_fringe_component(),
+    )
+    monkeypatch.setattr(cost_localizer_module, "load_union_rates", lambda: [synthetic_row])
+    monkeypatch.setattr(
+        cost_localizer_module, "load_fringe_schedules", lambda: {"TESTUNION": synthetic_fringe}
+    )
+
+    profile = _synthetic_camera_profile("us-test")
+    budget = _synthetic_budget(Decimal("0.5"))
+    localized = localize(budget, profile, on_date=date(2026, 1, 1))
+    wage = next(line for line in localized.lines if line.label == "Camera labour days")
+
+    correct = Decimal(1)
+    double_quantized_wrong = Decimal(2)
+    assert wage.value == correct
+    assert wage.value != double_quantized_wrong
+    assert double_quantized_wrong - correct == Decimal(1)
+
+
+def test_fringe_percentages_summed_before_multiplication_not_after(monkeypatch):
+    """wage=100, three fringe components of 0.005 each. Summed-then-
+    multiplied (correct): 100 x (0.005+0.005+0.005 = 0.015) = 1.50,
+    quantize_money once -> 2 (ROUND_HALF_UP rounds .50 up). Multiplied-
+    then-summed (wrong): quantize_money(100 x 0.005) = quantize_money(0.50)
+    = 1 for EACH component, summed to 1+1+1 = 3. The two orders disagree
+    (2 vs 3), proving the declared summed-first order is the one actually
+    computed."""
+    synthetic_row = RateRow(
+        row_id="synthetic-fringe-order",
+        union="TESTUNION",
+        region="us-test",
+        craft="camera",
+        rate="100.00",
+        rate_unit="day",
+        effective_from=date(2020, 1, 1),
+        effective_to=None,
+        basis="sourced",
+        source_url="https://example.invalid/synthetic",
+    )
+    small_component = FringeComponent(
+        value="0.005", basis="sourced", source_url="https://example.invalid/small"
+    )
+    synthetic_fringe = FringeSchedule(
+        union="TESTUNION",
+        pension_health_pct=small_component,
+        payroll_tax_pct=small_component,
+        other_burden_pct=small_component,
+    )
+    monkeypatch.setattr(cost_localizer_module, "load_union_rates", lambda: [synthetic_row])
+    monkeypatch.setattr(
+        cost_localizer_module, "load_fringe_schedules", lambda: {"TESTUNION": synthetic_fringe}
+    )
+
+    profile = _synthetic_camera_profile("us-test")
+    budget = _synthetic_budget(Decimal(1))
+    localized = localize(budget, profile, on_date=date(2026, 1, 1))
+    fringe = next(
+        line for line in localized.lines if line.label == "Fringe and payroll burden — Camera"
+    )
+
+    summed_first_correct = Decimal(2)
+    multiplied_first_wrong = Decimal(3)
+    assert fringe.value == summed_first_correct
+    assert fringe.value != multiplied_first_wrong
+
+
+def test_no_float_ever_enters_the_labour_pricing_path():
+    """Structural proof (not just this test's own values): every Figure
+    value produced by localize() against a committed profile is a
+    Decimal, never a float."""
+    spec = _spec()
+    budget = build_canonical_budget(spec, _crew_headcount())
+    on_date = quarter_start_date(spec.start_quarter, spec.start_year)
+    localized = localize(budget, _ny_profile(), on_date=on_date)
+    for line in localized.lines:
+        assert isinstance(line.value, Decimal)

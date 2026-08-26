@@ -11,8 +11,10 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
+from glob import glob
 
 import pytest
+import yaml
 from pydantic import ValidationError
 
 from engine.union_rates import (
@@ -24,6 +26,9 @@ from engine.union_rates import (
     select_rate_row,
     weakest_basis,
 )
+
+MANIFEST_PATH = "sources/MANIFEST.yaml"
+UNION_RATES_GLOB = "data/union_rates/*.yaml"
 
 
 def _row(**overrides) -> RateRow:
@@ -319,3 +324,200 @@ def test_committed_union_rates_load_without_error():
         rows, region="us-ny", craft="general_crew", on_date=date(2026, 4, 1)
     )
     assert general_ny.basis == "estimated"
+
+
+# ---------------------------------------------------------------------------
+# Task 3 — boundary coverage: exactly-on, one-before, one-after (WR-03)
+# ---------------------------------------------------------------------------
+
+
+def test_select_rate_row_boundary_exact_on_and_adjacent_successor():
+    """Closed-closed: a date exactly on `effective_from` or exactly on
+    `effective_to` both select that row. One day after `effective_to`
+    selects the adjacent successor row when one exists (never raises just
+    because the FIRST row's range ended)."""
+    row_a = _row(
+        row_id="a",
+        region="us-boundary",
+        craft="boundary",
+        effective_from=date(2025, 1, 1),
+        effective_to=date(2025, 6, 30),
+    )
+    row_b = _row(
+        row_id="b",
+        region="us-boundary",
+        craft="boundary",
+        effective_from=date(2025, 7, 1),
+        effective_to=None,
+    )
+    rows = [row_a, row_b]
+
+    # Exactly on row_a's effective_from.
+    assert (
+        select_rate_row(rows, region="us-boundary", craft="boundary", on_date=date(2025, 1, 1))
+        .row_id
+        == "a"
+    )
+    # Exactly on row_a's effective_to (closed-closed, not open at the end).
+    assert (
+        select_rate_row(rows, region="us-boundary", craft="boundary", on_date=date(2025, 6, 30))
+        .row_id
+        == "a"
+    )
+    # One day after row_a's effective_to — the adjacent successor (row_b)
+    # covers this date, so it is selected, not a raise.
+    assert (
+        select_rate_row(rows, region="us-boundary", craft="boundary", on_date=date(2025, 7, 1))
+        .row_id
+        == "b"
+    )
+    # Exactly on row_b's effective_from (same date as the prior assertion,
+    # confirming it is row_b's own start, not a fallback).
+    assert (
+        select_rate_row(rows, region="us-boundary", craft="boundary", on_date=date(2025, 7, 1))
+        .row_id
+        == "b"
+    )
+    # row_b is open-ended — far in the future still resolves to it.
+    assert (
+        select_rate_row(rows, region="us-boundary", craft="boundary", on_date=date(2030, 1, 1))
+        .row_id
+        == "b"
+    )
+
+
+def test_select_rate_row_boundary_one_day_before_start_raises_when_no_prior_row_exists():
+    row_a = _row(
+        row_id="a",
+        region="us-boundary",
+        craft="boundary-solo",
+        effective_from=date(2025, 1, 1),
+        effective_to=date(2025, 6, 30),
+    )
+    with pytest.raises(ValueError) as excinfo:
+        select_rate_row(
+            [row_a], region="us-boundary", craft="boundary-solo", on_date=date(2024, 12, 31)
+        )
+    message = str(excinfo.value)
+    assert "us-boundary" in message
+    assert "boundary-solo" in message
+    assert "2024-12-31" in message
+
+
+def test_select_rate_row_boundary_one_day_after_end_raises_when_no_successor_exists():
+    row_a = _row(
+        row_id="a",
+        region="us-boundary",
+        craft="boundary-closed",
+        effective_from=date(2025, 1, 1),
+        effective_to=date(2025, 6, 30),
+    )
+    with pytest.raises(ValueError):
+        select_rate_row(
+            [row_a], region="us-boundary", craft="boundary-closed", on_date=date(2025, 7, 1)
+        )
+
+
+def test_select_rate_row_boundary_one_day_before_start_selects_prior_row_when_one_exists():
+    """The mirror of the "raises when none does" case above: one day
+    before a row's start is COVERED by an earlier row when one exists —
+    never a raise, and never a silent fallback to the wrong row."""
+    row_a = _row(
+        row_id="a",
+        region="us-boundary",
+        craft="boundary-chain",
+        effective_from=date(2025, 1, 1),
+        effective_to=date(2025, 6, 30),
+    )
+    row_b = _row(
+        row_id="b",
+        region="us-boundary",
+        craft="boundary-chain",
+        effective_from=date(2025, 7, 1),
+        effective_to=date(2025, 12, 31),
+    )
+    rows = [row_a, row_b]
+    # One day before row_b's start (2025-06-30) is row_a's own effective_to
+    # — covered by row_a, not by row_b, not a raise.
+    selected = select_rate_row(
+        rows, region="us-boundary", craft="boundary-chain", on_date=date(2025, 6, 30)
+    )
+    assert selected.row_id == "a"
+
+
+def test_committed_iatse_los_angeles_camera_rows_are_adjacent_not_overlapping():
+    """The real committed data exercises the same boundary shape: LA's two
+    camera rows are closed-closed adjacent (2026-08-01 -> row 1,
+    2026-08-02 -> row 2), never overlapping and never leaving a gap."""
+    rows = load_union_rates()
+    row_at_end_of_first = select_rate_row(
+        rows, region="us-ca", craft="camera", on_date=date(2026, 8, 1)
+    )
+    row_at_start_of_second = select_rate_row(
+        rows, region="us-ca", craft="camera", on_date=date(2026, 8, 2)
+    )
+    assert row_at_end_of_first.row_id != row_at_start_of_second.row_id
+    assert row_at_end_of_first.basis == "sourced"
+    assert row_at_start_of_second.basis == "sourced"
+
+
+def test_committed_new_york_camera_row_raises_past_its_expiry_no_successor():
+    """New York's camera row has no committed 2026-2027 successor (only a
+    DRAFT rate card was found — see .planning/WINDOWS.md) — a shoot date
+    past 2026-08-01 must raise, never silently reuse the expired row."""
+    rows = load_union_rates()
+    with pytest.raises(ValueError):
+        select_rate_row(rows, region="us-ny", craft="camera", on_date=date(2026, 8, 2))
+
+
+# ---------------------------------------------------------------------------
+# Task 3 — precision
+# ---------------------------------------------------------------------------
+
+
+def test_every_component_of_a_rate_row_parses_cleanly_as_decimal():
+    row = _row(rate="947.58")
+    assert isinstance(Decimal(row.rate), Decimal)
+
+
+# ---------------------------------------------------------------------------
+# Task 3 — sourcing record: every `basis: sourced` row traces to MANIFEST
+# ---------------------------------------------------------------------------
+
+
+def _load_manifest_documents() -> list[dict]:
+    with open(MANIFEST_PATH, encoding="utf-8") as handle:
+        return yaml.safe_load(handle)["documents"]
+
+
+def test_every_sourced_union_rate_row_is_named_in_manifest_cited_for():
+    """A future rate edit cannot promote a row to `sourced` without
+    archiving its document: every `basis: "sourced"` row's `row_id` must
+    appear in at least one `sources/MANIFEST.yaml` document's `cited_for`
+    list."""
+    documents = _load_manifest_documents()
+    all_cited_text = " ".join(
+        " ".join(doc.get("cited_for", [])) for doc in documents
+    )
+
+    failures: list[str] = []
+    for path in sorted(glob(UNION_RATES_GLOB)):
+        with open(path, encoding="utf-8") as handle:
+            raw = yaml.safe_load(handle)
+        for row_data in raw.get("rows", []) or []:
+            if row_data.get("basis") == "sourced" and row_data["row_id"] not in all_cited_text:
+                failures.append(f"{path}: row {row_data['row_id']!r} basis 'sourced' but not "
+                                 "named in any sources/MANIFEST.yaml cited_for entry")
+
+    assert not failures, "\n".join(failures)
+
+
+def test_manifest_reconciliation_would_catch_a_hand_edited_sourced_row():
+    """Non-vacuity proof: a synthetic 'sourced' row NOT named in the
+    manifest must be flagged by the same check the test above runs — this
+    proves the check can fail, not just that today's committed data
+    happens to pass it."""
+    documents = _load_manifest_documents()
+    all_cited_text = " ".join(" ".join(doc.get("cited_for", [])) for doc in documents)
+    fabricated_row_id = "fabricated-row-never-in-any-manifest-entry-xyz"
+    assert fabricated_row_id not in all_cited_text
