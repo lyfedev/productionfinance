@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 04
 current_phase_name: Cost Localization & Landed-Cost Outputs
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-08-26T19:12:53.448Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-08-26T19:52:52.336Z"
 last_activity: 2026-08-26
 last_activity_desc: Phase 04 execution started
-state_head: 6e6a23c1a82821fa0a3ce5ffaab4567daea034a1
+state_head: ca7d8f3409bba4ce9d3155ec4f0b4184fa09409b
 progress:
   total_phases: 11
   completed_phases: 3
   total_plans: 28
-  completed_plans: 21
+  completed_plans: 22
   percent: 27
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 ## Current Position
 
 Phase: 04 (Cost Localization & Landed-Cost Outputs) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-08-26 — Phase 04 execution started
 
@@ -82,6 +82,7 @@ Progress: [███░░░░░░░] 27%
 | Phase 03 P02 | 15min | 4 tasks | 11 files |
 | Phase 03 P03 | 15min | 2 tasks | 3 files |
 | Phase 04 P01 | 95min | 3 tasks | 23 files |
+| Phase 04 P02 | 48min | 3 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,7 @@ Recent decisions affecting current work:
 - [Phase 03]: 03-01: Route B (Reproduce a disclosure) reproduces Anora exactly end-to-end through HTTP; pair selector shows every fixture with a plain-words reason when unselectable
 - [Phase 03]: [Phase 03] 03-02: engine/spec.py::ProductionSpec lands the INP-01..INP-07 input contract (decision Task 1 resolved autonomously to option A: production_type enum alone, no scale field); handle_spec_submission enforces the D-35 two-layer budget refusal, resolves crew tier to a headcount range labelled modelling_assumption (never validated), and returns New York's cited rule terms with zero dollar figures derived from the visitor's spec. Two Rule-1 bugs caught and fixed before commit: an order-dependent sys.modules test isolation bug, and a comma-splitting bug that tore 'Albany, NY'-style city names in two.
 - [Phase 04]: [Phase 04] 04-01: basis provenance axis (D-58/D-59) lands on Figure; Route A closes D-36, returning a real basis-tagged dollar total_landed_cost (Decimal("253125") for the fixed test spec) built from one canonical budget localized against New York's committed cost profile — Closes the D-36 seam with three non-vacuous CI honesty gates (D-59, D-63, D-72); cost-profile naming settled at {jurisdiction}-{city} to match every later wave in this phase
+- [Phase 04]: [Phase 04] 04-02: labour widened from a single flat estimated day rate to real per-craft union rate rows (IATSE Local 600 camera scale sourced for both regions) plus fringe as a separate visible Figure; Los Angeles gets its first full cost profile with jurisdiction_id null (D-53 proven). Fixed-test-spec total_landed_cost moves from $253,125 (04-01) to $447,532. DGA/WGA fringe percentages resolved sourced from primary documents (Assumptions A1/A2); SAG-AFTRA and 9 of 10 crew departments remain estimated pending further sourcing, recorded in WINDOWS.md.
 
 ### Pending Todos
 
@@ -148,6 +150,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-26T19:12:53.302Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-08-26T19:52:52.185Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
