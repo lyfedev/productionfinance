@@ -96,6 +96,12 @@ class Figure:
     live_fetched_this_run: bool
     figure_id: str = field(default_factory=_new_figure_id)
     basis: Basis | None = None
+    # D-61: the per-diem reimbursement-ceiling disclaimer as a structural
+    # field, never UI copy — a Phase 6 template rewrite cannot drop what
+    # lives on the Figure itself, and it survives the JSON boundary
+    # (figure_to_dict) the same way `basis` does. `None` for every Figure
+    # this caveat does not apply to (everything outside per-diem/housing).
+    caveat: str | None = None
 
     def __post_init__(self) -> None:
         if self.confidence not in _LEGAL_CONFIDENCE_VALUES:
@@ -107,6 +113,11 @@ class Figure:
             raise ValueError(
                 f"Figure.basis must be one of {_LEGAL_BASIS_VALUES} or None, "
                 f"got {self.basis!r}"
+            )
+        if self.caveat is not None and not self.caveat.strip():
+            raise ValueError(
+                "Figure.caveat must be a non-empty string when present, or None — "
+                "an empty-but-present caveat is indistinguishable from a dropped one"
             )
 
     def with_step(self, line: str, *, value: Decimal | None = None) -> "Figure":

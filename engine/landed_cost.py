@@ -12,14 +12,23 @@ combined inputs.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal
+from typing import Literal
 
 from engine.cost_localizer import LocalizedBudget
 from engine.figure import Figure, combined_basis, combined_confidence
 from engine.rounding import quantize_money
 
-__all__ = ["COST_CATEGORIES", "PERMANENT_EXCLUSIONS", "LandedCost", "aggregate"]
+__all__ = [
+    "COST_CATEGORIES",
+    "PERMANENT_EXCLUSIONS",
+    "LandedCost",
+    "SeasonalityState",
+    "aggregate",
+    "compute_quarter_invariance",
+]
 
 # The canonical, closed cost-category vocabulary (mirrors
 # `engine/cost_profile.py::CostCategory`'s Literal — that Literal is the
@@ -52,14 +61,85 @@ PERMANENT_EXCLUSIONS: tuple[str, ...] = (
 
 
 @dataclass(frozen=True)
+class SeasonalityState:
+    """Per-city seasonality disclosure (D-66): whether this city's
+    committed per-diem snapshot carries a genuine month band, and the
+    reason string either way — quoting the per-diem table's own
+    `seasonality_note` when the state is `no_month_band`."""
+
+    state: Literal["month_banded", "no_month_band"]
+    reason: str
+
+
+@dataclass(frozen=True)
 class LandedCost:
     cost_total: Figure
     total_landed_cost: Figure
     not_priced: tuple[str, ...]
     permanent_exclusions: tuple[str, ...]
+    # D-66: which Figure LABELS took a different value across the four
+    # start-quarter re-runs, and which did not. Empty tuples (the default)
+    # mean "not measured for this LandedCost" — never a claim that nothing
+    # is quarter-variant. Populate via `compute_quarter_invariance` below.
+    quarter_variant_lines: tuple[str, ...] = ()
+    quarter_invariant_lines: tuple[str, ...] = ()
+    seasonality_state: SeasonalityState | None = None
 
 
-def aggregate(localized: LocalizedBudget, net_cash_figure: Figure | None = None) -> LandedCost:
+def compute_quarter_invariance(
+    runs: Mapping[str, tuple[Figure, ...]],
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """Compare N labelled re-runs (keyed by an arbitrary run identifier,
+    e.g. a quarter name) and report which Figure LABELS took a different
+    `value` in at least one run (`quarter_variant_lines`) versus which took
+    the IDENTICAL value in every run that carries that label
+    (`quarter_invariant_lines`).
+
+    This is a genuine measurement over the supplied Figures — never a
+    declared list of category names (D-66/D-67): mutate one input Figure's
+    value and re-call this function, and the label's membership moves
+    accordingly. A label present in only SOME runs is treated as variant
+    (its presence itself differs across runs) rather than silently
+    ignored — an incomplete run is evidence of a difference, not neutral
+    information.
+
+    Raises `ValueError` on an empty `runs` mapping — there is nothing to
+    compare, and returning `((), ())` for "not measured" would be
+    indistinguishable from "measured and found nothing variant."
+    """
+    if not runs:
+        raise ValueError(
+            "compute_quarter_invariance() received no runs to compare — supply at "
+            "least one labelled re-run's Figures"
+        )
+
+    values_by_label: dict[str, set[Decimal]] = {}
+    run_count_by_label: dict[str, int] = {}
+    for figures in runs.values():
+        for figure in figures:
+            values_by_label.setdefault(figure.label, set()).add(figure.value)
+            run_count_by_label[figure.label] = run_count_by_label.get(figure.label, 0) + 1
+
+    total_runs = len(runs)
+    variant: list[str] = []
+    invariant: list[str] = []
+    for label, values in values_by_label.items():
+        if len(values) > 1 or run_count_by_label[label] != total_runs:
+            variant.append(label)
+        else:
+            invariant.append(label)
+
+    return tuple(sorted(variant)), tuple(sorted(invariant))
+
+
+def aggregate(
+    localized: LocalizedBudget,
+    net_cash_figure: Figure | None = None,
+    *,
+    quarter_variant_lines: tuple[str, ...] = (),
+    quarter_invariant_lines: tuple[str, ...] = (),
+    seasonality_state: SeasonalityState | None = None,
+) -> LandedCost:
     """Sum every localized cost-line Figure into `cost_total`, then combine
     with `net_cash_figure` (a modelled incentive's net-cash Figure, when
     one was priced for this city) into `total_landed_cost`. When
@@ -146,4 +226,7 @@ def aggregate(localized: LocalizedBudget, net_cash_figure: Figure | None = None)
         total_landed_cost=total_landed_cost,
         not_priced=not_priced,
         permanent_exclusions=PERMANENT_EXCLUSIONS,
+        quarter_variant_lines=quarter_variant_lines,
+        quarter_invariant_lines=quarter_invariant_lines,
+        seasonality_state=seasonality_state,
     )

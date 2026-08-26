@@ -38,6 +38,7 @@ def figure_to_dict(figure: Figure) -> dict:
         "date_checked": figure.date_checked.isoformat() if figure.date_checked else None,
         "confidence": figure.confidence,
         "basis": figure.basis,
+        "caveat": figure.caveat,
         "live_fetched_this_run": figure.live_fetched_this_run,
         "inputs": [figure_to_dict(child) for child in figure.inputs],
     }
