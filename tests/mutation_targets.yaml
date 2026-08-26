@@ -1,0 +1,36 @@
+# tests/mutation_targets.yaml — the declared mutation table (D-51) driving
+# .github/scripts/mutation-check.sh's non-vacuity proof (SHP-14). Every row
+# below is data, not code: adding a jurisdiction's anchor is a one-row
+# table addition, never a change to the script that reads this file.
+#
+# Connecticut's Christmas Always anchor
+# (tests/fixtures/validation_pairs/ct_christmas_always.yaml) becomes a
+# second row here, with no script change, once WINDOWS.md #3 clears —
+# jurisdictions/us-ct.yaml's transfer_discount rates are currently
+# unsourced, so engine.pipeline.price_jurisdiction raises ValueError for
+# EVERY active Connecticut pair today (see
+# tests/test_engine_against_validation_pairs.py::test_christmas_always_reproduces_exactly_through_price_jurisdiction),
+# so there is no pipeline-routed exact-mode Connecticut assertion to anchor
+# a mutation against yet.
+#
+# New York's exact-mode fixture count is measured, not assumed: Anora
+# (tests/fixtures/validation_pairs/ny_anora.yaml) is the ONLY New York
+# validation-pair fixture with assertion.mode: exact. Succession S4 is
+# bounded (tolerance_bps: 10, corrected in plan 02-01) and The Gilded Age is
+# bounded (tolerance_bps: 150) — neither is a valid exact-equality anchor,
+# so the active exact-mode New York count this table's row proves
+# non-vacuous is exactly one.
+mutation_targets:
+  - id: "ny-base-rate-one-bp"
+    file: "jurisdictions/us-ny.yaml"
+    find: 'base_rate: "0.25"'
+    replace: 'base_rate: "0.2501"'
+    expected_red_test: "tests/test_engine_against_validation_pairs.py::test_anora_reproduces_exactly_through_price_jurisdiction"
+    requirement: "SHP-14"
+    status: "active"
+    why: >
+      One basis point is deliberately the smallest perturbation of New
+      York's flat 25% credit rate that only exact Decimal equality
+      catches — a tolerance-based or eyeball check would miss it, which is
+      precisely the non-vacuity claim SHP-14 makes and this gate exists to
+      prove.
