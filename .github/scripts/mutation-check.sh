@@ -168,15 +168,32 @@ PY
   echo "--> Step 3: applying the declared mutation to '$FILE'"
   cp "$FILE" "$FILE.orig"
 
-  sed "s/${FIND}/${REPLACE}/" "$FILE" > "$FILE.mut"
+  # Snapshot the pre-mutation occurrence count of REPLACE (outside comment
+  # lines) so the post-mutation check below can confirm the count actually
+  # increased by exactly one, not just that it happens to equal one — a
+  # no-op sed (FIND fails to match, exits 0 anyway) combined with a REPLACE
+  # string that coincidentally already appears once elsewhere in the file
+  # would otherwise pass this check without ever mutating anything.
+  BEFORE_COUNT=$(grep -v '^[[:space:]]*#' "$FILE.orig" | grep -Fc -- "$REPLACE" || true)
+
+  # Escape '/' in FIND/REPLACE so a value containing a literal '/' cannot
+  # collide with sed's own s/// delimiter, and check sed's exit status
+  # explicitly — the `>` redirection creates $FILE.mut regardless of
+  # whether sed itself succeeds, so an unescaped sed syntax error would
+  # otherwise mv an empty/truncated file over the real target with no
+  # diagnostic naming the actual cause.
+  if ! sed "s/${FIND//\//\\/}/${REPLACE//\//\\/}/" "$FILE" > "$FILE.mut"; then
+    echo "FAIL: [$ID] step 3 — sed itself failed while applying the declared mutation to '$FILE'" >&2
+    exit 1
+  fi
   mv "$FILE.mut" "$FILE"
 
   # Count occurrences of the replacement fragment outside comment lines —
   # a bare unfiltered count would also match rule-file prose (header
   # comments, source_note) that mentions the same figure.
   ACTUAL_COUNT=$(grep -v '^[[:space:]]*#' "$FILE" | grep -Fc -- "$REPLACE" || true)
-  if [ "$ACTUAL_COUNT" -ne 1 ]; then
-    echo "FAIL: [$ID] step 3 — the declared find pattern no longer matches its target exactly once in '$FILE' (found ${ACTUAL_COUNT} occurrence(s) outside comment lines); a no-op mutation followed by a green suite is a false proof" >&2
+  if [ "$ACTUAL_COUNT" -ne "$((BEFORE_COUNT + 1))" ]; then
+    echo "FAIL: [$ID] step 3 — REPLACE occurrence count did not increase by exactly one (before: ${BEFORE_COUNT}, after: ${ACTUAL_COUNT} occurrence(s) outside comment lines); the declared find pattern may not have matched its target, and a no-op mutation followed by a green suite is a false proof" >&2
     exit 1
   fi
 
