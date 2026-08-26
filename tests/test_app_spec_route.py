@@ -8,10 +8,13 @@ coverage is added on top in Task 4, in this same file.
 
 from __future__ import annotations
 
+import re
 from dataclasses import fields, is_dataclass
 
+from fastapi.testclient import TestClient
 from pydantic import BaseModel
 
+from app.main import app
 from app.services.city_lookup import resolve_city_to_jurisdiction
 from app.services.spec import (
     REFUSAL_REASON,
@@ -21,6 +24,8 @@ from app.services.spec import (
     SpecResult,
     handle_spec_submission,
 )
+
+client = TestClient(app)
 
 
 def _base_form_kwargs(**overrides: object) -> dict:
@@ -245,3 +250,106 @@ def test_spend_not_derived_statement_present():
     result = handle_spec_submission(raw)
     assert isinstance(result, SpecResult)
     assert result.spend_not_derived == SPEND_NOT_DERIVED
+
+
+# ---------------------------------------------------------------------------
+# Task 4 — HTTP-level coverage (GET/POST /spec, POST /api/v1/spec, GET /)
+# ---------------------------------------------------------------------------
+
+
+def _valid_form_data(**overrides: str) -> dict[str, str]:
+    data = {
+        "production_type": "feature",
+        "shoot_days_stage": "10",
+        "shoot_days_location": "5",
+        "crew_size": "50",
+        "crew_tier": "",
+        "principal_cast_count": "3",
+        "principal_cast_imported_count": "1",
+        "crew_imported_count": "10",
+        "crew_hired_locally_count": "40",
+        "start_quarter": "Q2",
+        "start_year": "2026",
+        "candidate_cities": "New York, NY\nReykjavik",
+        "total_budget": "",
+    }
+    data.update(overrides)
+    return data
+
+
+def _valid_json_body(**overrides: object) -> dict:
+    body = {
+        "production_type": "feature",
+        "shoot_days_stage": 10,
+        "shoot_days_location": 5,
+        "crew_size": 50,
+        "crew_tier": None,
+        "principal_cast_count": 3,
+        "principal_cast_imported_count": 1,
+        "crew_imported_count": 10,
+        "crew_hired_locally_count": 40,
+        "start_quarter": "Q2",
+        "start_year": 2026,
+        "candidate_cities": ["New York, NY"],
+        "total_budget": None,
+    }
+    body.update(overrides)
+    return body
+
+
+def test_get_spec_form_returns_200_with_budget_label():
+    response = client.get("/spec")
+    assert response.status_code == 200
+    assert "Total budget" in response.text
+
+
+def test_post_spec_form_valid_returns_200_and_echoes_spec():
+    response = client.post("/spec", data=_valid_form_data())
+    assert response.status_code == 200
+    assert "Q2" in response.text
+    assert "New York, NY" in response.text
+    assert "Reykjavik" in response.text
+
+
+def test_post_spec_form_with_budget_shows_refusal_reason():
+    response = client.post("/spec", data=_valid_form_data(total_budget="1000000"))
+    assert response.status_code != 500
+    assert "makes the comparison circular" in response.text
+
+
+def test_post_api_v1_spec_extra_field_returns_422():
+    body = _valid_json_body()
+    body["unexpected_field"] = "nope"
+    response = client.post("/api/v1/spec", json=body)
+    assert response.status_code == 422
+
+
+def test_post_api_v1_spec_uncurated_city_returns_200_marked_no_curated_model():
+    response = client.post(
+        "/api/v1/spec", json=_valid_json_body(candidate_cities=["Reykjavik"])
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assessment = body["city_assessments"][0]
+    assert assessment["jurisdiction_id"] is None
+    assert "no curated model" in assessment["status"].lower()
+
+
+def test_post_spec_form_script_tag_city_not_reflected_unescaped():
+    response = client.post(
+        "/spec", data=_valid_form_data(candidate_cities="<script>alert(1)</script>")
+    )
+    assert response.status_code == 200
+    assert "<script>alert(1)</script>" not in response.text
+
+
+def test_index_route_a_link_resolves_to_200():
+    response = client.get("/")
+    assert response.status_code == 200
+
+    hrefs = re.findall(r'href="([^"]+)"', response.text)
+    spec_hrefs = [href for href in hrefs if href.endswith("/spec")]
+    assert spec_hrefs, f"no anchor with an href ending in /spec found: {hrefs}"
+
+    spec_link_response = client.get(spec_hrefs[0])
+    assert spec_link_response.status_code == 200

@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Price a production{% endblock %}
+{% block content %}
+
+<p><a href="{{ public_path }}/">&larr; Back to ProductionFinance</a></p>
+
+<h1>Price a production</h1>
+<p>
+  Describe a production's physical inputs. The system echoes it back
+  normalized, marks each named city with its curated status, and — for New
+  York — shows the rule terms that will apply, each with its own citation.
+  No cost or credit figure is computed from this form in this phase; see
+  the note beside the budget field below.
+</p>
+
+{% if refusal_reason %}
+<p><strong>{{ refusal_reason }}</strong></p>
+{% endif %}
+{% if validation_error %}
+<p><strong>The submitted spec could not be validated:</strong> {{ validation_error }}</p>
+{% endif %}
+
+<form method="post" action="{{ public_path }}/spec">
+  <fieldset>
+    <legend>Production</legend>
+    <label>
+      Production type
+      <select name="production_type">
+        <option value="feature">Feature</option>
+        <option value="limited_series">Limited series</option>
+        <option value="episodic">Episodic</option>
+      </select>
+    </label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Shoot days</legend>
+    <label>Stage days <input type="number" name="shoot_days_stage" min="0" value="0" required></label>
+    <label>Location days <input type="number" name="shoot_days_location" min="0" value="0" required></label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Crew</legend>
+    <p>Supply exactly one of the two fields below — an explicit crew size, or a tier.</p>
+    <label>Crew size (leave blank if using a tier) <input type="number" name="crew_size" min="1"></label>
+    <label>
+      Crew tier (leave blank if using an explicit size)
+      <select name="crew_tier">
+        <option value="">&mdash; none &mdash;</option>
+        <option value="micro">Micro</option>
+        <option value="small">Small</option>
+        <option value="mid">Mid</option>
+        <option value="large">Large</option>
+        <option value="tentpole">Tentpole</option>
+      </select>
+    </label>
+    <p>
+      A tier resolves to a headcount range that is an internal modelling
+      assumption, not a sourced or validated figure — non-union local
+      labour and crew-composition rates are not publicly disclosed.
+    </p>
+    <label>Crew imported <input type="number" name="crew_imported_count" min="0" value="0" required></label>
+    <label>Crew hired locally <input type="number" name="crew_hired_locally_count" min="0" value="0" required></label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Cast</legend>
+    <label>Principal cast count <input type="number" name="principal_cast_count" min="0" value="0" required></label>
+    <label>Principal cast imported <input type="number" name="principal_cast_imported_count" min="0" value="0" required></label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Start window</legend>
+    <label>
+      Quarter
+      <select name="start_quarter">
+        <option value="Q1">Q1</option>
+        <option value="Q2">Q2</option>
+        <option value="Q3">Q3</option>
+        <option value="Q4">Q4</option>
+      </select>
+    </label>
+    <label>Year <input type="number" name="start_year" min="2024" max="2036" value="2026" required></label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Candidate cities</legend>
+    <p>
+      Type each candidate city, one per line (a city name may itself
+      contain a comma, e.g. "Albany, NY" — do not comma-separate multiple
+      cities on one line). The system does not suggest, autocomplete, or
+      offer a nearest match — an unrecognized city is accepted and marked
+      as having no curated model.
+    </p>
+    <label>
+      <textarea name="candidate_cities" rows="4" cols="40" required></textarea>
+    </label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Total budget</legend>
+    <label>
+      Total budget
+      <input type="text" name="total_budget">
+    </label>
+    <p>
+      <!-- D-34: no expert-mode / "I already know my qualified spend" field
+           exists anywhere on this form under any label — it would reopen
+           INP-08 through the door a producer reaches for first. -->
+      <!-- D-33: no preset or sample spec whose derived spend is pinned to a
+           disclosed government figure exists anywhere in this system. -->
+      Cost is only ever an output of this system, never an input. A fixed
+      dollar amount buys a different production in each city, which makes
+      the comparison circular — entering a value here will be refused,
+      with this explanation, rather than accepted or silently ignored.
+    </p>
+  </fieldset>
+
+  <button type="submit">Submit</button>
+</form>
+
+{% endblock %}

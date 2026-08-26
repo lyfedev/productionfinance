@@ -16,6 +16,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from app import __version__
+from app.routers import spec as spec_router
 from app.routers import validate as validate_router
 
 # Captured once at import so every request in this process reports the
@@ -70,6 +71,7 @@ app = FastAPI(title="ProductionFinance", version=__version__)
 # templates (T-03-04).
 templates = Jinja2Templates(directory=Path(__file__).resolve().parent / "templates")
 
+app.include_router(spec_router.router)
 app.include_router(validate_router.router)
 
 
@@ -91,9 +93,8 @@ def health() -> dict:
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request) -> HTMLResponse:
     """Landing page — the two routes D-32 names (Route A: "Price a
-    production", Route B: "Reproduce a disclosure"). Route A is unlinked
-    text in this phase (its input contract lands in plan 03-02); rendering
-    a link that leads nowhere would violate D-32's own boundary."""
+    production", Route B: "Reproduce a disclosure"). Both are live links as
+    of plan 03-02."""
     return templates.TemplateResponse(
         request=request,
         name="index.html",

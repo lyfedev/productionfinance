@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Price a production — result{% endblock %}
+{% block content %}
+
+<p><a href="{{ public_path }}/spec">&larr; Back to the form</a></p>
+
+<h1>Your production, as understood</h1>
+
+<h2>The spec, echoed back</h2>
+<table>
+  <tr><th>Production type</th><td>{{ result.spec.production_type }}</td></tr>
+  <tr><th>Shoot days — stage</th><td>{{ result.spec.shoot_days_stage }}</td></tr>
+  <tr><th>Shoot days — location</th><td>{{ result.spec.shoot_days_location }}</td></tr>
+  <tr>
+    <th>Crew</th>
+    <td>
+      {% if result.spec.crew_size is not none %}
+        {{ result.spec.crew_size }} (supplied by the visitor)
+      {% else %}
+        Tier: {{ result.spec.crew_tier }} &mdash;
+        resolves to {{ result.crew_headcount.low }}&ndash;{{ result.crew_headcount.high }} people
+        (<strong>{{ result.crew_headcount.basis }}</strong>: {{ result.crew_headcount.provenance_note }})
+      {% endif %}
+    </td>
+  </tr>
+  <tr><th>Principal cast count</th><td>{{ result.spec.principal_cast_count }}</td></tr>
+  <tr><th>Principal cast imported</th><td>{{ result.spec.principal_cast_imported_count }}</td></tr>
+  <tr><th>Crew imported</th><td>{{ result.spec.crew_imported_count }}</td></tr>
+  <tr><th>Crew hired locally</th><td>{{ result.spec.crew_hired_locally_count }}</td></tr>
+  <tr><th>Start window</th><td>{{ result.spec.start_quarter }} {{ result.spec.start_year }}</td></tr>
+</table>
+
+<h2>Candidate cities</h2>
+<table>
+  <tr><th>As typed</th><th>Curated status</th></tr>
+  {% for city in result.city_assessments %}
+  <tr>
+    <td>{{ city.name }}</td>
+    <td>
+      {% if city.jurisdiction_id %}
+        {{ city.status }} ({{ city.jurisdiction_id }})
+      {% else %}
+        {{ city.status }}
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% if result.rule_terms %}
+<h2>New York — rule terms that will apply</h2>
+<table>
+  <tr><th>Term</th><th>Value</th><th>Basis</th><th>Source</th><th>Date checked</th><th>Confidence</th></tr>
+  {% for term in result.rule_terms %}
+  <tr>
+    <td>{{ term.label }}</td>
+    <td>{{ term.value_text }}</td>
+    <td>{{ term.basis }}</td>
+    <td>
+      {% if term.source_url %}
+        <a href="{{ term.source_url }}">{{ term.source_title or term.source_url }}</a>
+      {% else %}
+        no source URL recorded
+      {% endif %}
+    </td>
+    <td>{{ term.date_checked.isoformat() if term.date_checked else "not recorded" }}</td>
+    <td>{{ term.confidence or "not recorded" }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<h2>What this result does not include</h2>
+<p><strong>{{ result.spend_not_derived }}</strong></p>
+
+{% endblock %}
