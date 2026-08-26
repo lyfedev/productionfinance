@@ -1,0 +1,134 @@
+# data/cost_profiles/us-ca-los-angeles.yaml — Los Angeles's committed
+# `CityCostProfile` (Phase 4, plan 04-02, D-53/D-54). This is the second
+# committed cost profile, and the demonstration D-53 exists to make: Los
+# Angeles has a FULL cost profile and NO jurisdiction rule file
+# (`jurisdiction_id: null`) — California's rule file is Phase 5's work
+# (JUR-02), not this one's. Cost localization needs nothing from a rule
+# file (ARCHITECTURE.md Q1: stage [2] CityLocalizer is
+# "JURISDICTION-AGNOSTIC (this is cost, not incentive rules)"), so Los
+# Angeles prices exactly like New York, one committed profile ahead of
+# its incentive side.
+#
+# Same shape as data/cost_profiles/us-ny-new-york.yaml: ten labour cost
+# lines, one per crew_tiers.yaml department, each priced dynamically
+# through the `labour:` block below. `region: "us-ca"` selects Los
+# Angeles's own dated rows from data/union_rates/iatse.yaml — the camera
+# department's craft ("camera") resolves to a genuinely `basis: sourced`
+# IATSE Local 600 Western Region rate row (two adjacent dated windows,
+# 2025-08-03 through 2027-07-31); every other department's craft
+# ("general_crew") resolves to a `basis: estimated` row, carrying the same
+# disclosed New York estimate pending a Los-Angeles-specific primary
+# source (see data/union_rates/iatse.yaml's header and
+# .planning/WINDOWS.md).
+#
+# Every numeric value below is a quoted YAML string (RD-01).
+
+city_id: "us-ca-los-angeles"
+city_label: "Los Angeles, CA"
+jurisdiction_id: null
+currency: "USD"
+provenance_note: >
+  Los Angeles's cost profile. `jurisdiction_id` is null because Phase 4
+  builds cost profiles for cities whose rule files do not yet exist
+  (D-53) — California's curated jurisdiction rule file (rate, caps,
+  mechanism, audit) is Phase 5's work (JUR-02), not this plan's. This is
+  a deliberate proof, not a gap: Los Angeles prices its full landed cost
+  here with no incentive term yet modelled, and `app/services/spec.py`
+  reports `incentive_state: "not_modelled"` with a plain-words reason for
+  it, never a fabricated $0 incentive (D-56). Ten labour cost lines are
+  committed here — one per crew department, matching
+  engine/budget.py::resolve_departments' D-38 decomposition — each priced
+  dynamically through the `labour:` block below. The camera department is
+  genuinely `basis: sourced` from IATSE Local 600's own published Western
+  Region rate cards (two adjacent dated windows); every other department
+  is `basis: estimated` pending per-craft primary-source acquisition
+  (.planning/WINDOWS.md). Every other COST_CATEGORIES entry (housing,
+  per_diem, flights, stages, equipment, permits, locations, trucking) is
+  unpriced by this profile and is named in the Route A response's
+  `not_priced` list, never rendered as a $0 line (D-60).
+
+labour:
+  region: "us-ca"
+  crafts:
+    production:
+      union: "IATSE"
+      craft: "general_crew"
+    camera:
+      union: "IATSE"
+      craft: "camera"
+    grip_and_electric:
+      union: "IATSE"
+      craft: "general_crew"
+    art:
+      union: "IATSE"
+      craft: "general_crew"
+    wardrobe:
+      union: "IATSE"
+      craft: "general_crew"
+    hair_and_makeup:
+      union: "IATSE"
+      craft: "general_crew"
+    sound:
+      union: "IATSE"
+      craft: "general_crew"
+    transportation:
+      union: "IATSE"
+      craft: "general_crew"
+    locations:
+      union: "IATSE"
+      craft: "general_crew"
+    post:
+      union: "IATSE"
+      craft: "general_crew"
+
+cost_lines:
+  - line_id: "la-crew-labour-production"
+    label: "Production labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "la-crew-labour-camera"
+    label: "Camera labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "la-crew-labour-grip-and-electric"
+    label: "Grip and electric labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "la-crew-labour-art"
+    label: "Art labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "la-crew-labour-wardrobe"
+    label: "Wardrobe labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "la-crew-labour-hair-and-makeup"
+    label: "Hair and makeup labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "la-crew-labour-sound"
+    label: "Sound labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "la-crew-labour-transportation"
+    label: "Transportation labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "la-crew-labour-locations"
+    label: "Locations labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "la-crew-labour-post"
+    label: "Post labour days"
+    category: "labour"
+    account: "POST"
+    spend_class: "local_labour"

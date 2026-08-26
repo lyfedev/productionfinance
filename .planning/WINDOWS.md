@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 10
+open_count: 11
 waived_count: 0
 fixed_count: 0
-total_count: 10
-last_updated: 2026-08-26T19:31:07.730Z
+total_count: 11
+last_updated: 2026-08-26T19:42:02.202Z
 ---
 
 # Broken Windows Ledger
@@ -25,6 +25,7 @@ last_updated: 2026-08-26T19:31:07.730Z
 | 8 | 04 | unmet-truth | data/union_rates/iatse.yaml,data/union_rates/us-ny-crew.yaml |  | The general_crew craft (9 of 10 crew_tiers.yaml departments: production, grip_and_electric, art, wardrobe, hair_and_makeup, sound, transportation, locations, post) stays basis: estimated for both New York and Los Angeles at the same round $450/day figure — the per-craft IATSE locals that would actually cover these departments (Local 80 grips, Local 728 lighting, Local 800 art, Local 705 costumers, Local 706 hair/makeup, Local 695 sound, Local 871 script supervisors, Local 700 editors) plus Teamsters Local 399 for transportation were not fetched this session; only IATSE Local 600's camera-department rate cards were located, fetched and archived. Only the camera department is genuinely basis: sourced this plan. | open |  | 2026-08-26T19:31:07.565Z |  |
 | 9 | 04 | unmet-truth | data/union_rates/iatse.yaml |  | New York's IATSE Local 600 camera row (iatse-l600-camera-us-ny-2025) has no 2026-2027 successor — icg600.com publishes only a document explicitly marked DRAFT for the New York/Eastern Region 2026-2027 rate card at the time of this session, not yet a ratified final rate card, so it was not archived as sourced. A shoot date after 2026-08-01 in New York correctly raises ValueError from select_rate_row rather than falling back to the expired 2025-2026 row or inventing a 2026-2027 figure. Los Angeles has both the 2025-2026 and the final (non-draft) 2026-2027 Western Region rate card archived, so this gap is New-York-specific. | open |  | 2026-08-26T19:31:07.648Z |  |
 | 10 | 04 | unmet-truth | data/union_rates/fringe_schedules.yaml |  | payroll_tax_pct and other_burden_pct are basis: estimated for all four unions (IATSE, SAG-AFTRA, DGA, WGA), using the same generic industry-standard figures (FICA+FUTA/SUTA ~9.65%, general workers'-comp/liability burden ~2%) — by nature these are government-imposed or insurance-market obligations, never a figure any union's own document publishes, so no amount of further fetching would move these two components to sourced. Only pension_health_pct differs per union and is where this session's sourcing effort concentrated (DGA and WGA resolved to sourced; IATSE and SAG-AFTRA remain estimated, see the two entries above). | open |  | 2026-08-26T19:31:07.730Z |  |
+| 11 | 04 | lint-warning | engine/cost_localizer.py,tests/test_engine_cost_localizer.py |  | Plan 04-02 Task 2 adds 4 new ISC004 (implicit string concat in _price_labour_department's multi-line derivation tuple, same pre-existing pattern as _price_line/engine/qualifying_base.py/engine/pipeline.py) and 1 new FURB157 (verbose Decimal("0") constructor, RD-01 quoted-Decimal convention) findings — repo-wide ruff baseline measured 316 before this task's changes, 320 after (net +4; some overlap with pre-existing findings in _derive_spend_breakdown's unchanged Decimal("0") lines). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-08-26T19:42:02.202Z |  |
 
 ````json
 [
@@ -146,6 +147,18 @@ last_updated: 2026-08-26T19:31:07.730Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-26T19:31:07.730Z",
+    "resolved_at": null
+  },
+  {
+    "id": 11,
+    "kind": "lint-warning",
+    "phase": "04",
+    "file": "engine/cost_localizer.py,tests/test_engine_cost_localizer.py",
+    "line": null,
+    "description": "Plan 04-02 Task 2 adds 4 new ISC004 (implicit string concat in _price_labour_department's multi-line derivation tuple, same pre-existing pattern as _price_line/engine/qualifying_base.py/engine/pipeline.py) and 1 new FURB157 (verbose Decimal(\"0\") constructor, RD-01 quoted-Decimal convention) findings — repo-wide ruff baseline measured 316 before this task's changes, 320 after (net +4; some overlap with pre-existing findings in _derive_spend_breakdown's unchanged Decimal(\"0\") lines). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-26T19:42:02.202Z",
     "resolved_at": null
   }
 ]

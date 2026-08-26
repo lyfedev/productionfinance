@@ -31,7 +31,7 @@ from app.services._paths import REPO_ROOT, RULESET_PATH_BY_JURISDICTION
 from app.services.city_lookup import resolve_city_to_jurisdiction
 from engine.budget import build_canonical_budget
 from engine.city_profile_lookup import resolve_city_to_profile_stem
-from engine.cost_localizer import localize
+from engine.cost_localizer import localize, quarter_start_date
 from engine.cost_profile import COST_PROFILES_DIR, load_cost_profile
 from engine.figure import Figure
 from engine.landed_cost import aggregate
@@ -236,7 +236,8 @@ def _price_candidate_cities(
             # structural, never rebuilt for the next candidate city.
             budget = build_canonical_budget(spec, crew_headcount)
 
-        localized = localize(budget, profile)
+        on_date = quarter_start_date(spec.start_quarter, spec.start_year)
+        localized = localize(budget, profile, on_date=on_date)
 
         net_cash_figure: Figure | None = None
         if profile.jurisdiction_id is not None and (

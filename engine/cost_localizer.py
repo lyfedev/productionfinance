@@ -8,6 +8,16 @@ jurisdiction identifier string. This module must contain no literal
 two-letter-country/state jurisdiction-id substring anywhere in its own
 source (JUR-05's additivity proof, `tests/test_engine_jurisdiction_additivity.py`,
 scans the whole `engine/` tree for exactly this).
+
+Plan 04-02 (COST-02/COST-03) widens the labour path: a `category:
+"labour"` cost line whose department has a craft mapping on the profile's
+`labour` block is priced dynamically — one dated union rate row selects
+the wage, and the matching union's fringe schedule produces a SEPARATE,
+sibling fringe Figure (D-62: fringe is never folded into the wage line).
+A labour line with no craft mapping (or a profile with no `labour` block
+at all) keeps plan 04-01's static per-line `unit_rate` path unchanged —
+this is what keeps every pre-04-02 synthetic test fixture passing byte-
+for-byte.
 """
 
 from __future__ import annotations
@@ -16,13 +26,37 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 
-from engine.budget import CanonicalBudget
-from engine.cost_profile import CityCostProfile, CostLine
+import yaml
+
+from engine.budget import CREW_TIERS_PATH, CanonicalBudget
+from engine.cost_profile import CityCostProfile, CostLine, CraftMapping
 from engine.figure import Figure
 from engine.qualifying_base import SpendBreakdown
 from engine.rounding import quantize_money
+from engine.union_rates import (
+    FringeSchedule,
+    RateRow,
+    load_fringe_schedules,
+    load_union_rates,
+    select_rate_row,
+    weakest_basis,
+)
 
-__all__ = ["LocalizedBudget", "localize"]
+__all__ = ["LocalizedBudget", "localize", "quarter_start_date"]
+
+# Q1->Jan 1, Q2->Apr 1, Q3->Jul 1, Q4->Oct 1 — the first day of the
+# quarter's first month, exactly as Task 2 specifies.
+_QUARTER_START_MONTH: dict[str, int] = {"Q1": 1, "Q2": 4, "Q3": 7, "Q4": 10}
+
+
+def quarter_start_date(start_quarter: str, start_year: int) -> date:
+    """Derive the shoot's `on_date` from `ProductionSpec.start_quarter`
+    plus `start_year` as the first day of the quarter's first month. Used
+    by the caller (`app/services/spec.py`) to build the `on_date` passed
+    into `localize()` — kept here, not duplicated at the call site, so the
+    derivation is asserted in one place and disclosed identically in every
+    labour Figure's derivation lines."""
+    return date(start_year, _QUARTER_START_MONTH[start_quarter], 1)
 
 
 @dataclass(frozen=True)
@@ -54,12 +88,28 @@ def _parse_date(value: str | None) -> date | None:
     return date.fromisoformat(value) if value else None
 
 
+def _department_name_by_label() -> dict[str, str]:
+    """`data/crew_tiers.yaml` departments keyed by NAME (e.g. `"camera"`),
+    but `CanonicalBudget.line_quantities` and `CostLine.label` are both
+    keyed by that department's `label` (e.g. `"Camera labour days"`) — a
+    profile's `labour.crafts` mapping is keyed by NAME (matching
+    `engine.cost_profile.LabourBlock`'s own docstring), so this is the
+    label -> name lookup that connects the two. Reads the same module-
+    anchored `CREW_TIERS_PATH` `engine.budget.resolve_departments` reads,
+    via `yaml.safe_load` only."""
+    with open(CREW_TIERS_PATH, encoding="utf-8") as handle:
+        table = yaml.safe_load(handle)
+    return {entry["label"]: name for name, entry in table["departments"].items()}
+
+
 def _price_line(
     cost_line: CostLine, quantity: Decimal, budget: CanonicalBudget, profile: CityCostProfile
 ) -> Figure:
     """Price one declared `CostLine` against a `quantity` drawn from the
-    canonical budget. Dispatches on nothing but `cost_line`'s own declared
-    fields plus `profile.currency` (D-53/JUR-05)."""
+    canonical budget, via the STATIC per-line `unit_rate` path. Dispatches
+    on nothing but `cost_line`'s own declared fields plus `profile.currency`
+    (D-53/JUR-05). Never called for a labour line with a craft mapping —
+    see `_price_labour_department` for the dynamic path."""
     unit_rate = Decimal(cost_line.unit_rate)
     value = quantize_money(quantity * unit_rate)
 
@@ -95,6 +145,107 @@ def _price_line(
     )
 
 
+def _price_labour_department(
+    cost_line: CostLine,
+    quantity: Decimal,
+    profile: CityCostProfile,
+    craft_mapping: CraftMapping,
+    on_date: date,
+    rows: list[RateRow],
+    fringe_schedules: dict[str, FringeSchedule],
+) -> tuple[Figure, Figure]:
+    """Price one labour-category department dynamically (COST-02/COST-03):
+    select a dated union rate row for the wage, then emit a SEPARATE
+    sibling fringe Figure from that union's fringe schedule (D-62 — never
+    folded into the wage). `profile.labour` is guaranteed non-`None` by
+    the caller (`localize()` only reaches here when a craft mapping was
+    found, which itself requires `profile.labour` to exist)."""
+    assert profile.labour is not None
+    row = select_rate_row(
+        rows, region=profile.labour.region, craft=craft_mapping.craft, on_date=on_date
+    )
+    rate = Decimal(row.rate)
+    wage_value = quantize_money(quantity * rate)
+
+    wage_source_note = (
+        f"source: {row.source_url}"
+        if row.source_url
+        else f"no source_url recorded — basis {row.basis!r}, method: {row.method_note}"
+    )
+    local_note = f" Local {row.local}" if row.local else ""
+    wage_figure = Figure(
+        value=wage_value,
+        unit=profile.currency,
+        label=cost_line.label,
+        derivation=(
+            f"{quantity} {row.rate_unit}s x {rate} {profile.currency} per {row.rate_unit} "
+            f"= {wage_value} {profile.currency} ({row.union}{local_note}, craft "
+            f"{row.craft!r}, row {row.row_id!r}, effective_from {row.effective_from}, "
+            f"{wage_source_note})",
+            f"quantity {quantity} {row.rate_unit}s derives from the crew headcount's LOW "
+            "bound times this department's crew_share times total shoot days "
+            "(engine.budget.build_canonical_budget, D-38)",
+            f"on_date {on_date} derived from ProductionSpec.start_quarter/start_year as "
+            f"the first day of the quarter's first month — this is what selected rate "
+            f"row {row.row_id!r} for region {profile.labour.region!r} craft "
+            f"{craft_mapping.craft!r} rather than any other dated row",
+        ),
+        inputs=(),
+        source_url=row.source_url,
+        date_checked=_parse_date(row.date_checked),
+        confidence="researched",
+        live_fetched_this_run=False,
+        basis=row.basis,
+    )
+
+    fringe_schedule = fringe_schedules.get(row.union)
+    if fringe_schedule is None:
+        raise ValueError(
+            f"no fringe schedule declared for union {row.union!r} (rate row "
+            f"{row.row_id!r}) — data/union_rates/fringe_schedules.yaml must carry an "
+            "entry for every union a rate row declares"
+        )
+    pension = fringe_schedule.pension_health_pct
+    payroll = fringe_schedule.payroll_tax_pct
+    other = fringe_schedule.other_burden_pct
+    pension_pct = Decimal(pension.value)
+    payroll_pct = Decimal(payroll.value)
+    other_pct = Decimal(other.value)
+    summed_pct = pension_pct + payroll_pct + other_pct
+    fringe_value = quantize_money(wage_value * summed_pct)
+
+    department_label = cost_line.label.replace(" labour days", "").strip()
+    fringe_basis = weakest_basis([pension.basis, payroll.basis, other.basis])
+
+    def _component_note(name: str, component_value: Decimal, component) -> str:
+        source_bit = f", {component.source_url}" if component.source_url else ""
+        return f"{name}={component_value} (basis {component.basis!r}{source_bit})"
+
+    fringe_figure = Figure(
+        value=fringe_value,
+        unit=profile.currency,
+        label=f"Fringe and payroll burden — {department_label}",
+        derivation=(
+            f"{wage_value} {profile.currency} x ({pension_pct} + {payroll_pct} + "
+            f"{other_pct} = {summed_pct}) = {fringe_value} {profile.currency} — "
+            "the three percentages are summed in Decimal before the single "
+            "multiplication (D-59/PITFALLS E1)",
+            _component_note("pension_health_pct", pension_pct, pension),
+            _component_note("payroll_tax_pct", payroll_pct, payroll),
+            _component_note("other_burden_pct", other_pct, other),
+            f"{row.union} fringe schedule — data/union_rates/fringe_schedules.yaml",
+        ),
+        inputs=(wage_figure,),
+        source_url=None,
+        date_checked=None,
+        confidence="researched",
+        live_fetched_this_run=False,
+        basis=fringe_basis,
+    )
+
+    return wage_figure, fringe_figure
+
+
 def _derive_spend_breakdown(
     lines: tuple[Figure, ...], cost_line_by_label: dict[str, CostLine]
 ) -> SpendBreakdown:
@@ -103,7 +254,10 @@ def _derive_spend_breakdown(
     `local_labour` line contributes to both `labour_spend` and
     `local_hires_spend`; every priced line contributes to `total_spend`
     and, for this tracer, to `core_expenditure` (no exclusions are
-    declared at the cost-localization layer)."""
+    declared at the cost-localization layer). A fringe Figure (no
+    `CostLine` of its own — see `localize()`) is looked up via the SAME
+    originating wage `CostLine`'s `spend_class`, so payroll burden on
+    local labour counts as local labour spend too."""
     total = Decimal("0")
     labour = Decimal("0")
     local_hires = Decimal("0")
@@ -121,13 +275,29 @@ def _derive_spend_breakdown(
     )
 
 
-def localize(budget: CanonicalBudget, profile: CityCostProfile) -> LocalizedBudget:
+def localize(
+    budget: CanonicalBudget, profile: CityCostProfile, *, on_date: date | None = None
+) -> LocalizedBudget:
     """Price `budget` against `profile`. A profile cost line whose `label`
     has no matching entry in `budget.line_quantities` is skipped — it is
     not this budget's job to declare every possible cost line, and a
     profile is free to widen with lines a given budget shape does not
-    (yet) supply quantities for."""
+    (yet) supply quantities for.
+
+    A `category: "labour"` cost line whose department has a craft mapping
+    on `profile.labour` is priced dynamically (COST-02/COST-03): TWO
+    sibling Figures are emitted (wage, fringe) instead of one, and
+    `on_date` is REQUIRED in that case — omitting it while any candidate
+    department resolves to a craft mapping raises `ValueError` rather than
+    silently falling back to the static path. A profile with no `labour`
+    block, or a labour line whose department has no craft mapping, is
+    unaffected by `on_date` and keeps plan 04-01's single-Figure static
+    path — this is what keeps every pre-04-02 synthetic fixture green."""
     cost_line_by_label = {cost_line.label: cost_line for cost_line in profile.cost_lines}
+    department_name_by_label = _department_name_by_label()
+
+    rows: list[RateRow] | None = None
+    fringe_schedules: dict[str, FringeSchedule] | None = None
 
     lines: list[Figure] = []
     categories_priced: set[str] = set()
@@ -135,8 +305,37 @@ def localize(budget: CanonicalBudget, profile: CityCostProfile) -> LocalizedBudg
         quantity = budget.line_quantities.get(cost_line.label)
         if quantity is None:
             continue
-        lines.append(_price_line(cost_line, quantity, budget, profile))
-        categories_priced.add(cost_line.category)
+
+        craft_mapping: CraftMapping | None = None
+        if cost_line.category == "labour" and profile.labour is not None:
+            department_name = department_name_by_label.get(cost_line.label)
+            if department_name is not None:
+                craft_mapping = profile.labour.crafts.get(department_name)
+
+        if craft_mapping is not None:
+            if on_date is None:
+                raise ValueError(
+                    f"localize(): {profile.city_id!r}'s cost line {cost_line.label!r} "
+                    "is priced via a dated union rate row (a craft mapping is "
+                    "declared on profile.labour), but no on_date was supplied"
+                )
+            if rows is None:
+                rows = load_union_rates()
+                fringe_schedules = load_fringe_schedules()
+            wage_figure, fringe_figure = _price_labour_department(
+                cost_line, quantity, profile, craft_mapping, on_date, rows, fringe_schedules
+            )
+            lines.append(wage_figure)
+            lines.append(fringe_figure)
+            # The fringe Figure has no CostLine of its own — attribute it
+            # to the same wage CostLine's spend_class so payroll burden on
+            # local labour is counted as local labour spend too.
+            cost_line_by_label[fringe_figure.label] = cost_line
+            categories_priced.add("labour")
+            categories_priced.add("fringe")
+        else:
+            lines.append(_price_line(cost_line, quantity, budget, profile))
+            categories_priced.add(cost_line.category)
 
     spend_breakdown = _derive_spend_breakdown(tuple(lines), cost_line_by_label)
 
