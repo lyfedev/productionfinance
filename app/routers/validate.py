@@ -4,10 +4,15 @@ logic, two views (D-43); this module holds no pricing logic of its own."""
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
-from app.services.validate import UnknownPairError, ValidateResult, reproduce_disclosure
+from app.services.validate import (
+    UnknownPairError,
+    ValidateResult,
+    reproduce_disclosure,
+    selectable_pairs,
+)
 from engine.figure_serialize import figure_to_dict
 
 __all__ = ["router"]
@@ -57,6 +62,53 @@ def get_validate_html(request: Request, pair_id: str) -> HTMLResponse:
         result = reproduce_disclosure(pair_id)
     except UnknownPairError as exc:
         raise HTTPException(status_code=404, detail=f"unknown validation pair: {exc}") from exc
+    return templates.TemplateResponse(
+        request=request,
+        name="validate_result.html",
+        context={"result": result, "public_path": PUBLIC_PATH},
+    )
+
+
+@router.get("/validate", response_class=HTMLResponse)
+def get_validate_form(request: Request) -> HTMLResponse:
+    from app.main import PUBLIC_PATH, templates
+
+    return templates.TemplateResponse(
+        request=request,
+        name="validate_form.html",
+        context={
+            "pairs": selectable_pairs(),
+            "public_path": PUBLIC_PATH,
+            "rejected_pair_id": None,
+            "rejection_message": None,
+        },
+    )
+
+
+@router.post("/validate", response_class=HTMLResponse)
+def post_validate_form(request: Request, pair_id: str = Form(...)) -> HTMLResponse:
+    from app.main import PUBLIC_PATH, templates
+
+    try:
+        result = reproduce_disclosure(pair_id)
+    except UnknownPairError:
+        # Never a 404 and never a stack trace on the POST path — the form
+        # re-renders with a plain message naming the rejected id, so a
+        # visitor who submits an unselectable pair sees why, not a
+        # generic error page.
+        return templates.TemplateResponse(
+            request=request,
+            name="validate_form.html",
+            context={
+                "pairs": selectable_pairs(),
+                "public_path": PUBLIC_PATH,
+                "rejected_pair_id": pair_id,
+                "rejection_message": (
+                    f"{pair_id!r} cannot be priced through this route. Choose one of the "
+                    "selectable pairs listed below."
+                ),
+            },
+        )
     return templates.TemplateResponse(
         request=request,
         name="validate_result.html",

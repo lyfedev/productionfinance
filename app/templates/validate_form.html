@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Reproduce a disclosure{% endblock %}
+{% block content %}
+
+<p><a href="{{ public_path }}/">&larr; Back to ProductionFinance</a></p>
+
+<h1>Reproduce a disclosure</h1>
+<p>
+  Choose a committed government-disclosed production/award pair. The system
+  reads the disclosed qualified spend, prices it through the same engine
+  Route A uses, and shows the disclosed figure, the computed figure and an
+  explicit match verdict side by side.
+</p>
+
+{% if rejection_message %}
+<p><strong>{{ rejection_message }}</strong></p>
+{% endif %}
+
+<form method="post" action="{{ public_path }}/validate">
+  <fieldset>
+    <legend>Select a production/award pair</legend>
+    {% for pair in pairs %}
+    <div>
+      <label{% if not pair.selectable %} class="unselectable"{% endif %}>
+        <input
+          type="radio"
+          name="pair_id"
+          value="{{ pair.pair_id }}"
+          {% if not pair.selectable %}disabled{% endif %}
+          {% if pair.selectable and pair.pair_id == "ny_anora" %}checked{% endif %}
+        >
+        {{ pair.production_title }} ({{ pair.jurisdiction_id }})
+        {% if not pair.selectable %}
+          &mdash; not selectable: {{ pair.unselectable_reason }}
+        {% endif %}
+      </label>
+    </div>
+    {% endfor %}
+  </fieldset>
+  <button type="submit">Reproduce</button>
+</form>
+
+{% endblock %}

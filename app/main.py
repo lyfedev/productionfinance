@@ -11,7 +11,7 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -89,23 +89,13 @@ def health() -> dict:
 
 
 @app.get("/", response_class=HTMLResponse)
-def index() -> str:
-    """Holding page. Computes no figure, states no incentive value."""
-    return f"""<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>ProductionFinance</title>
-</head>
-<body>
-  <h1>ProductionFinance</h1>
-  <p>
-    ProductionFinance will price the same film production in every city a
-    producer is considering, and report the true landed cost of each —
-    every figure sourced, dated, and provably matching what a government
-    actually paid.
-  </p>
-  <p>This is a skeleton deployment. No pricing engine is live yet.</p>
-  <p><a href="{PUBLIC_PATH}/health">{PUBLIC_PATH}/health</a></p>
-</body>
-</html>"""
+def index(request: Request) -> HTMLResponse:
+    """Landing page — the two routes D-32 names (Route A: "Price a
+    production", Route B: "Reproduce a disclosure"). Route A is unlinked
+    text in this phase (its input contract lands in plan 03-02); rendering
+    a link that leads nowhere would violate D-32's own boundary."""
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={"public_path": PUBLIC_PATH},
+    )

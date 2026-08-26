@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}ProductionFinance{% endblock %}
+{% block content %}
+
+<h1>ProductionFinance</h1>
+<p>
+  ProductionFinance prices the same film production in every city a
+  producer is considering, and reports the true landed cost of each —
+  every figure sourced, dated, and provably matching what a government
+  actually paid.
+</p>
+
+<h2>Price a production</h2>
+<p>
+  Not yet available on this page — the input contract lands in this
+  phase's plan 03-02.
+</p>
+
+<h2>Reproduce a disclosure</h2>
+<p>
+  <a href="{{ public_path }}/validate">Reproduce a disclosure</a>
+  &mdash; read a committed government disclosure, price it through the
+  engine, and see the disclosed figure and the computed figure side by
+  side with an explicit match verdict.
+</p>
+
+<p><a href="{{ public_path }}/health">{{ public_path }}/health</a></p>
+
+{% endblock %}

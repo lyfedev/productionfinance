@@ -127,7 +127,10 @@ def test_validate_form_lists_anora_and_names_unselectable_pairs_with_reasons():
     response = client.get("/validate")
     assert response.status_code == 200
     assert "Anora" in response.text
-    assert "Don't Look Up" in response.text
+    # Jinja2's default autoescape (kept on, T-03-04) renders the apostrophe
+    # as &#39; — asserting the escaped form, not disabling autoescape to
+    # make the raw string match.
+    assert "Don&#39;t Look Up" in response.text
     # ma_dont_look_up.yaml's own blocker text — proving the reason is shown
     # beside the unselectable pair, not silently omitted.
     assert "Qualifying spend is not publicly disclosed" in response.text
