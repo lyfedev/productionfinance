@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 11
+open_count: 14
 waived_count: 0
 fixed_count: 0
-total_count: 11
-last_updated: 2026-08-26T19:42:02.202Z
+total_count: 14
+last_updated: 2026-08-26T23:40:34.000Z
 ---
 
 # Broken Windows Ledger
@@ -26,6 +26,9 @@ last_updated: 2026-08-26T19:42:02.202Z
 | 9 | 04 | unmet-truth | data/union_rates/iatse.yaml |  | New York's IATSE Local 600 camera row (iatse-l600-camera-us-ny-2025) has no 2026-2027 successor — icg600.com publishes only a document explicitly marked DRAFT for the New York/Eastern Region 2026-2027 rate card at the time of this session, not yet a ratified final rate card, so it was not archived as sourced. A shoot date after 2026-08-01 in New York correctly raises ValueError from select_rate_row rather than falling back to the expired 2025-2026 row or inventing a 2026-2027 figure. Los Angeles has both the 2025-2026 and the final (non-draft) 2026-2027 Western Region rate card archived, so this gap is New-York-specific. | open |  | 2026-08-26T19:31:07.648Z |  |
 | 10 | 04 | unmet-truth | data/union_rates/fringe_schedules.yaml |  | payroll_tax_pct and other_burden_pct are basis: estimated for all four unions (IATSE, SAG-AFTRA, DGA, WGA), using the same generic industry-standard figures (FICA+FUTA/SUTA ~9.65%, general workers'-comp/liability burden ~2%) — by nature these are government-imposed or insurance-market obligations, never a figure any union's own document publishes, so no amount of further fetching would move these two components to sourced. Only pension_health_pct differs per union and is where this session's sourcing effort concentrated (DGA and WGA resolved to sourced; IATSE and SAG-AFTRA remain estimated, see the two entries above). | open |  | 2026-08-26T19:31:07.730Z |  |
 | 11 | 04 | lint-warning | engine/cost_localizer.py,tests/test_engine_cost_localizer.py |  | Plan 04-02 Task 2 adds 4 new ISC004 (implicit string concat in _price_labour_department's multi-line derivation tuple, same pre-existing pattern as _price_line/engine/qualifying_base.py/engine/pipeline.py) and 1 new FURB157 (verbose Decimal("0") constructor, RD-01 quoted-Decimal convention) findings — repo-wide ruff baseline measured 316 before this task's changes, 320 after (net +4; some overlap with pre-existing findings in _derive_spend_breakdown's unchanged Decimal("0") lines). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-08-26T19:42:02.202Z |  |
+| 12 | 04 | unmet-truth | data/per_diem/gsa/us-ny-new-york-county.yaml |  | The committed FY2026 GSA per-diem snapshot for New York covers 2025-10 through 2026-09 only (a genuine October-2025-through-September-2026 federal fiscal year). A shoot whose derived calendar reaches October 2026 or later (e.g. start_quarter Q4 combined with start_year 2026) correctly raises ValueError from lodging_for_month rather than fabricating a rate (D-64) — this means the phase's quarter_invariant_lines measurement for New York currently covers Q1-Q3 2026 only, until a FY2027 snapshot is committed in a later plan. | open |  | 2026-08-26T23:40:34.000Z |  |
+| 13 | 04 | unmet-truth | data/cost_profiles/us-ny-new-york.yaml,data/cost_profiles/us-ca-los-angeles.yaml |  | flight_round_trip_rate ($450) is basis: estimated for both New York and Los Angeles — no per-route or per-city published domestic airfare table was sourced this session; a national-average industry-commentary figure is used uniformly for both cities (04-RESEARCH.md Assumption A5). | open |  | 2026-08-26T23:40:34.000Z |  |
+| 14 | 04 | lint-warning | engine/per_diem.py,engine/seasonality.py,engine/landed_cost.py,engine/cost_localizer.py,tests/test_engine_seasonality.py,tests/test_engine_cost_localizer.py |  | Plan 04-03 adds new FURB157 (verbose Decimal constructor, RD-01 quoted-Decimal convention) and ISC004 (implicit string concat in multi-line derivation tuples, same pre-existing pattern as _price_line/_price_labour_department) findings — repo-wide ruff baseline measured 320 before this plan's changes, 343 after (net +23). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-08-26T23:40:34.000Z |  |
 
 ````json
 [
@@ -159,6 +162,42 @@ last_updated: 2026-08-26T19:42:02.202Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-26T19:42:02.202Z",
+    "resolved_at": null
+  },
+  {
+    "id": 12,
+    "kind": "unmet-truth",
+    "phase": "04",
+    "file": "data/per_diem/gsa/us-ny-new-york-county.yaml",
+    "line": null,
+    "description": "The committed FY2026 GSA per-diem snapshot for New York covers 2025-10 through 2026-09 only (a genuine October-2025-through-September-2026 federal fiscal year). A shoot whose derived calendar reaches October 2026 or later (e.g. start_quarter Q4 combined with start_year 2026) correctly raises ValueError from lodging_for_month rather than fabricating a rate (D-64) — this means the phase's quarter_invariant_lines measurement for New York currently covers Q1-Q3 2026 only, until a FY2027 snapshot is committed in a later plan.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-26T23:40:34.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 13,
+    "kind": "unmet-truth",
+    "phase": "04",
+    "file": "data/cost_profiles/us-ny-new-york.yaml,data/cost_profiles/us-ca-los-angeles.yaml",
+    "line": null,
+    "description": "flight_round_trip_rate ($450) is basis: estimated for both New York and Los Angeles — no per-route or per-city published domestic airfare table was sourced this session; a national-average industry-commentary figure is used uniformly for both cities (04-RESEARCH.md Assumption A5).",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-26T23:40:34.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 14,
+    "kind": "lint-warning",
+    "phase": "04",
+    "file": "engine/per_diem.py,engine/seasonality.py,engine/landed_cost.py,engine/cost_localizer.py,tests/test_engine_seasonality.py,tests/test_engine_cost_localizer.py",
+    "line": null,
+    "description": "Plan 04-03 adds new FURB157 (verbose Decimal constructor, RD-01 quoted-Decimal convention) and ISC004 (implicit string concat in multi-line derivation tuples, same pre-existing pattern as _price_line/_price_labour_department) findings — repo-wide ruff baseline measured 320 before this plan's changes, 343 after (net +23). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-26T23:40:34.000Z",
     "resolved_at": null
   }
 ]

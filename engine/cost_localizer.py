@@ -31,8 +31,11 @@ import yaml
 from engine.budget import CREW_TIERS_PATH, CanonicalBudget
 from engine.cost_profile import CityCostProfile, CostLine, CraftMapping
 from engine.figure import Figure
+from engine.per_diem import load_per_diem
 from engine.qualifying_base import SpendBreakdown
 from engine.rounding import quantize_money
+from engine.seasonality import month_weighted_per_diem, shoot_calendar
+from engine.spec import ProductionSpec
 from engine.union_rates import (
     FringeSchedule,
     RateRow,
@@ -47,6 +50,11 @@ __all__ = ["LocalizedBudget", "localize", "quarter_start_date"]
 # Q1->Jan 1, Q2->Apr 1, Q3->Jul 1, Q4->Oct 1 — the first day of the
 # quarter's first month, exactly as Task 2 specifies.
 _QUARTER_START_MONTH: dict[str, int] = {"Q1": 1, "Q2": 4, "Q3": 7, "Q4": 10}
+
+# COST-04/COST-05 (plan 04-03): categories priced dynamically from imported
+# headcount only, through the profile's `travel` block — never via the
+# canonical budget's department quantities.
+_TRAVEL_CATEGORIES = ("housing", "per_diem", "flights")
 
 
 def quarter_start_date(start_quarter: str, start_year: int) -> date:
@@ -246,6 +254,78 @@ def _price_labour_department(
     return wage_figure, fringe_figure
 
 
+def _price_travel_categories(
+    profile: CityCostProfile, spec: ProductionSpec
+) -> dict[str, Figure]:
+    """Price housing, per diem and flights (COST-04/COST-05) from imported
+    headcount ONLY — locally-hired crew and local cast generate zero of
+    each, and the derivation says so by name (COST-05's entire content).
+    `profile.travel` is guaranteed non-`None` by the caller (`localize()`
+    only reaches here when a housing/per_diem/flights cost line was found
+    alongside a declared `travel` block)."""
+    assert profile.travel is not None
+    imported_headcount = spec.crew_imported_count + spec.principal_cast_imported_count
+
+    table = load_per_diem(profile.travel.per_diem_id)
+    calendar = shoot_calendar(spec)
+    housing_figure, per_diem_figure = month_weighted_per_diem(
+        table, calendar, imported_headcount, currency=profile.currency
+    )
+    housing_figure = housing_figure.with_step(
+        f"housing uplift: {profile.travel.housing_uplift_note}"
+    )
+
+    if imported_headcount == 0:
+        headcount_note = (
+            f"imported crew count ({spec.crew_imported_count}) and imported "
+            f"principal cast count ({spec.principal_cast_imported_count}) were both "
+            "zero for this submission — this is a COMPUTED zero, not an unpriced "
+            "category (COST-05)"
+        )
+    else:
+        headcount_note = (
+            f"priced for {imported_headcount} imported person(s) "
+            f"({spec.crew_imported_count} imported crew + "
+            f"{spec.principal_cast_imported_count} imported principal cast); "
+            f"locally-hired crew ({spec.crew_hired_locally_count}) and local cast "
+            "generate zero housing, per diem and flight cost (COST-05)"
+        )
+    housing_figure = housing_figure.with_step(headcount_note)
+    per_diem_figure = per_diem_figure.with_step(headcount_note)
+
+    flight_rate = Decimal(profile.travel.flight_round_trip_rate)
+    flights_value = quantize_money(Decimal(imported_headcount) * flight_rate)
+    flight_source_note = (
+        f"source: {profile.travel.source_url}"
+        if profile.travel.source_url
+        else f"no source_url recorded — basis {profile.travel.basis!r}, method: "
+        f"{profile.travel.method_note}"
+    )
+    flights_figure = Figure(
+        value=flights_value,
+        unit=profile.currency,
+        label="Flights — imported crew and cast",
+        derivation=(
+            f"{imported_headcount} imported person(s) x {flight_rate} "
+            f"{profile.currency} round-trip = {flights_value} {profile.currency} "
+            f"({flight_source_note})",
+            headcount_note,
+        ),
+        inputs=(),
+        source_url=profile.travel.source_url,
+        date_checked=_parse_date(profile.travel.date_checked),
+        confidence="researched",
+        live_fetched_this_run=False,
+        basis=profile.travel.basis,
+    )
+
+    return {
+        "housing": housing_figure,
+        "per_diem": per_diem_figure,
+        "flights": flights_figure,
+    }
+
+
 def _derive_spend_breakdown(
     lines: tuple[Figure, ...], cost_line_by_label: dict[str, CostLine]
 ) -> SpendBreakdown:
@@ -276,13 +356,20 @@ def _derive_spend_breakdown(
 
 
 def localize(
-    budget: CanonicalBudget, profile: CityCostProfile, *, on_date: date | None = None
+    budget: CanonicalBudget,
+    profile: CityCostProfile,
+    *,
+    on_date: date | None = None,
+    spec: ProductionSpec | None = None,
 ) -> LocalizedBudget:
     """Price `budget` against `profile`. A profile cost line whose `label`
     has no matching entry in `budget.line_quantities` is skipped — it is
     not this budget's job to declare every possible cost line, and a
     profile is free to widen with lines a given budget shape does not
-    (yet) supply quantities for.
+    (yet) supply quantities for. This skip does NOT apply to a
+    `housing`/`per_diem`/`flights` cost line priced through `profile.travel`
+    — those are priced from imported headcount, never from a budget
+    quantity (see below).
 
     A `category: "labour"` cost line whose department has a craft mapping
     on `profile.labour` is priced dynamically (COST-02/COST-03): TWO
@@ -292,16 +379,40 @@ def localize(
     silently falling back to the static path. A profile with no `labour`
     block, or a labour line whose department has no craft mapping, is
     unaffected by `on_date` and keeps plan 04-01's single-Figure static
-    path — this is what keeps every pre-04-02 synthetic fixture green."""
+    path — this is what keeps every pre-04-02 synthetic fixture green.
+
+    A `category: "housing"`/`"per_diem"`/`"flights"` cost line is priced
+    dynamically (COST-04/COST-05) ONLY when `profile.travel` is also
+    declared — `spec` is REQUIRED in that case (imported headcount and the
+    shoot calendar both come from it). A profile with no `travel` block
+    keeps such a line on the static per-line path unaffected by `spec`,
+    exactly mirroring the labour/`on_date` relationship above."""
     cost_line_by_label = {cost_line.label: cost_line for cost_line in profile.cost_lines}
     department_name_by_label = _department_name_by_label()
 
     rows: list[RateRow] | None = None
     fringe_schedules: dict[str, FringeSchedule] | None = None
+    travel_figures: dict[str, Figure] | None = None
 
     lines: list[Figure] = []
     categories_priced: set[str] = set()
     for cost_line in profile.cost_lines:
+        if cost_line.category in _TRAVEL_CATEGORIES and profile.travel is not None:
+            if travel_figures is None:
+                if spec is None:
+                    raise ValueError(
+                        f"localize(): {profile.city_id!r}'s cost line "
+                        f"{cost_line.label!r} (category {cost_line.category!r}) is "
+                        "priced via profile.travel from imported headcount, but no "
+                        "ProductionSpec was supplied"
+                    )
+                travel_figures = _price_travel_categories(profile, spec)
+            figure = travel_figures[cost_line.category]
+            lines.append(figure)
+            cost_line_by_label[figure.label] = cost_line
+            categories_priced.add(cost_line.category)
+            continue
+
         quantity = budget.line_quantities.get(cost_line.label)
         if quantity is None:
             continue

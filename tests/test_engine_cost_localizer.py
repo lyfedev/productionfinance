@@ -107,22 +107,24 @@ def test_every_labour_department_produces_two_figures_with_different_labels():
     spec = _spec()
     budget = build_canonical_budget(spec, _crew_headcount())
     on_date = quarter_start_date(spec.start_quarter, spec.start_year)
-    localized = localize(budget, _ny_profile(), on_date=on_date)
+    localized = localize(budget, _ny_profile(), on_date=on_date, spec=spec)
 
-    wage_labels = {line.label for line in localized.lines if not line.label.startswith("Fringe")}
+    wage_labels = {line.label for line in localized.lines if line.label.endswith(" labour days")}
     fringe_labels = {line.label for line in localized.lines if line.label.startswith("Fringe")}
 
     assert len(wage_labels) == 10
     assert len(fringe_labels) == 10
     assert wage_labels.isdisjoint(fringe_labels)
-    assert len(localized.lines) == 20
+    # 10 wage + 10 fringe (labour departments) + housing + per_diem +
+    # flights (plan 04-03's travel categories, COST-04/COST-05).
+    assert len(localized.lines) == 23
 
 
 def test_fringe_figure_carries_the_wage_figure_as_its_single_input():
     spec = _spec()
     budget = build_canonical_budget(spec, _crew_headcount())
     on_date = quarter_start_date(spec.start_quarter, spec.start_year)
-    localized = localize(budget, _ny_profile(), on_date=on_date)
+    localized = localize(budget, _ny_profile(), on_date=on_date, spec=spec)
 
     wage = next(line for line in localized.lines if line.label == "Camera labour days")
     fringe = next(
@@ -136,7 +138,7 @@ def test_wage_figure_value_is_unchanged_when_fringe_is_removed():
     spec = _spec()
     budget = build_canonical_budget(spec, _crew_headcount())
     on_date = quarter_start_date(spec.start_quarter, spec.start_year)
-    localized = localize(budget, _ny_profile(), on_date=on_date)
+    localized = localize(budget, _ny_profile(), on_date=on_date, spec=spec)
 
     wage = next(line for line in localized.lines if line.label == "Camera labour days")
     without_fringe_total = sum(
@@ -154,7 +156,7 @@ def test_camera_department_is_sourced_general_crew_departments_are_estimated():
     spec = _spec()
     budget = build_canonical_budget(spec, _crew_headcount())
     on_date = quarter_start_date(spec.start_quarter, spec.start_year)
-    localized = localize(budget, _ny_profile(), on_date=on_date)
+    localized = localize(budget, _ny_profile(), on_date=on_date, spec=spec)
 
     camera_wage = next(line for line in localized.lines if line.label == "Camera labour days")
     production_wage = next(
@@ -168,7 +170,7 @@ def test_labour_and_fringe_are_never_in_not_priced():
     spec = _spec()
     budget = build_canonical_budget(spec, _crew_headcount())
     on_date = quarter_start_date(spec.start_quarter, spec.start_year)
-    localized = localize(budget, _ny_profile(), on_date=on_date)
+    localized = localize(budget, _ny_profile(), on_date=on_date, spec=spec)
     landed = aggregate(localized)
 
     assert "labour" not in landed.not_priced
@@ -235,7 +237,7 @@ def test_los_angeles_localizes_and_produces_a_real_cost_total():
     spec = _spec(["Los Angeles, CA"])
     budget = build_canonical_budget(spec, _crew_headcount())
     on_date = quarter_start_date(spec.start_quarter, spec.start_year)
-    localized = localize(budget, _la_profile(), on_date=on_date)
+    localized = localize(budget, _la_profile(), on_date=on_date, spec=spec)
     landed = aggregate(localized)
     assert landed.cost_total.value > Decimal(0)
 
@@ -267,8 +269,8 @@ def test_localize_output_for_ny_and_la_shares_the_same_canonical_budget_object(m
     budget = budget_module.build_canonical_budget(spec, _crew_headcount())
     on_date = quarter_start_date(spec.start_quarter, spec.start_year)
 
-    ny_localized = localize(budget, _ny_profile(), on_date=on_date)
-    la_localized = localize(budget, _la_profile(), on_date=on_date)
+    ny_localized = localize(budget, _ny_profile(), on_date=on_date, spec=spec)
+    la_localized = localize(budget, _la_profile(), on_date=on_date, spec=spec)
 
     assert ny_localized.city_id == "us-ny-new-york"
     assert la_localized.city_id == "us-ca-los-angeles"
@@ -496,6 +498,152 @@ def test_no_float_ever_enters_the_labour_pricing_path():
     spec = _spec()
     budget = build_canonical_budget(spec, _crew_headcount())
     on_date = quarter_start_date(spec.start_quarter, spec.start_year)
-    localized = localize(budget, _ny_profile(), on_date=on_date)
+    localized = localize(budget, _ny_profile(), on_date=on_date, spec=spec)
     for line in localized.lines:
         assert isinstance(line.value, Decimal)
+
+
+# ---------------------------------------------------------------------------
+# Task 3 — housing, per diem and flights for imported crew and cast only
+# (COST-04/COST-05)
+# ---------------------------------------------------------------------------
+
+
+def _spec_with_imports(*, crew_imported: int, crew_local: int, cast_imported: int = 1) -> ProductionSpec:
+    return ProductionSpec.model_validate(
+        {
+            "production_type": "feature",
+            "shoot_days_stage": 10,
+            "shoot_days_location": 5,
+            "crew_size": crew_imported + crew_local,
+            "crew_tier": None,
+            "principal_cast_count": 3,
+            "principal_cast_imported_count": cast_imported,
+            "crew_imported_count": crew_imported,
+            "crew_hired_locally_count": crew_local,
+            "start_quarter": "Q2",
+            "start_year": 2026,
+            "candidate_cities": ["New York, NY"],
+        }
+    )
+
+
+def _travel_figures(localized):
+    return {
+        line.label: line
+        for line in localized.lines
+        if line.label
+        in (
+            "Housing — imported crew and cast",
+            "Per diem (M&IE) — imported crew and cast",
+            "Flights — imported crew and cast",
+        )
+    }
+
+
+def test_zero_imported_headcount_produces_computed_zero_never_not_priced():
+    spec = _spec_with_imports(crew_imported=0, crew_local=50, cast_imported=0)
+    budget = build_canonical_budget(spec, _crew_headcount())
+    on_date = quarter_start_date(spec.start_quarter, spec.start_year)
+    localized = localize(budget, _ny_profile(), on_date=on_date, spec=spec)
+    landed = aggregate(localized)
+
+    travel = _travel_figures(localized)
+    assert set(travel) == {
+        "Housing — imported crew and cast",
+        "Per diem (M&IE) — imported crew and cast",
+        "Flights — imported crew and cast",
+    }
+    for label, figure in travel.items():
+        assert figure.value == Decimal("0"), label
+        joined = " ".join(figure.derivation)
+        assert "zero" in joined.lower()
+
+    assert "housing" not in landed.not_priced
+    assert "per_diem" not in landed.not_priced
+    assert "flights" not in landed.not_priced
+
+
+def test_ten_imported_crew_produces_exactly_ten_times_the_one_person_figure():
+    on_date = quarter_start_date("Q2", 2026)
+
+    one_person_spec = _spec_with_imports(crew_imported=1, crew_local=49, cast_imported=0)
+    budget_one = build_canonical_budget(one_person_spec, _crew_headcount())
+    localized_one = localize(budget_one, _ny_profile(), on_date=on_date, spec=one_person_spec)
+    one_travel = _travel_figures(localized_one)
+
+    ten_person_spec = _spec_with_imports(crew_imported=10, crew_local=40, cast_imported=0)
+    budget_ten = build_canonical_budget(ten_person_spec, _crew_headcount())
+    localized_ten = localize(budget_ten, _ny_profile(), on_date=on_date, spec=ten_person_spec)
+    ten_travel = _travel_figures(localized_ten)
+
+    expected_per_diem = one_travel["Per diem (M&IE) — imported crew and cast"].value * 10
+    expected_housing = one_travel["Housing — imported crew and cast"].value * 10
+    expected_flights = one_travel["Flights — imported crew and cast"].value * 10
+
+    assert ten_travel["Per diem (M&IE) — imported crew and cast"].value == expected_per_diem
+    assert ten_travel["Housing — imported crew and cast"].value == expected_housing
+    assert ten_travel["Flights — imported crew and cast"].value == expected_flights
+
+
+def test_increasing_locally_hired_crew_alone_leaves_travel_costs_unchanged():
+    on_date = quarter_start_date("Q2", 2026)
+
+    spec_a = _spec_with_imports(crew_imported=10, crew_local=40)
+    budget_a = build_canonical_budget(spec_a, _crew_headcount())
+    localized_a = localize(budget_a, _ny_profile(), on_date=on_date, spec=spec_a)
+    travel_a = _travel_figures(localized_a)
+
+    spec_b = _spec_with_imports(crew_imported=10, crew_local=90)
+    crew_headcount_b = CrewHeadcount(
+        low=100, high=100, basis="supplied by the visitor", provenance_note="test fixture"
+    )
+    budget_b = build_canonical_budget(spec_b, crew_headcount_b)
+    localized_b = localize(budget_b, _ny_profile(), on_date=on_date, spec=spec_b)
+    travel_b = _travel_figures(localized_b)
+
+    for label in travel_a:
+        assert travel_a[label].value == travel_b[label].value, label
+
+
+def test_both_committed_profiles_not_priced_names_only_five_facilities_categories():
+    spec = _spec()
+    budget = build_canonical_budget(spec, _crew_headcount())
+    on_date = quarter_start_date(spec.start_quarter, spec.start_year)
+
+    ny_landed = aggregate(localize(budget, _ny_profile(), on_date=on_date, spec=spec))
+    la_landed = aggregate(localize(budget, _la_profile(), on_date=on_date, spec=spec))
+
+    expected = {"stages", "equipment", "permits", "locations", "trucking"}
+    assert set(ny_landed.not_priced) == expected
+    assert set(la_landed.not_priced) == expected
+
+
+def test_every_per_diem_and_housing_figure_has_a_non_null_caveat():
+    spec = _spec_with_imports(crew_imported=10, crew_local=40)
+    budget = build_canonical_budget(spec, _crew_headcount())
+    on_date = quarter_start_date(spec.start_quarter, spec.start_year)
+    localized = localize(budget, _ny_profile(), on_date=on_date, spec=spec)
+
+    travel = _travel_figures(localized)
+    assert travel["Housing — imported crew and cast"].caveat is not None
+    assert travel["Per diem (M&IE) — imported crew and cast"].caveat is not None
+
+
+def test_localize_raises_when_spec_missing_for_a_dynamic_travel_line():
+    spec = _spec()
+    budget = build_canonical_budget(spec, _crew_headcount())
+    on_date = quarter_start_date(spec.start_quarter, spec.start_year)
+    with pytest.raises(ValueError, match="ProductionSpec"):
+        localize(budget, _ny_profile(), on_date=on_date)
+
+
+def test_no_jurisdiction_id_literal_in_cost_localizer_per_diem_or_seasonality():
+    import re
+
+    paths = ["engine/cost_localizer.py", "engine/per_diem.py", "engine/seasonality.py"]
+    pattern = re.compile(r'"us-ny"|"us-ca"')
+    for path in paths:
+        with open(path, encoding="utf-8") as handle:
+            source = handle.read()
+        assert not pattern.search(source), f"{path} contains a bare jurisdiction-id literal"

@@ -237,7 +237,10 @@ def _price_candidate_cities(
             budget = build_canonical_budget(spec, crew_headcount)
 
         on_date = quarter_start_date(spec.start_quarter, spec.start_year)
-        localized = localize(budget, profile, on_date=on_date)
+        # Phase 4 plan 04-03 (COST-04/COST-05): both committed profiles now
+        # declare a `travel:` block pricing housing/per_diem/flights from
+        # imported headcount — `localize()` requires the spec in that case.
+        localized = localize(budget, profile, on_date=on_date, spec=spec)
 
         net_cash_figure: Figure | None = None
         if profile.jurisdiction_id is not None and (

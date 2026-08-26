@@ -42,9 +42,13 @@ provenance_note: >
   genuinely `basis: sourced` from IATSE Local 600's own published Western
   Region rate cards (two adjacent dated windows); every other department
   is `basis: estimated` pending per-craft primary-source acquisition
-  (.planning/WINDOWS.md). Every other COST_CATEGORIES entry (housing,
-  per_diem, flights, stages, equipment, permits, locations, trucking) is
-  unpriced by this profile and is named in the Route A response's
+  (.planning/WINDOWS.md). Plan 04-03 (COST-04/COST-05) adds housing,
+  per_diem and flights, priced dynamically from imported crew and imported
+  principal cast headcount only, against the committed Los Angeles County
+  GSA per-diem snapshot — genuinely flat all year for FY2026 (D-64), a
+  stated absence rather than a backfilled seasonal swing. Every remaining
+  COST_CATEGORIES entry (stages, equipment, permits, locations, trucking)
+  is unpriced by this profile and is named in the Route A response's
   `not_priced` list, never rendered as a $0 line (D-60).
 
 labour:
@@ -80,6 +84,24 @@ labour:
     post:
       union: "IATSE"
       craft: "general_crew"
+
+travel:
+  per_diem_id: "us-ca-los-angeles-county"
+  flight_round_trip_rate: "450"
+  basis: "estimated"
+  source_url: null
+  date_checked: null
+  method_note: >
+    The same national-average round-trip domestic economy airfare figure
+    used for New York (no per-route or per-city published fare table
+    located this session) — disclosed as a modelling estimate, not a
+    specific route's published fare (04-RESEARCH.md Assumption A5's
+    sourcing tier).
+  housing_uplift_note: >
+    Housing for imported crew and cast is priced at exactly the committed
+    per-diem table's lodging component — no additional negotiated-rate
+    uplift is modelled. A negotiated hotel rate stays in
+    PERMANENT_EXCLUSIONS (D-60) and is never fabricated here.
 
 cost_lines:
   - line_id: "la-crew-labour-production"
@@ -132,3 +154,18 @@ cost_lines:
     category: "labour"
     account: "POST"
     spend_class: "local_labour"
+  - line_id: "la-housing-imported"
+    label: "Housing — imported crew and cast"
+    category: "housing"
+    account: "BTL"
+    spend_class: "non_local"
+  - line_id: "la-per-diem-imported"
+    label: "Per diem (M&IE) — imported crew and cast"
+    category: "per_diem"
+    account: "BTL"
+    spend_class: "local_non_labour"
+  - line_id: "la-flights-imported"
+    label: "Flights — imported crew and cast"
+    category: "flights"
+    account: "BTL"
+    spend_class: "non_local"

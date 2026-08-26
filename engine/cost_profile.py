@@ -41,6 +41,7 @@ __all__ = [
     "LabourBlock",
     "SpendClass",
     "StrictModel",
+    "TravelBlock",
     "load_cost_profile",
 ]
 
@@ -87,6 +88,12 @@ AccountTag = Literal["ATL", "BTL", "POST"]
 # than a jurisdiction-id branch in code.
 SpendClass = Literal["local_labour", "local_non_labour", "non_local"]
 
+# Categories priced dynamically (never via a static per-line unit_rate):
+# "labour" through the profile's `labour` block (plan 04-02); "housing",
+# "per_diem" and "flights" through the profile's `travel` block from
+# imported headcount only (plan 04-03, COST-04/COST-05).
+_DYNAMICALLY_PRICED_CATEGORIES = ("labour", "housing", "per_diem", "flights")
+
 
 class CostLine(StrictModel):
     """One priced line in a `CityCostProfile`. `unit_rate` and `rate_unit`
@@ -94,14 +101,17 @@ class CostLine(StrictModel):
     and `method_note` carry the same honesty discipline an incentive-side
     Figure already carries.
 
-    `unit_rate`/`rate_unit`/`basis` are optional ONLY for a `category:
-    "labour"` line whose department is priced dynamically through the
-    profile's `labour` block (`engine/cost_localizer.py::_price_labour_
-    department` selects a dated union rate row instead) — plan 04-02. Every
-    other category still requires all three (the static per-line pricing
-    path, unchanged since plan 04-01). A labour-category line whose
-    department has NO craft mapping on the profile still needs them — the
-    static path is the fallback when no dynamic mapping is declared."""
+    `unit_rate`/`rate_unit`/`basis` are optional for a `category: "labour"`
+    line whose department is priced dynamically through the profile's
+    `labour` block (`engine/cost_localizer.py::_price_labour_department`
+    selects a dated union rate row instead) — plan 04-02 — and for a
+    `category: "housing"`/`"per_diem"`/`"flights"` line priced dynamically
+    through the profile's `travel` block from imported headcount — plan
+    04-03 (COST-04/COST-05). Every other category still requires all three
+    (the static per-line pricing path, unchanged since plan 04-01). A
+    dynamically-priced-category line whose profile declares no matching
+    block (`labour`/`travel`) still needs them — the static path is the
+    fallback when no dynamic block is declared."""
 
     line_id: str
     label: str
@@ -116,16 +126,16 @@ class CostLine(StrictModel):
     method_note: str | None = None
 
     @model_validator(mode="after")
-    def _non_labour_requires_static_pricing_fields(self) -> CostLine:
-        if self.category != "labour" and (
+    def _non_dynamic_requires_static_pricing_fields(self) -> CostLine:
+        if self.category not in _DYNAMICALLY_PRICED_CATEGORIES and (
             self.unit_rate is None or self.rate_unit is None or self.basis is None
         ):
             raise ValueError(
                 f"cost line {self.line_id!r}: category {self.category!r} is priced by "
                 "this profile's static unit_rate — unit_rate, rate_unit and basis are "
-                "all required for any non-labour cost line (only a labour-category "
-                "line may omit them, when its department is priced dynamically "
-                "through the profile's labour block)"
+                "all required for any cost line outside "
+                f"{_DYNAMICALLY_PRICED_CATEGORIES} (only those categories may omit "
+                "them, when the profile declares a matching labour/travel block)"
             )
         return self
 
@@ -177,15 +187,55 @@ class LabourBlock(StrictModel):
     crafts: dict[str, CraftMapping]
 
 
+class TravelBlock(StrictModel):
+    """A cost profile's travel-pricing declaration (COST-04/COST-05).
+    `per_diem_id` selects a committed per-diem table via
+    `engine.per_diem.load_per_diem` — declared DATA on the profile, never a
+    visitor-supplied string (T-04-10). `flight_round_trip_rate` is a
+    quoted-string per-imported-person round-trip airfare estimate.
+    `housing_uplift_note` discloses explicitly whether housing is priced at
+    anything beyond the per-diem table's lodging component — D-60's
+    honesty discipline applied to a "we didn't model X" statement rather
+    than leaving it implied."""
+
+    per_diem_id: str
+    flight_round_trip_rate: str
+    basis: Basis
+    source_url: str | None = None
+    date_checked: str | None = None
+    method_note: str | None = None
+    housing_uplift_note: str
+
+    @model_validator(mode="after")
+    def _sourced_requires_source_url(self) -> TravelBlock:
+        if self.basis == "sourced" and not self.source_url:
+            raise ValueError(
+                "travel block: basis 'sourced' requires a non-null source_url — an "
+                "unsourced 'sourced' claim is the exact class of dishonesty D-58/D-59 "
+                "exist to prevent"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _non_sourced_requires_method_note(self) -> TravelBlock:
+        if self.basis != "sourced" and not self.method_note:
+            raise ValueError(
+                f"travel block: basis {self.basis!r} requires a non-null method_note "
+                "disclosing the non-primary method used (PITFALLS E1/E5)"
+            )
+        return self
+
+
 class CityCostProfile(StrictModel):
     """A committed cost profile for one city (D-53). `jurisdiction_id` is
-    `None`-able — a cost profile needs no rule file to exist. `labour` is
-    `None`-able too — a synthetic test fixture with no labour-category
-    cost lines declares no labour block at all (plan 04-01 shape, still
-    supported); a real committed profile with labour-category lines
-    should declare one (the validator below only fires when `labour` IS
-    declared, so it can never retroactively invalidate a fixture that
-    predates this field)."""
+    `None`-able — a cost profile needs no rule file to exist. `labour` and
+    `travel` are `None`-able too — a synthetic test fixture with no
+    dynamically-priced cost lines declares neither block (plan 04-01
+    shape, still supported); a real committed profile with
+    labour/housing/per_diem/flights-category lines should declare the
+    matching block (the validators below only fire when the block IS
+    declared, so they can never retroactively invalidate a fixture that
+    predates these fields)."""
 
     city_id: str
     city_label: str
@@ -194,6 +244,7 @@ class CityCostProfile(StrictModel):
     provenance_note: str
     cost_lines: list[CostLine]
     labour: LabourBlock | None = None
+    travel: TravelBlock | None = None
 
     @model_validator(mode="after")
     def _labour_covers_every_department_when_declared(self) -> CityCostProfile:
