@@ -1,0 +1,38 @@
+# tests/fixtures/cost_profiles/synthetic-minimal.yaml — a synthetic,
+# structurally-separate `CityCostProfile` fixture exercising the schema's
+# happy path (mirrors tests/fixtures/jurisdictions/synthetic-*.yaml's
+# convention: a throwaway fixture, never one of the real committed
+# profiles under data/cost_profiles/).
+
+city_id: "synthetic-minimal"
+city_label: "Synthetic Minimal City"
+jurisdiction_id: null
+currency: "USD"
+provenance_note: >
+  A synthetic, minimal CityCostProfile used only to exercise
+  engine.cost_profile's schema-load happy path in
+  tests/test_engine_cost_profile.py. Not a real committed city.
+
+cost_lines:
+  - line_id: "synthetic-sourced-line"
+    label: "Synthetic sourced line"
+    category: "equipment"
+    account: "BTL"
+    spend_class: "non_local"
+    unit_rate: "100.00"
+    rate_unit: "unit"
+    basis: "sourced"
+    source_url: "https://example.invalid/synthetic-rate-card"
+    date_checked: "2026-08-24"
+    method_note: null
+  - line_id: "synthetic-estimated-line"
+    label: "Synthetic estimated line"
+    category: "housing"
+    account: "BTL"
+    spend_class: "non_local"
+    unit_rate: "50.00"
+    rate_unit: "night"
+    basis: "estimated"
+    source_url: null
+    date_checked: null
+    method_note: "A synthetic method note for a non-sourced fixture line."

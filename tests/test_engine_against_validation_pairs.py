@@ -68,6 +68,7 @@ pattern `tests/test_validation_pair_fixtures.py` already uses (T-01-15 —
 a parametrized test over an empty collection is a vacuous green).
 """
 
+import re
 from decimal import Decimal
 from glob import glob
 
@@ -356,3 +357,85 @@ def test_at_least_one_connecticut_pair_exercised():
     assert len(CT_ACTIVE_PAIRS) >= 1, (
         f"expected at least 1 active us-ct validation pair, found {len(CT_ACTIVE_PAIRS)}"
     )
+
+
+# ---------------------------------------------------------------------------
+# D-72 (Phase 4) — a validation pair may NEVER route through the budget
+# model. Disclosures publish qualified spend and the award, never the
+# production's input vector (feasibility-incentives.md:263) — so feeding a
+# fixture's production through `engine.budget` and comparing the result to
+# a disclosed award would be measuring a fabricated input vector, and a
+# green result would mean nothing. This module always feeds each pair's
+# DISCLOSED `qualified_spend` straight into `SpendBreakdown.from_total` /
+# `price_jurisdiction`, never a `ProductionSpec` built by a cost-side model.
+# ---------------------------------------------------------------------------
+
+_IMPORT_ENGINE_BUDGET_RE = re.compile(
+    r"^\s*(import\s+engine\.budget\b|from\s+engine\.budget\s+import)", re.MULTILINE
+)
+_PRODUCTION_SPEC_CONSTRUCTION_RE = re.compile(r"\bProductionSpec\(")
+
+# The ProductionSpec input-vector fields (INP-01..INP-07) a validation-pair
+# fixture must never carry — a disclosure gives qualified spend and the
+# award, never the production's shoot days, crew size/tier, cast count or
+# candidate cities.
+_FORBIDDEN_SPEC_INPUT_FIELDS = (
+    "shoot_days_stage",
+    "shoot_days_location",
+    "crew_size",
+    "crew_tier",
+    "principal_cast_count",
+    "candidate_cities",
+)
+
+
+def test_this_module_never_imports_engine_budget_or_constructs_a_production_spec():
+    """Source-level guard (matches this repo's own established pattern —
+    `tests/test_engine_models.py`'s security gates,
+    `tests/test_engine_jurisdiction_additivity.py`'s JUR-05 scan): this
+    module's own source must contain no `engine.budget` import and no
+    construction of the spec-input dataclass this docstring deliberately
+    does not spell out literally, anywhere (see the two regexes above)."""
+    with open(__file__, encoding="utf-8") as handle:
+        source = handle.read()
+
+    assert not _IMPORT_ENGINE_BUDGET_RE.search(source), (
+        "tests/test_engine_against_validation_pairs.py must never import engine.budget "
+        "(D-72) — a validation pair is never routed through the budget model"
+    )
+    assert not _PRODUCTION_SPEC_CONSTRUCTION_RE.search(source), (
+        "tests/test_engine_against_validation_pairs.py must never construct a "
+        "ProductionSpec (D-72) — disclosures give qualified spend and the award, "
+        "never the production's input vector"
+    )
+
+
+def test_every_pair_reproduces_the_disclosure_from_disclosed_spend_alone():
+    """The substantive half of the D-72 guard: every active pair's asserted
+    figure is produced by feeding the fixture's DISCLOSED `qualified_spend`
+    straight into `price_jurisdiction` (via `SpendBreakdown.from_total`,
+    the pipeline's own default) — never a modelled `SpendBreakdown` built
+    from a `ProductionSpec`. This re-asserts what
+    `test_curated_jurisdiction_reproduces_disclosed_credit_via_pipeline`
+    already proves per-pair; here it is proven as a structural invariant of
+    the whole sweep at once."""
+    assert ALL_ACTIVE_PAIRS, "expected at least one active validation pair"
+    for pair in ALL_ACTIVE_PAIRS:
+        qualified_spend = Decimal(pair["qualified_spend"])
+        spend = SpendBreakdown.from_total(qualified_spend)
+        assert spend.total_spend == qualified_spend
+        assert spend.core_expenditure == qualified_spend
+
+
+def test_no_validation_pair_fixture_carries_a_production_spec_input_vector_field():
+    """A future contributor must never be able to quietly add a
+    ProductionSpec-shaped input-vector field to a validation-pair fixture
+    — see this module's docstring and D-72."""
+    for path in FIXTURE_PATHS:
+        data = _load(path)
+        present = sorted(set(data) & set(_FORBIDDEN_SPEC_INPUT_FIELDS))
+        assert not present, (
+            f"{path}: carries ProductionSpec input-vector field(s) {present} — "
+            "a validation-pair fixture must only ever declare disclosed spend and "
+            "the disclosed award, never a production's input vector (D-72)"
+        )
