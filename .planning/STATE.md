@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 03
 current_phase_name: New York End-to-End — The Anora Proof
 status: executing
-stopped_at: Phase 3 context gathered
-last_updated: "2026-08-25T21:06:36.087Z"
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-08-26T01:45:00.928Z"
 last_activity: 2026-08-25
-last_activity_desc: Phase 02 complete, transitioned to Phase 1
-state_head: b161a4b0d6b5b7db53e4773e7faeda5391a0c336
+last_activity_desc: Phase 03 execution started
+state_head: 177d34dbfbede8d5232ee93e67df76224abd886e
 progress:
   total_phases: 11
   completed_phases: 2
   total_plans: 21
-  completed_plans: 17
+  completed_plans: 18
   percent: 18
 ---
 
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-24)
 
 **Core value:** Total landed cost of one identical production, priced per city, with every figure sourced, dated, and provably matching what a government actually paid.
-**Current focus:** Phase 02 — Engine Spine & Incentive Interpreter
+**Current focus:** Phase 03 — New York End-to-End — The Anora Proof
 
 ## Current Position
 
-Phase: 03 (New York End-to-End — The Anora Proof) — READY TO EXECUTE
-Plan: Not started
+Phase: 03 (New York End-to-End — The Anora Proof) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-08-25 — Phase 02 complete, transitioned to Phase 1
+Last activity: 2026-08-25 — Phase 03 execution started
 
-Progress: [█░░░░░░░░░] 9%
+Progress: [██░░░░░░░░] 18%
 
 **Deadline: 2026-09-09 14:00 PDT — 15 days.** Milestone 1 (Accounts, Phases 1-8) is the submission. Milestone 2 (Balances, Phases 9-11) is cuttable as a whole.
 
@@ -77,6 +77,7 @@ Progress: [█░░░░░░░░░] 9%
 | Phase 02 P07 | 51min | 2 tasks | 4 files |
 | Phase 02 P08 | 22min | 2 tasks | 3 files |
 | Phase 02 P09 | 32min | 2 tasks | 3 files |
+| Phase 03 P01 | 20min | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,7 @@ Recent decisions affecting current work:
 - [Phase 02]: engine/models.py: both stacks_with and mutually_exclusive_with edges validated in ONE model_validator on JurisdictionRuleSet (WR-02 substance: cannot drift apart), comparing ids via plain string equality with no normalization
 - [Phase 02]: WR-04 fixed at the JurisdictionRuleSet schema boundary (Field min_length=1 on programmes); engine/figure.py::combined_confidence left untouched since its empty-sequence contract is correct for its primary use
 - [Phase 02]: Phase 02 plan 09: WR-03 closed-closed dated-range convention recorded and guarded against overlapping withholding bands (both dated-dated and open-ended-dated). Validation-pairs golden test re-coupled to price_jurisdiction: New York's Anora reproduces Decimal('991190') end-to-end. Genuine discovered finding, documented not routed around: jurisdictions/us-ct.yaml's real transfer_discount has no sourced typical_rate_low/typical_rate_high, so price_jurisdiction raises for every active Connecticut pair; Christmas Always's direct-path exact reproduction (Decimal('1159502')) is unaffected. Recorded to WINDOWS.md as an unmet-truth entry.
+- [Phase 03]: 03-01: Route B (Reproduce a disclosure) reproduces Anora exactly end-to-end through HTTP; pair selector shows every fixture with a plain-words reason when unselectable
 
 ### Pending Todos
 
@@ -140,6 +142,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-25T19:44:47.327Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-new-york-end-to-end-the-anora-proof/03-CONTEXT.md
+Last session: 2026-08-26T01:45:00.821Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: None

@@ -146,12 +146,12 @@ Plans:
   3. The visitor names New York and the hosted page returns $991,190 against $3,964,760 of qualified spend, linked through to the NY ESD source document
   4. A validation test suite runs in CI on every commit asserting exact Decimal equality against the disclosed New York figures, and deliberately corrupting a rule value makes that suite fail
 
-**Plans**: 3 plans in 2 waves
+**Plans**: 1/3 plans executed in 2 waves
 
 Plans:
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — Tracer: Anora reproduces $991,190 end-to-end on the hosted page, with both provenance chains and a closed pair allowlist (wave 1)
+- [x] 03-01-PLAN.md — Tracer: Anora reproduces $991,190 end-to-end on the hosted page, with both provenance chains and a closed pair allowlist (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion — the tracer must be green before either expansion plan lands)*
 
@@ -323,7 +323,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundations — Source Truth & Deploy Path | 1 — Accounts | 8/9 | In Progress|  |
 | 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 9/9 | Complete    | 2026-08-25 |
-| 3. New York End-to-End — The Anora Proof | 1 — Accounts | 0/TBD | Not started | - |
+| 3. New York End-to-End — The Anora Proof | 1 — Accounts | 1/3 | In Progress|  |
 | 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 0/TBD | Not started | - |
 | 5. Curated Breadth & the Validation Loop | 1 — Accounts | 0/TBD | Not started | - |
 | 6. The Interface | 1 — Accounts | 0/TBD | Not started | - |

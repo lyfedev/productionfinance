@@ -75,7 +75,7 @@ Resolve before modelling. Wrong inputs produce confidently wrong outputs, and th
 
 The four where per-production government disclosure exists, so every model is provable.
 
-- [ ] **JUR-01**: New York — validated model, reproducing NY ESD quarterly report figures
+- [x] **JUR-01**: New York — validated model, reproducing NY ESD quarterly report figures
 - [ ] **JUR-02**: California — validated model against the Film Commission approved projects list, with allocation-stage figures labelled as such
 - [ ] **JUR-03**: New Jersey — validated model against NJEDA activity reports, with estimated figures labelled as such
 - [ ] **JUR-04**: Connecticut — validated model against the Connecticut open data CSV
@@ -236,7 +236,7 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | PRV-05 | Phase 6 — The Interface | 1 — Accounts | Pending |
 | PRV-06 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
 | PRV-07 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
-| JUR-01 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
+| JUR-01 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
 | JUR-02 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
 | JUR-03 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
 | JUR-04 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
