@@ -1,0 +1,43 @@
+# data/crew_tiers.yaml — a modelling assumption, NOT a sourced government
+# figure (D-38/D-39). Deliberately kept out of jurisdictions/ — that
+# directory is reserved for curated rule files reproducing a government
+# disclosure, and this table is not one.
+#
+# Non-union local labour and crew-composition rates are not publicly
+# disclosed anywhere (PROJECT.md line 78 — "that is what Entertainment
+# Partners and Cast & Crew sell"). These headcount bands are a defensible,
+# round, internal estimate informed by typical crew sizes at each
+# production scale, not a reproduced figure. This file must never declare
+# a `confidence` or `status` key — that vocabulary is reserved for
+# jurisdictions/*.yaml rule files reproducing an actual government
+# disclosure (RD-02).
+#
+# Every headcount value below is a quoted YAML string, matching this
+# repo's RD-01 convention (jurisdictions/us-ny.yaml header) of never
+# letting PyYAML parse a numeric field as a native type the calling code
+# then has to re-derive precision from — resolve_crew_tier() converts each
+# with int(), never a bare YAML-native int.
+
+basis: modelling_assumption
+provenance_note: >
+  Non-union local labour and crew-composition rates are not publicly
+  disclosed (PROJECT.md line 78). These headcount ranges are an internal
+  modelling assumption, not a government-sourced figure, and are labelled
+  as such wherever rendered — never as validated, never as sourced.
+
+tiers:
+  micro:
+    headcount_low: "15"
+    headcount_high: "30"
+  small:
+    headcount_low: "30"
+    headcount_high: "60"
+  mid:
+    headcount_low: "60"
+    headcount_high: "120"
+  large:
+    headcount_low: "120"
+    headcount_high: "200"
+  tentpole:
+    headcount_low: "200"
+    headcount_high: "400"

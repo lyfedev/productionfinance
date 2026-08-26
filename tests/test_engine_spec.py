@@ -9,6 +9,7 @@ coverage.
 
 from __future__ import annotations
 
+import subprocess
 import sys
 
 import pytest
@@ -24,20 +25,20 @@ from engine.spec import (
 
 
 def _base_kwargs(**overrides: object) -> dict:
-    kwargs = dict(
-        production_type="feature",
-        shoot_days_stage=10,
-        shoot_days_location=5,
-        crew_size=50,
-        crew_tier=None,
-        principal_cast_count=3,
-        principal_cast_imported_count=1,
-        crew_imported_count=10,
-        crew_hired_locally_count=40,
-        start_quarter="Q2",
-        start_year=2026,
-        candidate_cities=["New York, NY"],
-    )
+    kwargs = {
+        "production_type": "feature",
+        "shoot_days_stage": 10,
+        "shoot_days_location": 5,
+        "crew_size": 50,
+        "crew_tier": None,
+        "principal_cast_count": 3,
+        "principal_cast_imported_count": 1,
+        "crew_imported_count": 10,
+        "crew_hired_locally_count": 40,
+        "start_quarter": "Q2",
+        "start_year": 2026,
+        "candidate_cities": ["New York, NY"],
+    }
     kwargs.update(overrides)
     return kwargs
 
@@ -305,7 +306,22 @@ def test_resolve_crew_tier_unknown_tier_raises():
 
 
 def test_engine_spec_is_http_free():
-    import engine.spec  # noqa: F401
-
-    top_level_modules = {name.split(".")[0] for name in sys.modules}
-    assert "fastapi" not in top_level_modules
+    # Run in a fresh subprocess — checking sys.modules in-process is
+    # order-dependent on whatever the rest of this pytest session already
+    # imported (e.g. tests/test_health.py pulling in app.main -> fastapi
+    # earlier in the same session). Only a clean interpreter proves
+    # importing engine.spec alone never drags fastapi in.
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            (
+                "import sys, engine.spec; "
+                "assert 'fastapi' not in {m.split('.')[0] for m in sys.modules}"
+            ),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
