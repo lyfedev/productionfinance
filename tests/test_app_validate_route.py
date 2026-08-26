@@ -232,6 +232,20 @@ def test_post_validate_with_malformed_fixture_never_500s_and_names_reason(monkey
     assert "ny_anora" in response.text
 
 
+def test_selectable_pairs_handles_missing_jurisdiction_id_as_none(monkeypatch):
+    # Regression for WR-05: SelectablePair.jurisdiction_id is typed
+    # `str | None` (not `str`) because it's populated from
+    # `data.get("jurisdiction_id")`, which returns None for a fixture
+    # missing the key. Confirms the runtime behavior actually matches the
+    # annotation: no crash, marked unselectable with a readable reason.
+    _mutate_ny_anora_fixture(monkeypatch, lambda data: data.pop("jurisdiction_id"))
+    pairs = validate_service.selectable_pairs()
+    anora = next(p for p in pairs if p.pair_id == "ny_anora")
+    assert anora.jurisdiction_id is None
+    assert anora.selectable is False
+    assert "no curated rule model" in anora.unselectable_reason
+
+
 def test_landing_page_shows_both_routes_and_health_link():
     response = client.get("/")
     assert response.status_code == 200

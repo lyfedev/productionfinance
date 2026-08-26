@@ -65,7 +65,14 @@ class MalformedFixtureError(Exception):
 class SelectablePair:
     pair_id: str
     production_title: str
-    jurisdiction_id: str
+    # `str | None`, not `str` — populated from `data.get("jurisdiction_id")`
+    # (selectable_pairs(), below), which returns None for any fixture
+    # missing the key. A malformed fixture missing this key would
+    # otherwise silently violate a non-Optional type hint at runtime
+    # (03-REVIEW.md WR-05) — this doesn't crash today (`None not in
+    # RULESET_PATH_BY_JURISDICTION` just resolves to the "no curated rule
+    # model" branch), but the annotation must match what actually happens.
+    jurisdiction_id: str | None
     selectable: bool
     unselectable_reason: str | None
 
