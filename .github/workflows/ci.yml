@@ -72,3 +72,24 @@ jobs:
         uses: astral-sh/setup-uv@v5
       - name: Run the test suite
         run: uv run --frozen pytest tests/ -q
+
+  mutation-check:
+    name: mutation-check (SHP-14)
+    runs-on: ubuntu-latest
+    # SHP-14's first half — a validation suite runs in CI on every commit,
+    # asserting exact equality against disclosed government figures — is
+    # already satisfied by the `tests` job above. This job is the second
+    # half, the one that actually matters: proof that the suite is
+    # non-vacuous. A suite that is green because it asserts nothing is
+    # indistinguishable in CI from one that works — only observing the
+    # deliberate red this job produces distinguishes them. It deliberately
+    # mutates New York's credit rate by one basis point on a scratch copy
+    # (never the checked-out tree), confirms the suite goes red naming the
+    # declared test, then restores and re-asserts green. Phase 8 re-proves
+    # SHP-14 by rerunning this job, not by re-enacting a manual ritual.
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Non-vacuity proof — suite green, mutation makes it red, restore green
+        run: bash .github/scripts/mutation-check.sh
