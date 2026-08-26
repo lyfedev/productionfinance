@@ -1,0 +1,35 @@
+# data/per_diem/gsa/us-ny-new-york-county.yaml — GSA FY2026 per diem for
+# New York City (the destination GSA's own bulk file groups Bronx / Kings /
+# New York / Queens / Richmond counties under — New York County is
+# Manhattan, one of the five). Re-confirmed directly against the raw GSA
+# bulk file (sources/gsa/2026-08-26-gsa-fy2026-per-diem-master-rates-file.xlsx,
+# sources/MANIFEST.yaml, row ID 266), not the WebFetch-summarized page
+# 04-RESEARCH.md's figures came through — this is `basis: sourced`, and the
+# raw file reproduces 04-RESEARCH.md's CITED figures exactly, zero
+# discrepancy.
+#
+# Every numeric value below is a quoted YAML string (RD-01).
+
+per_diem_id: "us-ny-new-york-county"
+fiscal_year: "2026"
+county: "New York City (Bronx / Kings / New York / Queens / Richmond), NY"
+source_url: "https://www.gsa.gov/system/files/FY2026_PerDiemMasterRatesFile.xlsx"
+retrieved_at: "2026-08-26"
+mie_daily: "92"
+basis: "sourced"
+lodging_by_month:
+  "2025-10": "342"
+  "2025-11": "342"
+  "2025-12": "342"
+  "2026-01": "179"
+  "2026-02": "179"
+  "2026-03": "281"
+  "2026-04": "281"
+  "2026-05": "281"
+  "2026-06": "281"
+  "2026-07": "237"
+  "2026-08": "237"
+  "2026-09": "342"
+ceiling_caveat: >
+  Federal reimbursement ceiling, not a market rate; actual cost is likely
+  higher, especially in peak season or a tight-inventory market.

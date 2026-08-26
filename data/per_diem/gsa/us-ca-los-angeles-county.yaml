@@ -1,0 +1,30 @@
+# data/per_diem/gsa/us-ca-los-angeles-county.yaml — GSA FY2026 per diem for
+# Los Angeles / Orange / Ventura / Edwards AFB (less the city of Santa
+# Monica). Re-confirmed directly against the raw GSA bulk file
+# (sources/gsa/2026-08-26-gsa-fy2026-per-diem-master-rates-file.xlsx,
+# sources/MANIFEST.yaml, row ID 22) — no SEASON BEGIN/SEASON END columns
+# are populated for this destination in the raw file, confirming
+# 04-RESEARCH.md's CITED "LA County has no seasonal banding for FY2026"
+# finding exactly (zero discrepancy). The month-band key New York's file
+# carries is deliberately ABSENT here, not present-and-empty (D-64's own
+# stated fallback) — this file carries `lodging_flat_rate` instead.
+#
+# Every numeric value below is a quoted YAML string (RD-01).
+
+per_diem_id: "us-ca-los-angeles-county"
+fiscal_year: "2026"
+county: "Los Angeles / Orange / Ventura / Edwards AFB less the city of Santa Monica, CA"
+source_url: "https://www.gsa.gov/system/files/FY2026_PerDiemMasterRatesFile.xlsx"
+retrieved_at: "2026-08-26"
+mie_daily: "86"
+basis: "sourced"
+lodging_flat_rate: "191"
+ceiling_caveat: >
+  Federal reimbursement ceiling, not a market rate; actual cost is likely
+  higher, especially in peak season or a tight-inventory market.
+seasonality_note: >
+  FY2026 GSA lodging rate for this county does not vary by month — this is
+  a genuine absence of a seasonal signal, not an omission. Per D-64's
+  fallback: sourced where a month band exists (New York), explicitly
+  absent where it does not (Los Angeles). Never backfilled with a
+  multiplier.

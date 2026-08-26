@@ -372,3 +372,33 @@ documents:
       rising to 28.25% on 2027-05-02. The union's own primary document.
     cited_for:
       - "data/union_rates/fringe_schedules.yaml — WGA pension_health_pct (0.2775 = 11.25% Pension + 16.25% Health + 0.25% Paid Parental Benefit, effective through 2027-05-01)"
+
+  - path: sources/gsa/2026-08-26-gsa-fy2026-per-diem-master-rates-file.xlsx
+    url: "https://www.gsa.gov/system/files/FY2026_PerDiemMasterRatesFile.xlsx"
+    retrieved_at: "2026-08-26T16:15:00-07:00"
+    sha256: "5a3214fdafa1034799e2ff61d8997cface1a1ff0322be3efad78595b12b4e244"
+    jurisdiction: null
+    document_title: "GSA FY2026 Per Diem Rates - Effective October 1, 2025 (FY2026_PerDiemMasterRatesFile.xlsx, the raw bulk master-rates spreadsheet, all 50 states)"
+    note: >
+      Fetched by direct curl from gsa.gov/system/files (the no-key bulk-file
+      download linked from gsa.gov/travel/plan-a-trip/per-diem-rates/per-diem-files),
+      not the WebFetch-summarized page 04-RESEARCH.md's Open Questions section
+      flagged as needing re-confirmation. Parsed directly from the archived
+      .xlsx's underlying XML (stdlib zipfile + xml.etree, no runtime
+      dependency added, no AWS Textract or any other AWS AI endpoint,
+      matching D-57/T-04-14) — 652 rows, header at row 2: ID, STATE,
+      DESTINATION, COUNTY/LOCATION DEFINED, SEASON BEGIN, SEASON END, FY26
+      Lodging Rate, FY26 M&IE. Row ID 266 ("New York City", Bronx / Kings /
+      New York / Queens / Richmond) carries five seasonal bands (Oct-Dec
+      $342, Jan-Feb $179, Mar-Jun $281, Jul-Aug $237, Sep $342; M&IE $92
+      flat) — byte-for-byte identical to 04-RESEARCH.md's CITED figures, zero
+      discrepancy. Row ID 22 ("Los Angeles", Los Angeles / Orange / Ventura /
+      Edwards AFB less the city of Santa Monica) carries no SEASON
+      BEGIN/END values — a flat $191 lodging rate, $86 M&IE, confirming
+      04-RESEARCH.md's CITED "LA County has no seasonal banding" finding
+      exactly. This upgrades both floor cities' per-diem figures from
+      CITED (WebFetch-summarized) to a raw-file re-confirmation, per Task 1's
+      own instruction.
+    cited_for:
+      - "data/per_diem/gsa/us-ny-new-york-county.yaml — the five lodging_by_month bands and mie_daily for New York City (row ID 266)"
+      - "data/per_diem/gsa/us-ca-los-angeles-county.yaml — the flat lodging_flat_rate and mie_daily for Los Angeles (row ID 22)"
