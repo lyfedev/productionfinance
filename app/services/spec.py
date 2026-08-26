@@ -1,13 +1,17 @@
 """Route A business logic: budget refusal (D-35's two layers), spec
 validation, per-city curated status (D-40), New York's cited rule terms
-(D-37 item 3), and the explicit not-yet-derived statement (D-36).
+(D-37 item 3), and — from Phase 4 — a real, cited, basis-tagged dollar
+landed cost per candidate city (D-71).
 
-This module must never import `engine.pipeline` or
-`engine.qualifying_base`, and must never call `price_jurisdiction` or
-`compute_qualifying_base` directly or through a module alias — Route A
-returns no dollar figure derived from the visitor's spec (D-36). It only
-ever reads the New York rule file's TERMS via `engine.models.load_ruleset`,
-never prices anything through it.
+D-71 (Phase 4) deliberately REVERSES the boundary this module used to
+enforce: Route A now DOES reach `engine.pipeline` / `engine.qualifying_base`
+for every candidate city that resolves to a committed cost profile. The
+figure it derives is a MODELLED qualified spend, built from the visitor's
+own described production via the canonical budget — never a disclosed
+government figure (that's Route B's job, `app/services/validate.py`,
+untouched by this phase). `tests/test_route_a_basis_walk.py`'s D-63 gate
+is what keeps this honest: it walks the whole recursive `Figure` tree this
+module returns and fails if any node claims `confidence: "validated"`.
 
 Every filesystem path is anchored to `REPO_ROOT`, matching
 `app/services/validate.py`'s established convention — `deploy/prodfin.
@@ -25,15 +29,23 @@ from pydantic import BaseModel, ConfigDict
 
 from app.services._paths import REPO_ROOT, RULESET_PATH_BY_JURISDICTION
 from app.services.city_lookup import resolve_city_to_jurisdiction
+from engine.budget import build_canonical_budget
+from engine.city_profile_lookup import resolve_city_to_profile_stem
+from engine.cost_localizer import localize
+from engine.cost_profile import COST_PROFILES_DIR, load_cost_profile
+from engine.figure import Figure
+from engine.landed_cost import aggregate
 from engine.models import load_ruleset
+from engine.pipeline import price_jurisdiction
 from engine.spec import CrewHeadcount, CrewTier, ProductionSpec, resolve_crew_tier
 
 __all__ = [
     "REFUSAL_REASON",
     "REPO_ROOT",
     "RULESET_PATH_BY_JURISDICTION",
-    "SPEND_NOT_DERIVED",
+    "SPEND_ORIGIN_STATEMENT",
     "CityAssessment",
+    "CityCost",
     "RefusalResult",
     "RuleTerm",
     "SpecFormSubmission",
@@ -48,12 +60,12 @@ REFUSAL_REASON = (
     "production in each city, which makes the comparison circular"
 )
 
-# D-36 — the honest terminal state of Route A. Never replaced by a
-# spinner, a progress bar, a delay, or a number with an asterisk.
-SPEND_NOT_DERIVED = (
-    "Qualified spend is not derived from a described production in this phase. "
-    "Cost localization against each city's real local costs is Phase 4's goal. "
-    "This system reports that as a stated boundary, not an estimated placeholder."
+# D-73/D-32: the one sentence that keeps Route A and Route B visibly
+# distinct now that both return a credit figure. Rendered adjacent to the
+# number, not in a footer — see app/templates/spec_result.html.
+SPEND_ORIGIN_STATEMENT = (
+    "This qualified spend is MODELLED from the production you described — "
+    "it is not a figure any government has disclosed."
 )
 
 _RULE_TERM_BASIS = "quoted verbatim from the curated rule file; not a computed figure"
@@ -109,16 +121,33 @@ class RuleTerm:
 
 
 @dataclass(frozen=True)
+class CityCost:
+    """One candidate city's real, cited, basis-tagged landed cost (D-71).
+    `incentive_state` is `"modelled"` only when a committed cost profile's
+    `jurisdiction_id` also has a committed rule file — never a suggestion,
+    never a fabricated $0 (D-56)."""
+
+    city_id: str
+    cost_total: Figure
+    total_landed_cost: Figure
+    not_priced: tuple[str, ...]
+    permanent_exclusions: tuple[str, ...]
+    incentive_state: Literal["modelled", "not_modelled"]
+    incentive_state_reason: str
+
+
+@dataclass(frozen=True)
 class SpecResult:
     spec: ProductionSpec
     crew_headcount: CrewHeadcount
     city_assessments: tuple[CityAssessment, ...]
     rule_terms: tuple[RuleTerm, ...]
-    spend_not_derived: str
+    city_costs: tuple[CityCost, ...]
+    spend_origin: str
 
 
 def handle_spec_submission(raw: SpecFormSubmission) -> SpecResult | RefusalResult:
-    """D-35/D-36/D-37/D-40 in one ordered sequence:
+    """D-35/D-37/D-40/D-71 in one ordered sequence:
 
     1. Budget refusal check — BEFORE any `ProductionSpec` is constructed,
        so the refusal is what the visitor sees rather than a schema error
@@ -128,8 +157,14 @@ def handle_spec_submission(raw: SpecFormSubmission) -> SpecResult | RefusalResul
        range carrying its modelling-assumption basis — D-39).
     4. Resolve each candidate city to a curated status, never a suggestion.
     5. For any city resolving to `us-ny`, read New York's cited rule terms.
-    6. Return the echoed spec, the resolved crew headcount, the per-city
-       assessments, the rule terms, and the not-yet-derived statement.
+    6. Build the ONE canonical budget for this submission (COST-01 — never
+       once per city), and for each candidate city that resolves to a
+       committed cost profile, localize it and aggregate a landed cost —
+       pricing the incentive too when a rule file is also committed for
+       that profile's jurisdiction (D-71).
+    7. Return the echoed spec, the resolved crew headcount, the per-city
+       assessments, the rule terms, the per-city costs, and the D-73
+       spend-origin statement.
     """
     if raw.total_budget not in (None, ""):
         return RefusalResult(reason=REFUSAL_REASON, refused_field="total_budget")
@@ -163,13 +198,89 @@ def handle_spec_submission(raw: SpecFormSubmission) -> SpecResult | RefusalResul
     if "us-ny" in resolved_jurisdictions:
         rule_terms = tuple(_new_york_rule_terms())
 
+    city_costs = _price_candidate_cities(spec, crew_headcount)
+
     return SpecResult(
         spec=spec,
         crew_headcount=crew_headcount,
         city_assessments=tuple(city_assessments),
         rule_terms=rule_terms,
-        spend_not_derived=SPEND_NOT_DERIVED,
+        city_costs=city_costs,
+        spend_origin=SPEND_ORIGIN_STATEMENT,
     )
+
+
+def _price_candidate_cities(
+    spec: ProductionSpec, crew_headcount: CrewHeadcount
+) -> tuple[CityCost, ...]:
+    """D-71/COST-01: build the ONE canonical budget for this submission
+    (lazily, and only once — never rebuilt per city), then localize it
+    against every candidate city that resolves to a committed cost
+    profile. A city with no committed cost profile keeps its Phase 3
+    behaviour and produces no `CityCost` entry at all."""
+    budget = None
+    city_costs: list[CityCost] = []
+    seen_profile_stems: set[str] = set()
+
+    for raw_name in spec.candidate_cities:
+        profile_stem = resolve_city_to_profile_stem(raw_name)
+        if profile_stem is None or profile_stem in seen_profile_stems:
+            continue
+        seen_profile_stems.add(profile_stem)
+
+        profile_path = COST_PROFILES_DIR / f"{profile_stem}.yaml"
+        profile = load_cost_profile(profile_path)
+
+        if budget is None:
+            # Built exactly once for the whole submission — COST-01 made
+            # structural, never rebuilt for the next candidate city.
+            budget = build_canonical_budget(spec, crew_headcount)
+
+        localized = localize(budget, profile)
+
+        net_cash_figure: Figure | None = None
+        if profile.jurisdiction_id is not None and (
+            profile.jurisdiction_id in RULESET_PATH_BY_JURISDICTION
+        ):
+            ruleset = load_ruleset(RULESET_PATH_BY_JURISDICTION[profile.jurisdiction_id])
+            priced = price_jurisdiction(
+                ruleset,
+                localized.spend_breakdown.total_spend,
+                spend_breakdown=localized.spend_breakdown,
+                # D-71/D-63: this qualified spend is MODELLED from the
+                # visitor's described production, never reproduced against
+                # a government disclosure — it must never be able to reach
+                # "validated", however curated the jurisdiction's own
+                # status is. See engine/pipeline.py::price_programme.
+                spend_confidence="researched",
+            )
+            net_cash_figure = priced.total_net_cash
+            incentive_state: Literal["modelled", "not_modelled"] = "modelled"
+            incentive_reason = (
+                "this incentive figure is MODELLED from the described production's "
+                "localized spend, not a disclosed government figure"
+            )
+        else:
+            incentive_state = "not_modelled"
+            incentive_reason = (
+                "no curated rule file is committed for this city's jurisdiction yet"
+            )
+
+        landed = aggregate(localized, net_cash_figure)
+
+        city_costs.append(
+            CityCost(
+                city_id=profile.city_id,
+                cost_total=landed.cost_total,
+                total_landed_cost=landed.total_landed_cost,
+                not_priced=landed.not_priced,
+                permanent_exclusions=landed.permanent_exclusions,
+                incentive_state=incentive_state,
+                incentive_state_reason=incentive_reason,
+            )
+        )
+
+    return tuple(city_costs)
 
 
 def _new_york_rule_terms() -> list[RuleTerm]:

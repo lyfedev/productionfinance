@@ -1,0 +1,40 @@
+# data/union_rates/us-ny-crew.yaml — the one crew day-rate row this
+# plan's tracer prices, following data/crew_tiers.yaml's header shape.
+# This file must never declare a `confidence` or `status` key — that
+# vocabulary is reserved for jurisdictions/*.yaml rule files reproducing
+# an actual government disclosure (RD-02).
+#
+# basis: estimated (NOT sourced). No primary union rate card (IATSE Local
+# 52/600/700, or a New York production-crew CBA wage schedule) has been
+# fetched and archived under sources/unions/ with a sources/MANIFEST.yaml
+# entry in this session (D-58's "sourced" tier requires exactly that).
+# The day rate below is a round, defensible estimate informed by commonly
+# cited New York below-the-line production crew day-rate ranges reported
+# in trade press and production-budgeting guides — never a reproduced
+# union or government disclosure. Closing this to `sourced` requires
+# locating and archiving that primary rate card.
+#
+# Every numeric value below is a quoted YAML string (RD-01).
+
+basis: estimated
+provenance_note: >
+  Estimated New York production crew day rate. No primary union rate card
+  has been fetched and archived under sources/ in this session; the value
+  below is a round, defensible estimate informed by commonly cited
+  industry day-rate ranges for New York below-the-line production crew,
+  not a reproduced government or union disclosure. Labelled estimated,
+  never sourced or validated, until a primary rate card is archived under
+  sources/unions/ with a sources/MANIFEST.yaml entry.
+
+crew_day_rate:
+  line_id: "ny-crew-day-rate"
+  label: "Crew labour"
+  amount: "450.00"
+  currency: "USD"
+  rate_unit: "person-day"
+  method_note: >
+    Estimated from commonly cited New York below-the-line production
+    crew day-rate ranges reported in industry trade press and
+    production-budgeting guides (general crew day rates commonly cited
+    in the $400-$550 range for a New York studio production); no primary
+    union rate card was fetched and archived this session.

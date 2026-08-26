@@ -70,7 +70,36 @@
 </table>
 {% endif %}
 
-<h2>What this result does not include</h2>
-<p><strong>{{ result.spend_not_derived }}</strong></p>
+<h2>Cost per candidate city</h2>
+{% if result.city_costs %}
+<p><em>{{ result.spend_origin }}</em></p>
+{% for cost in result.city_costs %}
+<h3>{{ cost.city_id }}</h3>
+<table>
+  <tr>
+    <th>Total landed cost</th>
+    <td>
+      {{ cost.total_landed_cost.value }} {{ cost.total_landed_cost.unit }}
+      (<strong>{{ cost.total_landed_cost.basis }}</strong>)
+    </td>
+  </tr>
+  <tr>
+    <th>Cost total (pre-incentive)</th>
+    <td>
+      {{ cost.cost_total.value }} {{ cost.cost_total.unit }}
+      (<strong>{{ cost.cost_total.basis }}</strong>)
+    </td>
+  </tr>
+  <tr>
+    <th>Incentive</th>
+    <td>{{ cost.incentive_state }} &mdash; {{ cost.incentive_state_reason }}</td>
+  </tr>
+</table>
+<p><strong>Not priced by this model yet:</strong> {{ cost.not_priced | join(", ") }}</p>
+<p><strong>Permanently excluded from this model:</strong> {{ cost.permanent_exclusions | join(", ") }}</p>
+{% endfor %}
+{% else %}
+<p>No candidate city named resolves to a committed cost profile yet.</p>
+{% endif %}
 
 {% endblock %}

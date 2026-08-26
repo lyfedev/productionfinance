@@ -10,12 +10,14 @@ from pydantic import ValidationError
 
 from app.services.spec import (
     CityAssessment,
+    CityCost,
     RefusalResult,
     RuleTerm,
     SpecFormSubmission,
     SpecResult,
     handle_spec_submission,
 )
+from engine.figure_serialize import figure_to_dict
 
 __all__ = ["router"]
 
@@ -53,11 +55,26 @@ def _city_assessment_to_json(assessment: CityAssessment) -> dict:
     }
 
 
+def _city_cost_to_json(cost: CityCost) -> dict:
+    # `figure_to_dict` is the only path a Figure takes to JSON (Pitfall 4)
+    # — never `dataclasses.asdict`, which would crash on the Decimal/date
+    # fields Figure carries.
+    return {
+        "city_id": cost.city_id,
+        "cost_total": figure_to_dict(cost.cost_total),
+        "total_landed_cost": figure_to_dict(cost.total_landed_cost),
+        "not_priced": list(cost.not_priced),
+        "permanent_exclusions": list(cost.permanent_exclusions),
+        "incentive_state": cost.incentive_state,
+        "incentive_state_reason": cost.incentive_state_reason,
+    }
+
+
 def _spec_result_to_json(result: SpecResult) -> dict:
     # Every value converted to a JSON-native type before returning — the
-    # result carries no Decimal, but rule-term `date_checked` values are
-    # not JSON-native and would crash the default encoder with a 500 at
-    # encode time rather than a 422 if returned raw (Pitfall 4).
+    # result carries no bare Decimal, but rule-term `date_checked` values
+    # are not JSON-native and would crash the default encoder with a 500
+    # at encode time rather than a 422 if returned raw (Pitfall 4).
     return {
         "spec": result.spec.model_dump(),
         "crew_headcount": {
@@ -68,7 +85,8 @@ def _spec_result_to_json(result: SpecResult) -> dict:
         },
         "city_assessments": [_city_assessment_to_json(c) for c in result.city_assessments],
         "rule_terms": [_rule_term_to_json(t) for t in result.rule_terms],
-        "spend_not_derived": result.spend_not_derived,
+        "city_costs": [_city_cost_to_json(c) for c in result.city_costs],
+        "spend_origin": result.spend_origin,
     }
 
 

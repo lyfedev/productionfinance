@@ -26,7 +26,7 @@ from engine.credit import (
     assess_eligibility,
     compute_gross_credit,
 )
-from engine.figure import Figure, combined_confidence
+from engine.figure import Confidence, Figure, combined_confidence
 from engine.models import Jurisdiction, JurisdictionRuleSet, Programme
 from engine.net_cash import NetCashResult, convert_to_net_cash
 from engine.qualifying_base import SpendBreakdown, compute_qualifying_base
@@ -72,12 +72,43 @@ def price_programme(
     qualified_spend: Decimal,
     *,
     annual_cap_remaining: Decimal | None = None,
+    spend_confidence: Confidence = "validated",
+    spend_breakdown: SpendBreakdown | None = None,
 ) -> PricedProgramme:
-    """Price one programme through base -> credit -> net cash."""
-    confidence = "validated" if jurisdiction.status == "curated_validated" else "researched"
+    """Price one programme through base -> credit -> net cash.
+
+    ``spend_confidence`` (Phase 4, D-63) is the confidence of the
+    *qualified spend itself* — ``"validated"`` only when it was reproduced
+    exactly against a real government disclosure (Route B / the validation
+    pairs), ``"researched"`` for a spend Phase 4 modelled from a described
+    production (Route A). Without this parameter, a curated jurisdiction's
+    ``status == "curated_validated"`` alone would stamp every downstream
+    Figure ``confidence: "validated"`` even when the spend feeding it is a
+    modelled estimate — making D-63's basis-walk gate unachievable and
+    D-71's "Route A's qualified spend is never validated" false. The
+    default (``"validated"``) preserves every existing caller's behaviour
+    byte-for-byte: Route B and the validation-pair suite pass a disclosed,
+    government-matched spend and are entitled to the ``curated_validated``
+    tier exactly as before.
+
+    ``spend_breakdown`` (Phase 4, D-02) lets a caller supply a real
+    localized ``SpendBreakdown`` (labour/local-hires/core split) instead of
+    the flattened ``SpendBreakdown.from_total(qualified_spend)`` this
+    function has always built on its own. Both parameters are additive
+    with behaviour-preserving defaults — a deliberate, reasoned deviation
+    from 04-RESEARCH.md's "pipeline.py UNCHANGED" note, recorded in
+    04-01-SUMMARY.md.
+    """
+    confidence = (
+        "validated"
+        if jurisdiction.status == "curated_validated" and spend_confidence == "validated"
+        else "researched"
+    )
     source_url, date_checked = _primary_source_provenance(jurisdiction)
 
-    spend = SpendBreakdown.from_total(qualified_spend)
+    spend = spend_breakdown if spend_breakdown is not None else SpendBreakdown.from_total(
+        qualified_spend
+    )
     qualifying_base = compute_qualifying_base(
         programme,
         spend,
@@ -211,6 +242,8 @@ def price_jurisdiction(
     qualified_spend: Decimal,
     *,
     annual_cap_remaining_by_programme: dict[str, Decimal] | None = None,
+    spend_confidence: Confidence = "validated",
+    spend_breakdown: SpendBreakdown | None = None,
 ) -> PricedJurisdiction:
     """Price every declared programme in `ruleset`, resolve mutual
     exclusivity, and return the summed total. Summation is over independent
@@ -218,7 +251,12 @@ def price_jurisdiction(
     rates (A1.1). `PricedJurisdiction.programmes` carries every declared
     programme, in the order the rule file declares them, whether or not it
     contributes to the sum — grouping and ordering are read from the rule
-    file, never reordered by this function."""
+    file, never reordered by this function.
+
+    `spend_confidence` and `spend_breakdown` (Phase 4) are threaded straight
+    through to every `price_programme` call — see that function's docstring
+    for why `spend_confidence` exists and what its default preserves.
+    """
     remaining_by_programme = annual_cap_remaining_by_programme or {}
 
     priced: list[PricedProgramme] = [
@@ -227,6 +265,8 @@ def price_jurisdiction(
             programme,
             qualified_spend,
             annual_cap_remaining=remaining_by_programme.get(programme.id),
+            spend_confidence=spend_confidence,
+            spend_breakdown=spend_breakdown,
         )
         for programme in ruleset.programmes
     ]

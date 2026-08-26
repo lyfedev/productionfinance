@@ -1,6 +1,6 @@
 """Route A: budget refusal (D-35's two layers), per-city curated status
-(D-40), New York's cited rule terms (D-37), and the not-yet-derived
-statement (D-36).
+(D-40), New York's cited rule terms (D-37), and — from Phase 4 — a real,
+cited, basis-tagged dollar landed cost per candidate city (D-71).
 
 Service-level coverage lands here first (Task 3); HTTP-level `TestClient`
 coverage is added on top in Task 4, in this same file.
@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import fields, is_dataclass
+from decimal import Decimal
 
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
@@ -18,12 +19,12 @@ from app.main import app
 from app.services.city_lookup import resolve_city_to_jurisdiction
 from app.services.spec import (
     REFUSAL_REASON,
-    SPEND_NOT_DERIVED,
     RefusalResult,
     SpecFormSubmission,
     SpecResult,
     handle_spec_submission,
 )
+from engine.figure_serialize import figure_to_dict
 
 client = TestClient(app)
 
@@ -215,54 +216,92 @@ def test_no_rule_terms_when_no_ny_city_named():
 
 
 # ---------------------------------------------------------------------------
-# D-36 — no money derived from the spec, ever
+# D-71 — Route A now DOES derive money, and every figure it derives is
+# fully cited (basis, source_url, date_checked, confidence) — never a bare
+# number. This is the deliberate reversal of Phase 3's D-36 guard.
 # ---------------------------------------------------------------------------
 
 
-_FORBIDDEN_MONEY_KEYS = {
-    "qualified_spend",
-    "credit",
-    "credit_amount",
-    "gross_credit",
-    "net_cash",
-    "total_cost",
-    "landed_cost",
-}
+def _walk_figure_dicts(node: object) -> list[dict]:
+    """Collect every Figure-shaped dict reachable from `node`'s full JSON
+    tree (a Figure dict is identified structurally: it carries both
+    `figure_id` and `confidence` keys, matching `figure_to_dict`'s exact
+    output shape) — including the recursive `inputs` children."""
+    found: list[dict] = []
+    if isinstance(node, dict):
+        if "figure_id" in node and "confidence" in node:
+            found.append(node)
+            for child in node.get("inputs", []):
+                found.extend(_walk_figure_dicts(child))
+        else:
+            for value in node.values():
+                found.extend(_walk_figure_dicts(value))
+    elif isinstance(node, list):
+        for item in node:
+            found.extend(_walk_figure_dicts(item))
+    return found
 
 
-def test_route_a_derives_no_money():
+def test_route_a_derives_money_as_fully_cited_figures_only():
+    """Route A now legitimately derives money (D-71). The forbidden-key
+    assertion Phase 3 wrote is replaced by the honest successor: every
+    money value it derives must be a `Figure` dict — never a bare number —
+    and every such Figure carries `basis`, `source_url`, `date_checked` and
+    `confidence` keys (D-58/PRV-01/PRV-02)."""
     raw = SpecFormSubmission(**_base_form_kwargs(candidate_cities=["New York, NY"]))
     result = handle_spec_submission(raw)
     assert isinstance(result, SpecResult)
+    assert result.city_costs, "expected at least one CityCost for a New York candidate"
 
-    plain = _to_plain(result)
-    all_keys: set[str] = set()
-    _collect_keys(plain, all_keys)
-    assert all_keys.isdisjoint(_FORBIDDEN_MONEY_KEYS)
+    figure_dicts: list[dict] = []
+    for cost in result.city_costs:
+        figure_dicts.extend(_walk_figure_dicts(figure_to_dict(cost.cost_total)))
+        figure_dicts.extend(_walk_figure_dicts(figure_to_dict(cost.total_landed_cost)))
+    assert len(figure_dicts) > 1, "expected more than one Figure node in the response tree"
+
+    for figure_dict in figure_dicts:
+        for required_key in ("basis", "source_url", "date_checked", "confidence"):
+            assert required_key in figure_dict, (figure_dict["label"], required_key)
 
 
-def test_route_a_service_never_imports_the_pricing_path():
+def test_route_a_service_reaches_the_pricing_path():
+    """D-71 deliberately REVERSES Phase 3's D-36 import-boundary guard:
+    `app.services.spec` now DOES reach `engine.pipeline` for any candidate
+    city with both a committed cost profile and a committed rule file.
+    D-63's basis-walk gate (the full, non-vacuous version lives in
+    `tests/test_route_a_basis_walk.py`) is what replaces the deleted guard
+    as the real honesty check — this test proves the reversal is real by
+    asserting the module actually imports `price_jurisdiction`, and proves
+    the replacement gate holds by walking this call's own output tree for
+    a `confidence: "validated"` node."""
     import app.services.spec as spec_service
-
-    module_names = {
-        getattr(value, "__module__", None) for value in vars(spec_service).values()
-    }
-    assert "engine.pipeline" not in module_names
-    assert "engine.qualifying_base" not in module_names
-
     from engine.pipeline import price_jurisdiction
-    from engine.qualifying_base import compute_qualifying_base
 
-    for value in vars(spec_service).values():
-        assert value is not price_jurisdiction
-        assert value is not compute_qualifying_base
+    assert spec_service.price_jurisdiction is price_jurisdiction
 
-
-def test_spend_not_derived_statement_present():
-    raw = SpecFormSubmission(**_base_form_kwargs())
+    raw = SpecFormSubmission(**_base_form_kwargs(candidate_cities=["New York, NY"]))
     result = handle_spec_submission(raw)
     assert isinstance(result, SpecResult)
-    assert result.spend_not_derived == SPEND_NOT_DERIVED
+    assert result.city_costs
+
+    figure_dicts: list[dict] = []
+    for cost in result.city_costs:
+        figure_dicts.extend(_walk_figure_dicts(figure_to_dict(cost.total_landed_cost)))
+    assert len(figure_dicts) > 5, "expected a non-trivial Figure tree, not a flattened one"
+    for figure_dict in figure_dicts:
+        assert figure_dict["confidence"] != "validated", figure_dict["label"]
+
+
+def test_route_a_spend_origin_states_it_is_modelled_not_disclosed():
+    """D-73/D-32: the only thing distinguishing Route A from Route B now
+    that both return a credit figure is where the qualified spend came
+    from — and the page must make that visible next to the number."""
+    raw = SpecFormSubmission(**_base_form_kwargs(candidate_cities=["New York, NY"]))
+    result = handle_spec_submission(raw)
+    assert isinstance(result, SpecResult)
+    lowered = result.spend_origin.lower()
+    assert "modelled" in lowered
+    assert "not" in lowered and "disclosed" in lowered
 
 
 # ---------------------------------------------------------------------------
@@ -381,3 +420,66 @@ def test_index_route_a_link_resolves_to_200():
 
     spec_link_response = client.get(spec_hrefs[0])
     assert spec_link_response.status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# D-71 — the JSON contract: real dollars, cited, basis-tagged, over HTTP
+# ---------------------------------------------------------------------------
+
+
+def test_post_api_v1_spec_new_york_candidate_returns_real_landed_cost():
+    response = client.post(
+        "/api/v1/spec", json=_valid_json_body(candidate_cities=["New York, NY"])
+    )
+    assert response.status_code == 200
+    body = response.json()
+
+    assert "spend_not_derived" not in body
+    assert body["city_costs"], "expected a city_costs entry for a New York candidate"
+
+    city_cost = body["city_costs"][0]
+    total_landed_cost = city_cost["total_landed_cost"]
+    value = Decimal(total_landed_cost["value"])
+    assert value != Decimal("0")
+    assert total_landed_cost["basis"] is not None
+
+    # D-60: an unpriced category is a named entry in `not_priced`, never a
+    # fabricated $0 line item.
+    assert set(city_cost["not_priced"]).issubset(
+        {
+            "labour",
+            "fringe",
+            "housing",
+            "per_diem",
+            "flights",
+            "stages",
+            "equipment",
+            "permits",
+            "locations",
+            "trucking",
+        }
+    )
+    assert "labour" not in city_cost["not_priced"], "the tracer's one line prices labour"
+
+    assert "modelled" in body["spend_origin"].lower()
+    assert "disclosed" in body["spend_origin"].lower()
+
+    # Every cost-side Figure (the D-58 basis axis's own subject matter)
+    # carries a non-null basis, and the cost total's basis is the weakest
+    # among its cost-line inputs — never a fallback default (D-59).
+    cost_side_nodes = _walk_figure_dicts(city_cost["cost_total"])
+    assert len(cost_side_nodes) > 1
+    assert all(node["basis"] is not None for node in cost_side_nodes)
+    assert city_cost["cost_total"]["basis"] == "estimated"
+
+
+def test_no_spend_not_derived_symbol_anywhere_in_app_or_engine():
+    import subprocess
+
+    result = subprocess.run(
+        ["grep", "-rn", "SPEND_NOT_DERIVED", "app/", "engine/"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.stdout == "", result.stdout

@@ -36,11 +36,26 @@ from decimal import Decimal
 from typing import Literal
 from uuid import uuid4
 
-__all__ = ["Confidence", "Figure", "combined_confidence"]
+__all__ = ["Basis", "Confidence", "Figure", "combined_basis", "combined_confidence"]
 
 Confidence = Literal["validated", "researched"]
 
 _LEGAL_CONFIDENCE_VALUES = ("validated", "researched")
+
+# D-58: a third, orthogonal provenance axis for cost-side figures — *where
+# the number came from*, never conflated with `Confidence` (RD-02) or with
+# `Jurisdiction.sources[].confidence`'s four-tier vocabulary. `sourced` is
+# strongest, `modelling_assumption` is weakest.
+Basis = Literal["sourced", "estimated", "modelling_assumption"]
+
+_LEGAL_BASIS_VALUES = ("sourced", "estimated", "modelling_assumption")
+
+# Weakest-wins ordering for `combined_basis` — lower number is weaker.
+_BASIS_WEAKNESS_ORDER: dict[str, int] = {
+    "modelling_assumption": 0,
+    "estimated": 1,
+    "sourced": 2,
+}
 
 
 def _new_figure_id() -> str:
@@ -57,9 +72,17 @@ class Figure:
 
     All fields are keyword-only (``kw_only=True``) so the required/optional
     split below is enforceable regardless of declaration order — every field
-    except ``figure_id`` is required; passing none of them, or omitting
-    ``confidence`` specifically, raises ``TypeError`` from the generated
-    ``__init__``.
+    except ``figure_id`` and ``basis`` is required; passing none of them, or
+    omitting ``confidence`` specifically, raises ``TypeError`` from the
+    generated ``__init__``.
+
+    ``basis`` (D-58) defaults to ``None`` because every pre-Phase-4
+    construction site (``engine/credit.py``, ``engine/net_cash.py``,
+    ``engine/qualifying_base.py``, ``engine/pipeline.py``) omits it — it is
+    the incentive side's axis-that-does-not-apply, not an unset cost claim.
+    Every cost-side ``Figure`` constructed from Phase 4 onward must supply a
+    real ``Basis`` value; ``combined_basis`` below refuses to paper over a
+    missing one.
     """
 
     value: Decimal
@@ -72,12 +95,18 @@ class Figure:
     confidence: Confidence
     live_fetched_this_run: bool
     figure_id: str = field(default_factory=_new_figure_id)
+    basis: Basis | None = None
 
     def __post_init__(self) -> None:
         if self.confidence not in _LEGAL_CONFIDENCE_VALUES:
             raise ValueError(
                 f"Figure.confidence must be one of {_LEGAL_CONFIDENCE_VALUES}, "
                 f"got {self.confidence!r}"
+            )
+        if self.basis is not None and self.basis not in _LEGAL_BASIS_VALUES:
+            raise ValueError(
+                f"Figure.basis must be one of {_LEGAL_BASIS_VALUES} or None, "
+                f"got {self.basis!r}"
             )
 
     def with_step(self, line: str, *, value: Decimal | None = None) -> "Figure":
@@ -107,3 +136,33 @@ def combined_confidence(inputs: Sequence[Figure]) -> Confidence:
     if any(figure.confidence == "researched" for figure in inputs):
         return "researched"
     return "validated"
+
+
+def combined_basis(inputs: Sequence[Figure]) -> Basis:
+    """Derive a combined ``basis`` from a sequence of input Figures (D-58).
+
+    Weakest-wins, mirroring ``combined_confidence`` — a total containing one
+    ``modelling_assumption`` input reports ``modelling_assumption``, never a
+    stronger tier. Ordering, weakest to strongest: ``modelling_assumption``,
+    ``estimated``, ``sourced``.
+
+    **Landmine (D-59), stated explicitly:** ``combined_confidence`` above
+    returns ``"validated"`` for an empty sequence — correct for its own use,
+    and a trap if copied here. ``combined_basis`` does the opposite: an
+    input list containing no basis-carrying Figure (either because it is
+    empty, or because every Figure in it has ``basis=None`` — the
+    incentive-side default) raises ``ValueError`` rather than silently
+    defaulting to ``"sourced"`` or any other value. A cost total that could
+    report ``sourced`` while its inputs are unlabelled is the same class of
+    dishonesty as a modelling assumption wearing a ``validated`` tier.
+    """
+    bases = [figure.basis for figure in inputs if figure.basis is not None]
+    if not bases:
+        raise ValueError(
+            "combined_basis() received no basis-carrying input (D-59) — an "
+            "empty sequence, or a sequence whose members all have "
+            "basis=None, must raise rather than default to a fallback "
+            "value; unlike combined_confidence's empty-sequence default, "
+            "combined_basis never returns 'sourced' (or any value) here"
+        )
+    return min(bases, key=lambda basis: _BASIS_WEAKNESS_ORDER[basis])
