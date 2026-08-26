@@ -8,6 +8,7 @@ from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
 from app.services.validate import (
+    MalformedFixtureError,
     UnknownPairError,
     ValidateResult,
     reproduce_disclosure,
@@ -51,6 +52,15 @@ def get_validate_json(pair_id: str) -> dict:
         result = reproduce_disclosure(pair_id)
     except UnknownPairError as exc:
         raise HTTPException(status_code=404, detail=f"unknown validation pair: {exc}") from exc
+    except MalformedFixtureError as exc:
+        # A handled, readable 500 — never an unhandled crash with a bare
+        # stack trace — for a repo-committed fixture-authoring bug (see
+        # MalformedFixtureError's docstring). This is a server-side data
+        # problem, not the visitor's fault, so the status code is
+        # genuinely 500; what matters is that it is caught and readable.
+        raise HTTPException(
+            status_code=500, detail=f"validation pair fixture is malformed: {exc}"
+        ) from exc
     return _validate_result_to_json(result)
 
 
@@ -62,6 +72,10 @@ def get_validate_html(request: Request, pair_id: str) -> HTMLResponse:
         result = reproduce_disclosure(pair_id)
     except UnknownPairError as exc:
         raise HTTPException(status_code=404, detail=f"unknown validation pair: {exc}") from exc
+    except MalformedFixtureError as exc:
+        raise HTTPException(
+            status_code=500, detail=f"validation pair fixture is malformed: {exc}"
+        ) from exc
     return templates.TemplateResponse(
         request=request,
         name="validate_result.html",
@@ -106,6 +120,24 @@ def post_validate_form(request: Request, pair_id: str = Form(...)) -> HTMLRespon
                 "rejection_message": (
                     f"{pair_id!r} cannot be priced through this route. Choose one of the "
                     "selectable pairs listed below."
+                ),
+            },
+        )
+    except MalformedFixtureError as exc:
+        # Never a 500 and never a stack trace on the POST path either — a
+        # fixture-authoring bug is the project's fault, not the
+        # visitor's, but the same readable re-render behavior applies.
+        return templates.TemplateResponse(
+            request=request,
+            name="validate_form.html",
+            context={
+                "pairs": selectable_pairs(),
+                "public_path": PUBLIC_PATH,
+                "rejected_pair_id": pair_id,
+                "rejection_message": (
+                    f"{pair_id!r} could not be reproduced: its fixture data is "
+                    f"malformed ({exc}). Choose one of the selectable pairs listed "
+                    "below."
                 ),
             },
         )

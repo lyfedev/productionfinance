@@ -29,6 +29,7 @@ __all__ = [
     "REPO_ROOT",
     "RULESET_PATH_BY_JURISDICTION",
     "VALIDATION_PAIRS_DIR",
+    "MalformedFixtureError",
     "SelectablePair",
     "UnknownPairError",
     "ValidateResult",
@@ -50,6 +51,21 @@ RULESET_PATH_BY_JURISDICTION: dict[str, Path] = {
 class UnknownPairError(Exception):
     """Raised by `reproduce_disclosure` when `pair_id` is not a member of
     the closed set of currently-selectable validation pairs (T-03-01)."""
+
+
+class MalformedFixtureError(Exception):
+    """Raised by `reproduce_disclosure` when a validation-pair fixture's
+    own internal structure is inconsistent with its declared ruleset — a
+    missing or malformed `assertion` block, an `assertion.mode` this
+    function does not recognize, a `bounded` assertion missing
+    `tolerance_bps`, a `program_id` that matches no priced programme in
+    the ruleset, or a `qualified_spend` of zero (making the bounded-
+    tolerance arithmetic undefined). These are repo-committed
+    fixture-authoring bugs, not attacker input and not a rule file that
+    legitimately cannot complete (see the `price_jurisdiction` `ValueError`
+    handling above, which is WINDOWS.md #3's distinct honest-refusal
+    path) — but a bad fixture must still never surface as an unhandled
+    500; callers should catch this and render a readable refusal."""
 
 
 @dataclass(frozen=True)
@@ -147,8 +163,14 @@ def reproduce_disclosure(pair_id: str) -> ValidateResult:
     ruleset = load_ruleset(RULESET_PATH_BY_JURISDICTION[pair["jurisdiction_id"]])
     qualified_spend = Decimal(pair["qualified_spend"])
     disclosed = Decimal(pair["credit_amount"])
-    assertion = pair["assertion"]
-    mode = assertion["mode"]
+    assertion = pair.get("assertion")
+    if not isinstance(assertion, dict):
+        raise MalformedFixtureError(
+            f"{pair_id}: fixture is missing a valid 'assertion' block"
+        )
+    mode = assertion.get("mode")
+    if mode is None:
+        raise MalformedFixtureError(f"{pair_id}: assertion is missing 'mode'")
     tolerance_bps = assertion.get("tolerance_bps")
 
     common_kwargs = {
@@ -182,13 +204,14 @@ def reproduce_disclosure(pair_id: str) -> ValidateResult:
             refusal_reason=str(exc),
         )
 
+    program_id = pair.get("program_id")
     priced_programme = next(
-        (pp for pp in priced.programmes if pp.programme_id == pair["program_id"]), None
+        (pp for pp in priced.programmes if pp.programme_id == program_id), None
     )
     if priced_programme is None:
-        raise ValueError(
+        raise MalformedFixtureError(
             f"{pair['production_title']!r} ({pair_id}): no priced programme matches "
-            f"program_id {pair['program_id']!r} — check the ruleset's programme id "
+            f"program_id {program_id!r} — check the ruleset's programme id "
             "against the fixture"
         )
 
@@ -201,7 +224,14 @@ def reproduce_disclosure(pair_id: str) -> ValidateResult:
         verdict = "exact match" if computed == disclosed else "MISMATCH"
     elif mode == "bounded":
         if tolerance_bps is None:
-            raise ValueError(f"{pair_id}: assertion.mode is 'bounded' but tolerance_bps is missing")
+            raise MalformedFixtureError(
+                f"{pair_id}: assertion.mode is 'bounded' but tolerance_bps is missing"
+            )
+        if qualified_spend == 0:
+            raise MalformedFixtureError(
+                f"{pair_id}: cannot compute a bounded-tolerance verdict — disclosed "
+                "qualified_spend is 0"
+            )
         implied_bps = (abs(disclosed - computed) / qualified_spend) * Decimal(10000)
         if implied_bps <= Decimal(tolerance_bps):
             verdict = (
@@ -211,7 +241,7 @@ def reproduce_disclosure(pair_id: str) -> ValidateResult:
         else:
             verdict = "MISMATCH"
     else:
-        raise ValueError(f"{pair_id}: unrecognized assertion.mode {mode!r}")
+        raise MalformedFixtureError(f"{pair_id}: unrecognized assertion.mode {mode!r}")
 
     return ValidateResult(
         **common_kwargs,

@@ -10,13 +10,34 @@ exposed through the HTTP boundary instead of a direct `price_jurisdiction`
 call.
 """
 
+import copy
 import json
 
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.services import validate as validate_service
 
 client = TestClient(app)
+
+
+def _mutate_ny_anora_fixture(monkeypatch, mutate):
+    """Regression harness for WR-03: patch `_load_fixture` so the real,
+    repo-committed `ny_anora.yaml` fixture is loaded and then mutated
+    in-memory only — no malformed fixture is ever committed to the repo.
+    `selectable_pairs()` and `reproduce_disclosure` both call the
+    module-level `_load_fixture` name, so patching the module attribute
+    affects both call sites."""
+    original_load = validate_service._load_fixture
+
+    def _patched(path):
+        data = original_load(path)
+        if path.stem == "ny_anora":
+            data = copy.deepcopy(data)
+            mutate(data)
+        return data
+
+    monkeypatch.setattr(validate_service, "_load_fixture", _patched)
 
 
 def test_anora_reproduces_exactly_via_route():
@@ -148,6 +169,67 @@ def test_post_validate_with_unselectable_pair_names_it_and_states_reason_not_500
     response = client.post("/validate", data={"pair_id": "ct_christmas_always"})
     assert response.status_code != 500
     assert "ct_christmas_always" in response.text
+
+
+def test_malformed_fixture_missing_assertion_returns_500_not_a_crash(monkeypatch):
+    # Regression for WR-03: a fixture missing its `assertion` block used
+    # to raise a bare KeyError, propagating out of reproduce_disclosure
+    # unhandled. It must now be a caught MalformedFixtureError, surfaced
+    # as a handled, readable 500 — never an unhandled crash.
+    _mutate_ny_anora_fixture(monkeypatch, lambda data: data.pop("assertion"))
+    response = client.get("/api/v1/validate/ny_anora")
+    assert response.status_code == 500
+    assert "assertion" in response.json()["detail"]
+
+
+def test_malformed_fixture_unrecognized_mode_returns_500_not_a_crash(monkeypatch):
+    _mutate_ny_anora_fixture(
+        monkeypatch, lambda data: data["assertion"].update({"mode": "approximate"})
+    )
+    response = client.get("/api/v1/validate/ny_anora")
+    assert response.status_code == 500
+    assert "approximate" in response.json()["detail"]
+
+
+def test_malformed_fixture_bounded_missing_tolerance_returns_500_not_a_crash(monkeypatch):
+    _mutate_ny_anora_fixture(
+        monkeypatch, lambda data: data["assertion"].update({"mode": "bounded"})
+    )
+    response = client.get("/api/v1/validate/ny_anora")
+    assert response.status_code == 500
+    assert "tolerance_bps" in response.json()["detail"]
+
+
+def test_malformed_fixture_unmatched_program_id_returns_500_not_a_crash(monkeypatch):
+    _mutate_ny_anora_fixture(
+        monkeypatch, lambda data: data.update({"program_id": "does-not-exist"})
+    )
+    response = client.get("/api/v1/validate/ny_anora")
+    assert response.status_code == 500
+    assert "does-not-exist" in response.json()["detail"]
+
+
+def test_malformed_fixture_zero_qualified_spend_bounded_returns_500_not_a_crash(monkeypatch):
+    def _mutate(data):
+        data["assertion"].update({"mode": "bounded", "tolerance_bps": 10})
+        data["qualified_spend"] = "0"
+
+    _mutate_ny_anora_fixture(monkeypatch, _mutate)
+    response = client.get("/api/v1/validate/ny_anora")
+    assert response.status_code == 500
+    assert "qualified_spend" in response.json()["detail"]
+
+
+def test_post_validate_with_malformed_fixture_never_500s_and_names_reason(monkeypatch):
+    # Even though a fixture-authoring bug is the project's fault, not the
+    # visitor's, the POST /validate HTML path must still never show a
+    # bare 500 — it re-renders the form with a readable reason, matching
+    # the existing UnknownPairError re-render behavior.
+    _mutate_ny_anora_fixture(monkeypatch, lambda data: data.pop("assertion"))
+    response = client.post("/validate", data={"pair_id": "ny_anora"})
+    assert response.status_code != 500
+    assert "malformed" in response.text
+    assert "ny_anora" in response.text
 
 
 def test_landing_page_shows_both_routes_and_health_link():
