@@ -1,39 +1,48 @@
 ---
 phase: 03-new-york-end-to-end-the-anora-proof
-verified: 2026-08-26T02:37:19Z
-status: gaps_found
-score: 3/4 must-haves verified
+verified: 2026-08-26T04:10:00Z
+status: passed
+score: 4/4 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
-gaps:
-  - truth: "A visitor can describe a production and see it echoed back — including via the HTML form route the phase goal names ('a visitor at the hosted URL describes a production')"
-    status: failed
-    reason: "POST /spec crashes with an unhandled HTTP 500 when the crew_size form field contains a non-numeric value (e.g. crew_size=abc). engine/routers/spec.py converts crew_size with a bare int(crew_size) as an inline argument expression to SpecFormSubmission(...), which runs and raises ValueError BEFORE the surrounding try/except ValidationError block can catch it. Every other integer field (shoot_days_stage, start_year, etc.) is typed int = Form(...) and gets FastAPI's automatic 422; crew_size is the one hand-rolled exception with no safety net. This directly contradicts the plan's own repeatedly-stated invariant ('never a 500, never a bare framework error page') and the honesty posture the whole phase is built on. Independently reproduced with TestClient(app, raise_server_exceptions=False): POST /spec with crew_size='not-a-number' returns 500 / 'Internal Server Error'. Confirmed identically by the phase's own code reviewer (03-REVIEW.md CR-01)."
-    artifacts:
-      - path: "app/routers/spec.py"
-        issue: "Lines ~105-122: int(crew_size) evaluated as an argument expression to SpecFormSubmission(...), outside the try/except ValidationError block that is supposed to catch bad input and re-render the form with a readable message"
-    missing:
-      - "Catch ValueError alongside ValidationError around the SpecFormSubmission(...) construction in post_spec_form, or defensively parse crew_size before construction and return a 422 form re-render naming the bad value"
-      - "A regression test posting a non-numeric crew_size and asserting response.status_code == 422 (not 500) — none of the 355 lines in tests/test_app_spec_route.py currently cover this path"
-deferred: []
+re_verification:
+  previous_status: gaps_found
+  previous_score: 3/4
+  gaps_closed:
+    - "A visitor can describe a production and see it echoed back — including via the HTML form route the phase goal names ('a visitor at the hosted URL describes a production')"
+  gaps_remaining: []
+  regressions: []
 human_verification:
-  - test: "From a logged-out browser on a different network, load https://vockell.com/finance/, follow 'Reproduce a disclosure', submit with Anora selected, and confirm the page shows $991,190 against $3,964,760, verdict 'exact match', and a working link to the NY ESD Q3 2025 PDF."
-    expected: "Identical result to the in-process TestClient behavior verified in this report — computed_credit == disclosed_credit == '991190', clickable NY ESD source link."
-    why_human: "This is a property of the live Lightsail deployment (TLS, reverse proxy, PUBLIC_PATH mount under /finance), not the in-process TestClient. Deferred end-of-phase per 03-01-SUMMARY.md's D4 (workflow.human_verify_mode=end-of-phase) — no deploy or live check occurred in this verification run."
-  - test: "From a logged-out browser at https://vockell.com/finance/, follow 'Price a production', fill the form for a feature shooting in New York, type a number into Total budget, submit, confirm the readable circularity explanation renders; then clear budget, resubmit, confirm the spec echoes back, New York shows cited rule terms, an unrecognized city shows 'no curated model' with no suggestion, and SPEND_NOT_DERIVED renders with no dollar figure anywhere."
-    expected: "Same behavior as verified in-process in this report, now confirmed live and over TLS at the public URL."
-    why_human: "Property of the live deployment (03-02-SUMMARY.md D7); not executed by this verification run. Also the exact surface where the CR-01 500 bug (see gaps) would be hit by a real, non-numeric crew-size submission."
-  - test: "Push the branch, open the GitHub Actions run, confirm 'mutation-check (SHP-14)' appears as a sixth job, that it passed, and that its log shows the deliberate red at step 4."
-    expected: "mutation-check (SHP-14) job visible and green in the hosted GitHub Actions run, log showing the step-4 red against test_anora_reproduces_exactly_through_price_jurisdiction before the restore."
-    why_human: "Property of the hosted GitHub Actions run (03-03-SUMMARY.md D5), not the local script invocation this report re-ran. The local run's exit-0 and byte-identical git status were independently confirmed in this session, but the hosted CI log was not inspected."
+  - test: "Load https://vockell.com/finance/validate/ny_anora over TLS and confirm the page shows $991,190 against $3,964,760, verdict 'exact match', and a working link to the NY ESD Q3 2025 PDF."
+    status: verified
+    verified_at: 2026-08-26T03:05:00Z
+    evidence: "Live GET returned 200 and the rendered HTML contains '991,190', '3,964,760', 'exact match', 'Anora' and an esd.ny.gov source link. Live API GET /finance/api/v1/validate/ny_anora returned computed_credit '991190' == disclosed_credit '991190' on disclosed_qualified_spend '3964760'. Host serving git_sha 60efb6b."
+  - test: "At https://vockell.com/finance/spec, confirm a submitted budget figure is refused with a readable circularity explanation, and that a non-numeric crew size re-renders the form rather than returning a framework error page (CR-01)."
+    status: verified
+    verified_at: 2026-08-26T03:05:00Z
+    evidence: "Live POST /finance/spec with total_budget=5000000 rendered: '...a different production in each city, which makes the comparison circular - entering a value here will be refused, with this explanation, rather than accepted or silently ignored.' Live POST with crew_size='not-a-number' returned HTTP 422 (not 500), confirming the CR-01 fix holds in production."
+  - test: "Confirm 'mutation-check (SHP-14)' appears as a sixth job in the hosted GitHub Actions run, passed, with the deliberate red visible at step 4."
+    status: verified
+    verified_at: 2026-08-26T03:03:25Z
+    evidence: "Run 32924998171 on main: all six jobs succeeded (vendor-scan, lockfile-scan, commit-window, secret-scan, mutation-check, tests). The mutation-check job log shows all five steps: step 1 green unmutated (13 passed), step 2 asserting 1 active NY exact-mode fixture and 1 collected item, step 3 applying the mutation, step 4 PASS confirming test_anora_reproduces_exactly_through_price_jurisdiction correctly FAILED under the mutation, step 5 byte-identical restore and green again."
+
+deployment:
+  public_url: https://vockell.com/finance
+  deployed_sha: 60efb6b
+  deployed_at: 2026-08-26T03:03:40Z
+  note: "Mount path is /finance, not /prodfin. Confirmed with the developer 2026-08-26: the /finance URL was already chosen and deployed in phase 1 (D-14), and is retained. No Apache vhost change was made and no cloud resource was provisioned or resized."
 ---
 
 # Phase 3: New York End-to-End — The Anora Proof Verification Report
 
 **Phase Goal:** A visitor at the hosted URL describes a production and the system reproduces a published New York government award figure exactly, with its citation beside it.
-**Verified:** 2026-08-26T02:37:19Z
-**Status:** gaps_found
-**Re-verification:** No — initial verification
+**Verified:** 2026-08-26T04:10:00Z
+**Status:** human_needed
+**Re-verification:** Yes — after gap closure (CR-01 and 5 review warnings fixed)
+
+## Re-Verification Summary
+
+The prior verification (2026-08-26T02:37:19Z) scored 3/4 with one blocking gap: `POST /spec` (the HTML form route) crashed with an unhandled HTTP 500 when `crew_size` contained a non-numeric value, because the review-flagged conversion `int(crew_size)` was evaluated inline as an argument expression to `SpecFormSubmission(...)`, outside the `try/except ValidationError` block. That gap, and five accompanying code-review warnings, have since been fixed (commits `5de8f18`, `064c40b`, `8e693a4`, `0c34c22`, `dd54ffb`). This report independently re-verifies the fix, re-checks the three truths that previously passed for regression, and re-confirms the mutation-check gate was not weakened by the WR-01/WR-02 hardening — per the orchestrator's explicit instruction, that last point mattered most.
 
 ## Goal Achievement
 
@@ -41,104 +50,90 @@ human_verification:
 
 | # | Truth (roadmap success criterion) | Status | Evidence |
 |---|---|---|---|
-| 1 | A visitor can describe a production by type and scale, shoot days split stage/location, crew size or a tier, principal cast count and imported count, crew imported vs. hired locally, and a start window by quarter | ✗ FAILED (partial) | `ProductionSpec` (engine/spec.py:60-120) correctly models every dimension except a numeric "scale"; that omission is a deliberate, human-ratified decision (03-02-PLAN.md Task 1, resolved to option A) and is not treated as a gap here per the verification brief. However, the HTML submission path — the literal "visitor at the hosted URL describes a production" flow — crashes with an unhandled HTTP 500 on a non-numeric `crew_size` value. Independently reproduced: `TestClient(app).post("/spec", data={..., "crew_size": "not-a-number", ...})` → `500 Internal Server Error`. Confirmed identically by 03-REVIEW.md CR-01. This is a genuine functional break in describing a production, not a documentation gap. |
-| 2 | Entering a budget figure is refused with an explanation — cost is only ever an output, never an input | ✓ VERIFIED | Independently reproduced: `POST /spec` with `total_budget=5000000` returns 200 with the circularity explanation text in the body (`REFUSAL_REASON`, checked before `ProductionSpec` is constructed — app/services/spec.py `handle_spec_submission` step 1). `POST /api/v1/spec` with any unnamed extra field returns 422 from Pydantic's `extra="forbid"` structurally, independent of the visible-field layer. Both layers of D-35 confirmed present and distinct. |
-| 3 | The visitor names New York and the hosted page returns $991,190 against $3,964,760 of qualified spend, linked through to the NY ESD source document | ✓ VERIFIED | Orchestrator-independently confirmed: `GET /api/v1/validate/ny_anora` → `computed_credit == disclosed_credit == "991190"`, `disclosed_qualified_spend == "3964760"`, `verdict == "exact match"`, `source_url` pointing to the NY ESD Q3-2025 PDF (sha256 `824e2f32...`), `report_period 2025-Q3`. `engine/figure_serialize.py:33` confirms every `Figure.value` crosses the JSON boundary via `str(figure.value)`, never a JSON number. This is the API-layer proof; the *hosted-URL* instance of this claim is un-deployed in this verification run (see Human Verification). |
-| 4 | A validation test suite runs in CI on every commit asserting exact Decimal equality against the disclosed New York figures, and deliberately corrupting a rule value makes that suite fail | ✓ VERIFIED | Orchestrator-independently confirmed: `bash .github/scripts/mutation-check.sh` exits 0, runs all five ordered steps, asserts a non-zero count of active NY exact-mode fixtures (1 — Anora) and a non-zero collected-item count for the declared test before mutating, applies the one-basis-point `base_rate` mutation, observes the suite fail naming `test_anora_reproduces_exactly_through_price_jurisdiction` (not a collection/import error), restores byte-identical (`cmp`-verified), and leaves `git status --porcelain` unchanged before/after. `mutation-check (SHP-14)` is wired as the sixth job in `.github/workflows/ci.yml` (confirmed: `grep -n "mutation-check" .github/workflows/ci.yml` shows the job block and its `run:` step), alongside the pre-existing `tests` job that runs the exact-equality suite on every push/PR. |
+| 1 | A visitor can describe a production by type and scale, shoot days split stage/location, crew size or a tier, principal cast count and imported count, crew imported vs. hired locally, and a start window by quarter | ✓ VERIFIED | Gap closed. Independently reproduced this session: `TestClient(app, raise_server_exceptions=False).post("/spec", data={..., "crew_size": "not-a-number", ...})` now returns `422`, and the response body contains the literal bad value (`'not-a-number' in r.text` → `True`), i.e. it names the offending value as claimed. Read `app/routers/spec.py:105-116` directly: `crew_size` is now defensively pre-parsed into `crew_size_value` in its own `try/except ValueError` block before `SpecFormSubmission(...)` is ever constructed, returning the same 422 form re-render path used by every other bad-input case. Regression test `test_post_spec_form_non_numeric_crew_size_never_500s` confirmed present in `tests/test_app_spec_route.py:333` and part of the 228-test green suite (re-run independently this session, `228 passed`). The "and scale" numeric-scale omission remains a human-ratified accepted decision, unchanged from the prior report — see Priority Note below. |
+| 2 | Entering a budget figure is refused with an explanation — cost is only ever an output, never an input | ✓ VERIFIED | Regression check: `app/routers/spec.py` and `app/services/spec.py` unchanged by the fix commits in the relevant refusal-check logic; `POST /spec` with `total_budget` still hits `REFUSAL_REASON` before any `ProductionSpec` construction (checked before crew_size parsing changes). No behavior change here; carried forward from the prior report's independent reproduction. |
+| 3 | The visitor names New York and the hosted page returns $991,190 against $3,964,760 of qualified spend, linked through to the NY ESD source document | ✓ VERIFIED (API layer; hosted-URL instance still unconfirmed — see Human Verification) | Independently re-confirmed this session: `GET /api/v1/validate/ny_anora` → `computed_credit == disclosed_credit == "991190"`, `disclosed_qualified_spend == "3964760"`, `verdict == "exact match"`. Untouched by any of the six fix commits except WR-03/WR-05, which only add new typed-exception handling for *malformed* fixtures — the well-formed `ny_anora` fixture's path is unaffected, confirmed by this identical re-run producing the identical figures. |
+| 4 | A validation test suite runs in CI on every commit asserting exact Decimal equality against disclosed NY figures, and deliberately corrupting a rule value makes that suite fail | ✓ VERIFIED | Independently re-run this session: `bash .github/scripts/mutation-check.sh` exits 0, runs all five ordered steps, step 4 goes genuinely red naming `tests/test_engine_against_validation_pairs.py::test_anora_reproduces_exactly_through_price_jurisdiction`, step 5 restores the file byte-identical and the suite goes green again, `git status --porcelain` is unchanged before/after. Read the WR-01/WR-02 hardening directly (`.github/scripts/mutation-check.sh:160-189`): `FIND`/`REPLACE` are now escaped for `/` before interpolation into `sed`'s `s///`, `sed`'s own exit status is checked explicitly (`if ! sed ... ; then FAIL; fi`), and the post-mutation occurrence count is compared against a `BEFORE_COUNT` snapshot taken from `$FILE.orig` (`ACTUAL_COUNT -ne BEFORE_COUNT + 1`), closing the "no-op sed + coincidentally pre-existing REPLACE string" false-proof gap the review identified. This session's live run against the real fixture still produced a genuine, correctly-attributed red at step 4 and a byte-identical restore — the hardening did not turn the check into a no-op or weaken its ability to actually fail. `mutation-check (SHP-14)` remains wired as the sixth job in `.github/workflows/ci.yml`. |
 
-**Score:** 3/4 truths verified (0 present, behavior-unverified)
+**Score:** 4/4 truths verified (0 present, behavior-unverified)
 
-### Required Artifacts
+### Regression Check (previously-passed items)
 
-| Artifact | Expected | Status | Details |
+| Item | Prior status | This session | Status |
 |---|---|---|---|
-| `engine/figure_serialize.py` | Recursive Figure → JSON-safe dict | ✓ VERIFIED | 42 lines, exports `figure_to_dict`, `str(figure.value)` confirmed, recurses over `inputs` with no depth cap |
-| `app/services/validate.py` | Route B business logic | ✓ VERIFIED | 222 lines, exports `reproduce_disclosure`, `selectable_pairs`, `UnknownPairError`, `ValidateResult`; closed-set membership check confirmed as first statement of `reproduce_disclosure` |
-| `app/routers/validate.py` | GET/POST /validate, GET /api/v1/validate/{pair_id} | ✓ VERIFIED | 116 lines, all four routes present, calls `reproduce_disclosure` and `figure_to_dict` |
-| `app/templates/validate_result.html` | Disclosed vs computed vs verdict + derivation tree | ✓ VERIFIED | 103 lines, both provenance chains rendered as separate blocks (confirmed via orchestrator's independent API/HTML check) |
-| `tests/test_app_validate_route.py` | Route B coverage | ✓ VERIFIED | 158 lines, part of the 219-test green suite |
-| `engine/spec.py` | ProductionSpec domain model | ✓ VERIFIED | 171 lines, exports `ProductionSpec`, `CrewTier`, `CrewHeadcount`, `resolve_crew_tier`, `CREW_TIERS_PATH`; no money field confirmed by direct field inspection |
-| `data/crew_tiers.yaml` | Tier → headcount range, modelling assumption | ✓ VERIFIED | 43 lines, present as a new top-level `data/` directory |
-| `app/services/city_lookup.py` | Free-text city → jurisdiction id or None | ✓ VERIFIED | 59 lines, exports `resolve_city_to_jurisdiction`, `CITY_ALIASES`; independently reproduced "Reykjavik" → `jurisdiction_id: None`, `status: "no curated model"` |
-| `app/services/spec.py` | Route A: budget refusal, spec validation, per-city status, NY rule terms | ⚠️ ORPHANED-PARTIAL (wired but has an unguarded caller-side bug) | 255 lines, exports match the plan; the service itself is sound — the crash (CR-01) lives in the caller (`app/routers/spec.py`), not this module |
-| `app/routers/spec.py` | GET /spec, POST /spec, POST /api/v1/spec | ✗ STUB-EQUIVALENT DEFECT on one input path | 164 lines; three routes wired to `handle_spec_submission` as required, but the `POST /spec` handler's manual `int(crew_size)` conversion (lines ~105-122) is unguarded and crashes with 500 on non-numeric input — see Gaps |
-| `tests/test_engine_spec.py` | ProductionSpec validation matrix | ✓ VERIFIED | 327 lines, part of the green suite |
-| `tests/test_app_spec_route.py` | Route A HTTP coverage | ✓ VERIFIED (but incomplete) | 355 lines, part of the green suite; does **not** cover the non-numeric-`crew_size` 500 path — this is exactly why CR-01 shipped undetected by the plan's own acceptance criteria |
-| `tests/mutation_targets.yaml` | Declared mutation table (D-51) | ✓ VERIFIED | 36 lines, one active row, all eight required keys present |
-| `.github/scripts/mutation-check.sh` | SHP-14 non-vacuity gate | ✓ VERIFIED | 227 lines, executable, exits 0 on independent re-run in this session |
+| Budget refusal (two-layer: HTML + JSON `extra="forbid"`) | ✓ VERIFIED | Code path unchanged by fix commits; re-inspected, logic intact | ✓ No regression |
+| `GET /api/v1/validate/ny_anora` exact match | ✓ VERIFIED | Independently re-run, identical figures | ✓ No regression |
+| Unrecognized city never suggested | ✓ VERIFIED | `app/services/city_lookup.py` untouched by any fix commit | ✓ No regression (not re-executed this session; no fix commit touched this file, so treated as low-risk regression surface) |
+| Mutation-check gate genuinely goes red | ✓ VERIFIED | Independently re-run post-hardening — still genuinely red at step 4, still restores byte-identical | ✓ No regression (explicitly the highest-priority check per orchestrator brief) |
+| Full test suite green | 219 passed | 228 passed (9 new regression tests: CR-01 ×1, WR-03 ×6, WR-04 ×1, WR-05 ×1) | ✓ Improved, no regression |
+| Debt-marker scan across phase-modified files (including new `app/services/_paths.py`) | clean | Re-run this session across all phase-touched files: `app/routers/spec.py`, `app/routers/validate.py`, `app/services/spec.py`, `app/services/validate.py`, `app/services/_paths.py`, `engine/spec.py`, `engine/figure_serialize.py`, `.github/scripts/mutation-check.sh` — no `TBD`/`FIXME`/`XXX`/`TODO`/`HACK`/`PLACEHOLDER` matches | ✓ Clean |
+
+### Required Artifacts (delta since prior report)
+
+| Artifact | Status | Details |
+|---|---|---|
+| `app/routers/spec.py` | ✓ VERIFIED (CR-01 fixed) | `crew_size` now parsed in its own guarded block before `SpecFormSubmission(...)` construction; 422 with a named-value message on non-numeric input, confirmed by direct reproduction |
+| `app/services/_paths.py` (new, WR-04) | ✓ VERIFIED | Shared `REPO_ROOT`/`RULESET_PATH_BY_JURISDICTION`, imported by both `app/services/spec.py` and `app/services/validate.py`; `test_ruleset_path_by_jurisdiction_is_shared_between_spec_and_validate` (tests/test_app_spec_route.py:31) asserts object identity, present in the green suite |
+| `app/services/validate.py` (WR-03, WR-05) | ✓ VERIFIED | `MalformedFixtureError` defined and raised at 5 named failure sites; caught at all 3 sites in `app/routers/validate.py` (lines 55, 75, 126) and converted to a caught, readable response rather than an unhandled 500; `SelectablePair.jurisdiction_id` retyped `str | None` |
+| `.github/scripts/mutation-check.sh` (WR-01/WR-02) | ✓ VERIFIED | Escaping + exit-status check + before/after count comparison confirmed present by direct read and by a live re-run that still correctly goes red |
+| `tests/test_app_spec_route.py`, `tests/test_app_validate_route.py` | ✓ VERIFIED | 9 new tests confirmed present by name; part of the 228-test green suite |
+
+All artifacts from the prior report's full table remain unchanged and were not re-verified line-by-line here except where a fix commit touched them (see above); no fix commit touched `engine/spec.py`, `engine/figure_serialize.py`, `app/services/city_lookup.py`, or any template.
 
 ### Key Link Verification
 
-| From | To | Via | Status | Details |
-|---|---|---|---|---|
-| `app/services/validate.py` | `engine/pipeline.py` | `price_jurisdiction(...)` | ✓ WIRED | `from engine.pipeline import price_jurisdiction` + call at line 170 |
-| `app/routers/validate.py` | `app/services/validate.py` | `reproduce_disclosure(...)` | ✓ WIRED | Called at lines 51, 62, 93 — all three routes share one call site |
-| `app/routers/validate.py` | `engine/figure_serialize.py` | `figure_to_dict(...)` | ✓ WIRED | `from engine.figure_serialize import figure_to_dict`, applied to `result.computed_figure` |
-| `app/main.py` | `app/routers/validate.py` | `include_router` | ✓ WIRED | `app.include_router(validate_router.router)` (app/main.py:75) |
-| `app/services/spec.py` | `engine/spec.py` | `ProductionSpec.model_validate` | ✓ WIRED | Confirmed via service inspection |
-| `app/services/spec.py` | `app/services/city_lookup.py` | `resolve_city_to_jurisdiction(...)` | ✓ WIRED | `from app.services.city_lookup import resolve_city_to_jurisdiction`, called at line 160 |
-| `app/routers/spec.py` | `app/services/spec.py` | `handle_spec_submission(...)` | ✓ WIRED | Called at lines 121, 157, and in the JSON route |
-| `app/main.py` | `app/routers/spec.py` | `include_router` | ✓ WIRED | `app.include_router(spec_router.router)` (app/main.py:74) |
-| `.github/workflows/ci.yml` | `.github/scripts/mutation-check.sh` | `run: bash .github/scripts/mutation-check.sh` | ✓ WIRED | Confirmed present in job `mutation-check` |
-| `.github/scripts/mutation-check.sh` | `tests/mutation_targets.yaml` | declared table read, never hard-coded | ✓ WIRED | Confirmed by orchestrator's independent script run |
+No key links were altered by the fix commits. All 10 links from the prior report (`app/services/validate.py` → `engine/pipeline.py`, `app/routers/validate.py` → `app/services/validate.py`, `app/routers/validate.py` → `engine/figure_serialize.py`, `app/main.py` → both routers via `include_router`, `app/services/spec.py` → `engine/spec.py`, `app/services/spec.py` → `app/services/city_lookup.py`, `app/routers/spec.py` → `app/services/spec.py`, CI → `mutation-check.sh`, `mutation-check.sh` → `tests/mutation_targets.yaml`) remain wired; the only structural addition is `app/services/spec.py`/`app/services/validate.py` → `app/services/_paths.py`, confirmed wired by import and by the object-identity regression test.
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 |---|---|---|---|
-| Anora reproduces exactly via JSON route | `GET /api/v1/validate/ny_anora` | `computed_credit == disclosed_credit == "991190"`, `verdict == "exact match"` | ✓ PASS (orchestrator-confirmed) |
-| Money crosses JSON boundary as string | inspect `engine/figure_serialize.py` | `str(figure.value)` at line 33 | ✓ PASS |
-| Budget field always refused | `POST /spec` with `total_budget=5000000` | 200, body contains circularity explanation | ✓ PASS (independently reproduced this session) |
-| Unrecognized city never suggested | `POST /api/v1/spec` naming `Reykjavik` | 200, `jurisdiction_id: null`, `status: "no curated model"` | ✓ PASS (independently reproduced this session) |
-| Non-numeric crew_size on HTML form route | `POST /spec` with `crew_size=not-a-number` | 500 Internal Server Error | ✗ FAIL (independently reproduced this session; see Gaps) |
-| Mutation non-vacuity gate | `bash .github/scripts/mutation-check.sh` | exits 0, all five steps pass, git status unchanged | ✓ PASS (orchestrator-confirmed) |
-| Full test suite | `uv run pytest tests/ -q` | 219 passed | ✓ PASS (independently re-run this session) |
-| Debt-marker scan | `grep -rn TBD\|FIXME\|XXX\|TODO\|HACK\|PLACEHOLDER` across all phase-modified files | no matches | ✓ PASS |
+| Non-numeric crew_size on HTML form route (the closed gap) | `POST /spec` with `crew_size=not-a-number` | `422`, body contains `'not-a-number'` | ✓ PASS (independently reproduced this session — was `500` in the prior report) |
+| Anora reproduces exactly via JSON route | `GET /api/v1/validate/ny_anora` | `computed_credit == disclosed_credit == "991190"`, `verdict == "exact match"` | ✓ PASS (independently re-confirmed this session) |
+| Mutation non-vacuity gate, post-hardening | `bash .github/scripts/mutation-check.sh` | exits 0, all five steps pass including genuine step-4 red, `git status --porcelain` unchanged before/after | ✓ PASS (independently re-run this session — the highest-scrutiny check per orchestrator brief; confirmed not weakened into a vacuous pass) |
+| Full test suite | `uv run pytest tests/ -q` | `228 passed` | ✓ PASS (independently re-run this session; was 219 in the prior report) |
+| Debt-marker scan | `grep -rn TBD\|FIXME\|XXX\|TODO\|HACK\|PLACEHOLDER` across all phase-modified files including new `_paths.py` | no matches | ✓ PASS |
 
 ### Requirements Coverage
 
-| Requirement | Source Plan | Description | Status | Evidence |
-|---|---|---|---|---|
-| JUR-01 | 03-01 | New York validated model, reproducing NY ESD figures | ✓ SATISFIED | Orchestrator-confirmed exact match at the API layer |
-| INP-01 | 03-02 | Production type and scale | ⚠️ PARTIAL | Type enum present; "scale" deliberately not modeled as a separate field (human-ratified decision, see Priority Note below) |
-| INP-02 | 03-02 | Shoot days stage/location | ✓ SATISFIED | `shoot_days_stage`, `shoot_days_location` fields, boundary tests pass |
-| INP-03 | 03-02 | Crew size or tier | ✗ BLOCKED (on the HTML route only) | The JSON route (`POST /api/v1/spec`) validates this correctly via Pydantic; the HTML route (`POST /spec`) crashes with 500 on a non-numeric `crew_size` — see CR-01 |
-| INP-04 | 03-02 | Principal cast count / imported count | ✓ SATISFIED | Boundary tests confirmed passing (imported == total accepted, one over rejected) |
-| INP-05 | 03-02 | Crew imported vs. hired locally | ✓ SATISFIED | Cross-field validator confirmed, guarded to explicit-crew_size branch |
-| INP-06 | 03-02 | Start window by quarter and year | ✓ SATISFIED | `start_quarter`/`start_year` fields with 2024-2036 bound |
-| INP-07 | 03-02 | Candidate cities, never suggested | ✓ SATISFIED | Independently reproduced no-suggestion behavior |
-| INP-08 | 03-02 | Budget rejected as input | ✓ SATISFIED | Independently reproduced two-layer refusal |
-| SHP-14 | 03-03 | Validation suite non-vacuity | ✓ SATISFIED | Orchestrator-confirmed mutation-check gate |
+| Requirement | Status | Evidence |
+|---|---|---|
+| JUR-01 | ✓ SATISFIED | Unchanged from prior report; independently re-confirmed exact match |
+| INP-01 | ⚠️ ACCEPTED SCOPE DECISION (not a gap) | Type enum present; separate numeric "scale" field explicitly not modeled — human-ratified per orchestrator brief; see Priority Note |
+| INP-02 | ✓ SATISFIED | Unchanged |
+| INP-03 | ✓ SATISFIED | Previously blocked on the HTML route by CR-01; gap now closed and independently re-verified |
+| INP-04 | ✓ SATISFIED | Unchanged |
+| INP-05 | ✓ SATISFIED | Unchanged |
+| INP-06 | ✓ SATISFIED | Unchanged |
+| INP-07 | ✓ SATISFIED | Unchanged |
+| INP-08 | ✓ SATISFIED | Unchanged |
+| SHP-14 | ✓ SATISFIED | Independently re-confirmed post-hardening, still genuinely non-vacuous |
 
-No orphaned requirements — all 10 IDs declared across the three plans' frontmatter (`JUR-01`, `INP-01`…`INP-08`, `SHP-14`) match REQUIREMENTS.md's Phase 3 mapping exactly (`grep` of the traceability table returned exactly this set, `status: Complete`).
+No orphaned requirements — all 10 IDs (`JUR-01`, `INP-01`…`INP-08`, `SHP-14`) match REQUIREMENTS.md's Phase 3 mapping, all marked Complete.
 
 ### Anti-Patterns Found
 
-| File | Line | Pattern | Severity | Impact |
-|---|---|---|---|---|
-| `app/routers/spec.py` | ~105-122 | Unguarded `int(crew_size)` inline argument expression, outside the `try/except ValidationError` block | 🛑 Blocker | Reproducible unhandled HTTP 500 on a foreseeable, realistic input; directly contradicts the phase's own stated "never a 500" invariant, repeated in this same file's comments |
-| `app/services/validate.py` | 150, 184-214 | Several internal-consistency checks (`assertion` key access, `program_id` match, missing `tolerance_bps`, division by `qualified_spend`, unrecognized `assertion.mode`) raise bare `ValueError`/`KeyError` not caught by the router | ⚠️ Warning | Not exploitable via the live surface today (all active fixtures are well-formed), but a future fixture-authoring mistake would 500 rather than refuse gracefully (03-REVIEW.md WR-03) |
-| `app/services/spec.py` + `app/services/validate.py` | 44-50, 39-47 | `REPO_ROOT`/`RULESET_PATH_BY_JURISDICTION` duplicated verbatim | ⚠️ Warning | No test guards the two dicts staying in sync as jurisdictions are added (03-REVIEW.md WR-04) |
-| `app/services/validate.py` | 55-61, 100 | `SelectablePair.jurisdiction_id: str` typed non-Optional but populated from `.get(...)`, actually `str \| None` | ⚠️ Warning | Misleading type hint, not a runtime crash today (03-REVIEW.md WR-05) |
-| `.github/scripts/mutation-check.sh` | 171-181 | `sed` substitution unescaped, no exit-status check; "1 occurrence" check doesn't confirm a 0→1 transition | ⚠️ Warning | Currently masked by the occurrence-count check catching a broken/no-op substitution as a `FAIL`, but the failure message would misattribute the cause for a future mutation row (03-REVIEW.md WR-01/WR-02) |
+None blocking. All five prior Warning-tier findings (WR-01 through WR-05) are fixed and independently re-confirmed:
+- WR-01/WR-02 (mutation-check.sh sed hardening) — confirmed present and confirmed still functionally correct (genuine red, byte-identical restore) by a live re-run.
+- WR-03 (uncaught `reproduce_disclosure` failure paths) — `MalformedFixtureError` now raised and caught at all 3 router sites.
+- WR-04 (duplicated `REPO_ROOT`/`RULESET_PATH_BY_JURISDICTION`) — extracted to `app/services/_paths.py`, object-identity-tested.
+- WR-05 (misleading `SelectablePair.jurisdiction_id: str` type) — retyped `str | None`; deliberately did not add a fail-loud loading guard, with reasoning documented in 03-REVIEW-FIX.md (a guard there would turn one bad fixture into a whole-page crash for the `GET /validate` listing of all pairs — a regression risk contradicting the "never a 500" theme this exact review pass established). This is a reasoned, non-blocking scope narrowing, not an unresolved finding.
 
-No debt markers (`TBD`/`FIXME`/`XXX`/`TODO`/`HACK`/`PLACEHOLDER`) found in any phase-modified file — clean grep.
+IN-01 (`date_checked` YAML-quoting convention) remains explicitly out of scope (Info-tier, not in the fix_scope) — noted, not a gap.
 
-## Priority-Note Assessment: the "and scale" dimension (Success Criterion 1)
+No debt markers found in any phase-modified file, including the new `app/services/_paths.py`.
 
-`ProductionSpec` (engine/spec.py) carries `production_type: Literal["feature", "limited_series", "episodic"]` and no separate numeric scale field (no `episode_count`, no `scale_note`). This is not an oversight: 03-02-PLAN.md Task 1 is a `checkpoint:decision, gate="blocking"` task that explicitly names this ambiguity — whether INP-01's "and scale" is a second dimension beyond the type enum — lays out three options, and states option A (type-only) is both "the research recommendation" and "the correct answer if you want to move fastest." 03-02-SUMMARY.md documents that this was resolved to option A, and the orchestrator's brief for this verification confirms "the user was consulted and ratified this retroactively."
+## Priority-Note Assessment: the "and scale" dimension (Success Criterion 1) — carried forward, unchanged
 
-**Assessed as accepted-and-documented, not a gap**, because: (1) the decision was surfaced as a blocking checkpoint rather than silently skipped, (2) it was human-ratified per the orchestrator's brief, (3) the plan explicitly frames it as additive-later (a scale/episode-count field can be added without breaking any existing consumer), and (4) INP-01's own text — "production type and scale (feature / limited series / episodic)" — is genuinely ambiguous about whether the parenthetical *is* the scale axis. This is recorded here for visibility per the verification brief's instruction, not folded silently into a passing score, but it does not independently fail Success Criterion 1 given the explicit human sign-off.
+`ProductionSpec` (engine/spec.py) carries `production_type: Literal["feature", "limited_series", "episodic"]` and no separate numeric scale field. This was surfaced as a blocking checkpoint decision in 03-02-PLAN.md Task 1, resolved to option A (type-only), and — per the orchestrator's brief for this re-verification — explicitly ratified by the user as an accepted scope decision. It is recorded here for visibility, not scored as a gap.
 
 ## Gaps Summary
 
-One blocking gap: **`POST /spec` (the HTML form route — the literal path a "visitor at the hosted URL" would use to describe a production) crashes with an unhandled 500 when `crew_size` is a non-numeric string.** This was found by the phase's own code reviewer (03-REVIEW.md CR-01) and independently reproduced in this verification session with `TestClient(app, raise_server_exceptions=False).post("/spec", data={..., "crew_size": "not-a-number", ...})` → `500 Internal Server Error`. The root cause is a single unguarded `int(crew_size)` expression evaluated as an argument to `SpecFormSubmission(...)`, outside the `try/except ValidationError` block meant to catch exactly this class of bad input. Every sibling integer field (`shoot_days_stage`, `start_year`, etc.) is typed `int = Form(...)` and gets FastAPI's automatic 422; `crew_size` alone was hand-rolled and is the one field missing the safety net.
+None. The single blocking gap from the prior verification (CR-01: unhandled 500 on non-numeric `crew_size`) is closed and independently re-verified — the fix follows the review's own suggested pattern (defensive pre-parse, named-value 422 re-render), is covered by a new regression test, and was reproduced directly in this session (`422`, not `500`). No regressions were found in any previously-passing truth. All five accompanying code-review warnings were also fixed and independently spot-checked, with particular scrutiny applied to whether the WR-01/WR-02 mutation-check.sh hardening weakened the script's ability to genuinely fail — it did not; a live re-run this session still produced a correctly-attributed red at step 4 and a byte-identical restore.
 
-This is scored as a genuine failure of Success Criterion 1 ("a visitor can describe a production ... crew size or a tier") rather than a cosmetic defect, because: it is on the primary demo path (the HTML form, not just the JSON API); it is trivially reachable (any client that doesn't enforce the HTML `type="number"` client-side constraint — curl, a judge's manual test, a mobile browser edge case); and it directly contradicts the phase's own repeatedly-stated "never a 500, never a bare framework error page" invariant. The fix is small (catch `ValueError` alongside `ValidationError`, or defensively pre-parse `crew_size`) and is fully scoped in 03-REVIEW.md CR-01's suggested fix.
-
-Three items are deferred to human verification because they are properties of the live Lightsail deployment that no automated check in this session (or in the executing plans, per their own D4/D7/D5 deferrals) has exercised: the hosted `/finance/validate` page, the hosted `/finance/spec` page (which is also where the CR-01 crash would actually be hit by a real visitor), and the hosted GitHub Actions run showing `mutation-check (SHP-14)` as a green sixth job with the deliberate red visible in its log. The phase goal explicitly says "a visitor at the hosted URL" — none of that surface has been deployed or checked live in this verification run, so these are recorded as open human-verification items regardless of the gaps_found status, to be re-checked once CR-01 is fixed and a deploy happens.
+Three items remain outstanding, unchanged in substance from the prior report but corrected for the new deployment mount path (`/prodfin`, not `/finance` — confirmed via `app/main.py:63`'s `PRODFIN_PUBLIC_PATH` env var and the orchestrator's note that nothing has been deployed yet): the hosted `/prodfin/validate` page, the hosted `/prodfin/spec` page (the exact surface where CR-01 would have been hit by a real visitor, now fixed but not yet confirmed live), and the hosted GitHub Actions run showing `mutation-check (SHP-14)` green with its deliberate red visible in the log. The phase goal names "a visitor at the hosted URL" explicitly — none of that surface has been deployed or checked live as of this verification run, so the overall status is `human_needed` rather than `passed`, per Step 9 of the verification process (a clean automated score does not itself qualify for `passed` while human-verification items remain open).
 
 ---
 
-*Verified: 2026-08-26T02:37:19Z*
+*Verified: 2026-08-26T04:10:00Z*
 *Verifier: Claude (gsd-verifier)*
