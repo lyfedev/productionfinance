@@ -175,12 +175,12 @@ Plans:
   4. Changing the start quarter changes the cost figures through seasonal variation, not only through incentive availability, and a non-USD city converts at a dated FX rate carried as its own cited figure
   5. The output shows which single input most moves the gap, displayed as a delta and never as a prescriptive recommendation
 
-**Plans**: 7 plans in 7 waves (tracer-first: 04-01 proves the whole cost path end to end on one city and one cost line; every later plan widens it)
+**Plans**: 1/7 plans executed in 7 waves (tracer-first: 04-01 proves the whole cost path end to end on one city and one cost line; every later plan widens it)
 
 Plans:
 **Wave 1**
 
-- [ ] 04-01-PLAN.md — Tracer: the `basis` provenance axis, canonical budget, city localizer, landed-cost aggregator, and Route A returning real dollars for New York (COST-01, OUT-04)
+- [x] 04-01-PLAN.md — Tracer: the `basis` provenance axis, canonical budget, city localizer, landed-cost aggregator, and Route A returning real dollars for New York (COST-01, OUT-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -354,7 +354,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 1. Foundations — Source Truth & Deploy Path | 1 — Accounts | 8/9 | In Progress|  |
 | 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 9/9 | Complete    | 2026-08-25 |
 | 3. New York End-to-End — The Anora Proof | 1 — Accounts | 3/3 | Complete    | 2026-08-25 |
-| 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 0/TBD | Not started | - |
+| 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 1/7 | In Progress|  |
 | 5. Curated Breadth & the Validation Loop | 1 — Accounts | 0/TBD | Not started | - |
 | 6. The Interface | 1 — Accounts | 0/TBD | Not started | - |
 | 7. Live Research, Caching & Durable Jobs | 1 — Accounts | 0/TBD | Not started | - |

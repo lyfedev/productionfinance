@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 04
 current_phase_name: Cost Localization & Landed-Cost Outputs
 status: executing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-08-26T11:36:04.277Z"
-last_activity: 2026-08-25
-last_activity_desc: Phase 03 complete, transitioned to Phase 1
-state_head: d53cf2469ad1aa965d1f46c2dfb5cdc44f3d4e6b
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-08-26T19:12:53.448Z"
+last_activity: 2026-08-26
+last_activity_desc: Phase 04 execution started
+state_head: 6e6a23c1a82821fa0a3ce5ffaab4567daea034a1
 progress:
   total_phases: 11
   completed_phases: 3
   total_plans: 28
-  completed_plans: 20
+  completed_plans: 21
   percent: 27
 ---
 
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-24)
 
 **Core value:** Total landed cost of one identical production, priced per city, with every figure sourced, dated, and provably matching what a government actually paid.
-**Current focus:** Phase 03 — New York End-to-End — The Anora Proof
+**Current focus:** Phase 04 — Cost Localization & Landed-Cost Outputs
 
 ## Current Position
 
-Phase: 04 (Cost Localization & Landed-Cost Outputs) — READY TO EXECUTE
-Plan: Not started
+Phase: 04 (Cost Localization & Landed-Cost Outputs) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
-Last activity: 2026-08-25 — Phase 03 complete, transitioned to Phase 1
+Last activity: 2026-08-26 — Phase 04 execution started
 
-Progress: [██░░░░░░░░] 18%
+Progress: [███░░░░░░░] 27%
 
 **Deadline: 2026-09-09 14:00 PDT — 15 days.** Milestone 1 (Accounts, Phases 1-8) is the submission. Milestone 2 (Balances, Phases 9-11) is cuttable as a whole.
 
@@ -81,6 +81,7 @@ Progress: [██░░░░░░░░] 18%
 | Phase 03 P01 | 20min | 3 tasks | 13 files |
 | Phase 03 P02 | 15min | 4 tasks | 11 files |
 | Phase 03 P03 | 15min | 2 tasks | 3 files |
+| Phase 04 P01 | 95min | 3 tasks | 23 files |
 
 ## Accumulated Context
 
@@ -121,6 +122,7 @@ Recent decisions affecting current work:
 - [Phase 02]: Phase 02 plan 09: WR-03 closed-closed dated-range convention recorded and guarded against overlapping withholding bands (both dated-dated and open-ended-dated). Validation-pairs golden test re-coupled to price_jurisdiction: New York's Anora reproduces Decimal('991190') end-to-end. Genuine discovered finding, documented not routed around: jurisdictions/us-ct.yaml's real transfer_discount has no sourced typical_rate_low/typical_rate_high, so price_jurisdiction raises for every active Connecticut pair; Christmas Always's direct-path exact reproduction (Decimal('1159502')) is unaffected. Recorded to WINDOWS.md as an unmet-truth entry.
 - [Phase 03]: 03-01: Route B (Reproduce a disclosure) reproduces Anora exactly end-to-end through HTTP; pair selector shows every fixture with a plain-words reason when unselectable
 - [Phase 03]: [Phase 03] 03-02: engine/spec.py::ProductionSpec lands the INP-01..INP-07 input contract (decision Task 1 resolved autonomously to option A: production_type enum alone, no scale field); handle_spec_submission enforces the D-35 two-layer budget refusal, resolves crew tier to a headcount range labelled modelling_assumption (never validated), and returns New York's cited rule terms with zero dollar figures derived from the visitor's spec. Two Rule-1 bugs caught and fixed before commit: an order-dependent sys.modules test isolation bug, and a comma-splitting bug that tore 'Albany, NY'-style city names in two.
+- [Phase 04]: [Phase 04] 04-01: basis provenance axis (D-58/D-59) lands on Figure; Route A closes D-36, returning a real basis-tagged dollar total_landed_cost (,125 for the fixed test spec) built from one canonical budget localized against New York's committed cost profile — Closes the D-36 seam with three non-vacuous CI honesty gates (D-59, D-63, D-72); cost-profile naming settled at {jurisdiction}-{city} to match every later wave in this phase
 
 ### Pending Todos
 
@@ -146,6 +148,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-26T09:33:30.940Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-cost-localization-landed-cost-outputs/04-CONTEXT.md
+Last session: 2026-08-26T19:12:53.302Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None
