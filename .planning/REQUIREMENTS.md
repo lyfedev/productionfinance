@@ -21,14 +21,14 @@ Resolve before modelling. Wrong inputs produce confidently wrong outputs, and th
 
 ### Production Input
 
-- [ ] **INP-01**: User can specify production type and scale (feature / limited series / episodic)
-- [ ] **INP-02**: User can specify shoot days, split between stage and location
-- [ ] **INP-03**: User can specify crew size, or select a tier from which department ratios are inferred
-- [ ] **INP-04**: User can specify principal cast count and how many are imported
-- [ ] **INP-05**: User can specify how much crew is imported versus hired locally
-- [ ] **INP-06**: User can specify a start window by quarter
-- [ ] **INP-07**: User can name the candidate cities to be priced — the system never suggests them
-- [ ] **INP-08**: System rejects any budget figure as input; cost is only ever an output
+- [x] **INP-01**: User can specify production type and scale (feature / limited series / episodic)
+- [x] **INP-02**: User can specify shoot days, split between stage and location
+- [x] **INP-03**: User can specify crew size, or select a tier from which department ratios are inferred
+- [x] **INP-04**: User can specify principal cast count and how many are imported
+- [x] **INP-05**: User can specify how much crew is imported versus hired locally
+- [x] **INP-06**: User can specify a start window by quarter
+- [x] **INP-07**: User can name the candidate cities to be priced — the system never suggests them
+- [x] **INP-08**: System rejects any budget figure as input; cost is only ever an output
 
 ### Cost Model
 
@@ -199,14 +199,14 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | SRC-03 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
 | SRC-04 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
 | SRC-05 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
-| INP-01 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
-| INP-02 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
-| INP-03 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
-| INP-04 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
-| INP-05 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
-| INP-06 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
-| INP-07 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
-| INP-08 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Pending |
+| INP-01 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
+| INP-02 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
+| INP-03 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
+| INP-04 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
+| INP-05 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
+| INP-06 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
+| INP-07 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
+| INP-08 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
 | COST-01 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
 | COST-02 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
 | COST-03 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |

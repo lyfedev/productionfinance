@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 03
 current_phase_name: New York End-to-End — The Anora Proof
 status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-08-26T01:45:00.928Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-08-26T02:02:43.843Z"
 last_activity: 2026-08-25
 last_activity_desc: Phase 03 execution started
-state_head: 177d34dbfbede8d5232ee93e67df76224abd886e
+state_head: 2d1b80d2ca347b0a6abeff3afb22c92b1dbeaf81
 progress:
   total_phases: 11
   completed_phases: 2
   total_plans: 21
-  completed_plans: 18
+  completed_plans: 19
   percent: 18
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 ## Current Position
 
 Phase: 03 (New York End-to-End — The Anora Proof) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-08-25 — Phase 03 execution started
 
@@ -78,6 +78,7 @@ Progress: [██░░░░░░░░] 18%
 | Phase 02 P08 | 22min | 2 tasks | 3 files |
 | Phase 02 P09 | 32min | 2 tasks | 3 files |
 | Phase 03 P01 | 20min | 3 tasks | 13 files |
+| Phase 03 P02 | 15min | 4 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,7 @@ Recent decisions affecting current work:
 - [Phase 02]: WR-04 fixed at the JurisdictionRuleSet schema boundary (Field min_length=1 on programmes); engine/figure.py::combined_confidence left untouched since its empty-sequence contract is correct for its primary use
 - [Phase 02]: Phase 02 plan 09: WR-03 closed-closed dated-range convention recorded and guarded against overlapping withholding bands (both dated-dated and open-ended-dated). Validation-pairs golden test re-coupled to price_jurisdiction: New York's Anora reproduces Decimal('991190') end-to-end. Genuine discovered finding, documented not routed around: jurisdictions/us-ct.yaml's real transfer_discount has no sourced typical_rate_low/typical_rate_high, so price_jurisdiction raises for every active Connecticut pair; Christmas Always's direct-path exact reproduction (Decimal('1159502')) is unaffected. Recorded to WINDOWS.md as an unmet-truth entry.
 - [Phase 03]: 03-01: Route B (Reproduce a disclosure) reproduces Anora exactly end-to-end through HTTP; pair selector shows every fixture with a plain-words reason when unselectable
+- [Phase 03]: [Phase 03] 03-02: engine/spec.py::ProductionSpec lands the INP-01..INP-07 input contract (decision Task 1 resolved autonomously to option A: production_type enum alone, no scale field); handle_spec_submission enforces the D-35 two-layer budget refusal, resolves crew tier to a headcount range labelled modelling_assumption (never validated), and returns New York's cited rule terms with zero dollar figures derived from the visitor's spec. Two Rule-1 bugs caught and fixed before commit: an order-dependent sys.modules test isolation bug, and a comma-splitting bug that tore 'Albany, NY'-style city names in two.
 
 ### Pending Todos
 
@@ -142,6 +144,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-26T01:45:00.821Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-08-26T02:02:43.645Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None
