@@ -54,8 +54,8 @@ def _resolve_git_sha() -> str:
 
 GIT_SHA: str = _resolve_git_sha()
 
-# The path prefix this deployment is reverse-proxied under, e.g. "/prodfin"
-# when served at https://vockell.com/prodfin via Apache ProxyPass. Empty for
+# The path prefix this deployment is reverse-proxied under, e.g. "/finance"
+# when served at https://vockell.com/finance via Apache ProxyPass. Empty for
 # local/dev runs where the app is served at the root. Used only to build
 # correct absolute links in server-rendered HTML (T-01-51-adjacent: a
 # generated link that omits the prefix silently 404s once proxied) — this
