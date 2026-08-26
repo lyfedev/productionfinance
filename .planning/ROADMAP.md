@@ -178,12 +178,32 @@ Plans:
 **Plans**: 7 plans in 7 waves (tracer-first: 04-01 proves the whole cost path end to end on one city and one cost line; every later plan widens it)
 
 Plans:
+**Wave 1**
+
 - [ ] 04-01-PLAN.md — Tracer: the `basis` provenance axis, canonical budget, city localizer, landed-cost aggregator, and Route A returning real dollars for New York (COST-01, OUT-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 04-02-PLAN.md — Labour from dated union rate cards with fringe as its own line, plus the Los Angeles cost profile (COST-02, COST-03)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 04-03-PLAN.md — GSA per diem with its ceiling caveat, imported-crew housing and flights, shoot calendar and month-band seasonality (COST-04, COST-05, COST-07)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 04-04-PLAN.md — Stages, equipment, permits, locations and trucking as never-sourced estimates, plus stackable tax exemptions (COST-06, INC-10)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 04-05-PLAN.md — Dated FX snapshot that refuses rather than cross-rates, and the London profile in GBP (COST-02, COST-08)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
 - [ ] 04-06-PLAN.md — Two-band ranked list, component-by-component gap decomposition, and golden cost totals in CI (OUT-01, OUT-02)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
 - [ ] 04-07-PLAN.md — Sensitivity by real pipeline re-run with declared steps, cliff-crossing annotation and a descriptive-language gate (OUT-03)
 
 **Cut line**: OUT-04 (chart-of-accounts breakdown) is the cuttable item within this phase — it is marked stretch in REQUIREMENTS.md and gets its full treatment in Milestone 2. Per D-77 the cuttable half (the rendered breakdown) is already out of scope; what lands in 04-01 is a single additive `account` tag per budget line that nothing else in Phase 4 reads, with a test proving the aggregator's output is unchanged when the tags are stripped.

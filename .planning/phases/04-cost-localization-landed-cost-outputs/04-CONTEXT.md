@@ -66,7 +66,7 @@ Numbering continues from Phase 3's D-31…D-52.
 
 - **D-62: Fringe and payroll burden are their own line, never folded into the wage line.** COST-03 requires burden included; PITFALLS E1 requires the multiplier disclosed. Sourced per union where the union publishes its fringe schedule (`basis: sourced`); a blanket multiplier only where it does not, with the method disclosed (`basis: estimated`). This is the identical treatment the incentive side already gives the audit fee and the transfer discount — show the deduction as its own figure, not as a haircut baked into the headline.
 
-- **D-63: A CI gate asserting that no `Figure` reachable from a Route A total carries `confidence: "validated"`.** D-39 made this promise for one YAML table; Phase 4 generalises it to the entire cost side, where the surface is now hundreds of figures deep. Walk the recursive `inputs` DAG from the total and fail on any `validated` node. Rationale: this repo's established answer to an honesty commitment is a CI job, not a convention — D-28 greps the source tree for forbidden vendor names, D-49 automated the mutation ritual precisely because a one-time check goes stale. — **Reversibility:** costly — Phase 8's proof panel re-proves this claim and reruns whatever shape lands here.
+- **D-63 — A CI gate asserting that no `Figure` reachable from a Route A total carries `confidence: "validated"`.** D-39 made this promise for one YAML table; Phase 4 generalises it to the entire cost side, where the surface is now hundreds of figures deep. Walk the recursive `inputs` DAG from the total and fail on any `validated` node. Rationale: this repo's established answer to an honesty commitment is a CI job, not a convention — D-28 greps the source tree for forbidden vendor names, D-49 automated the mutation ritual precisely because a one-time check goes stale. — **Reversibility:** costly — Phase 8's proof panel re-proves this claim and reruns whatever shape lands here.
 
 ### Seasonality — what actually makes Q1 differ from Q3
 
@@ -116,10 +116,10 @@ Every decision above is Claude's discretion — the user delegated all four gray
 
 Four are load-bearing on the project's honesty claim and should be escalated rather than quietly reversed if they become inconvenient during planning or execution:
 
-- **D-56** — no fabricated `$0` incentive to make the ranking look complete.
-- **D-59 / D-63** — a total inherits its weakest basis, and CI proves no cost figure claims `validated`.
-- **D-64** — no invented seasonal multiplier on the largest cost lines.
-- **D-72** — no validation pair routed through the budget model.
+- D-56 — no fabricated `$0` incentive to make the ranking look complete.
+- D-59 / D-63 — a total inherits its weakest basis, and CI proves no cost figure claims `validated`.
+- D-64 — no invented seasonal multiplier on the largest cost lines.
+- D-72 — no validation pair routed through the budget model.
 
 </decisions>
 
