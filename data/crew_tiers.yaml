@@ -25,6 +25,13 @@ provenance_note: >
   modelling assumption, not a government-sourced figure, and are labelled
   as such wherever rendered — never as validated, never as sourced.
 
+  Phase 4 plan 04-01 (D-38) adds the `departments:` block below. The
+  per-tier department crew-share percentages are industry-commentary
+  aggregates (production-budgeting guides and trade-press department-size
+  discussions) rather than a primary accounting-standard document
+  (04-RESEARCH.md Assumptions Log row A3) — the same modelling_assumption
+  basis as the headcount ranges above, never validated, never sourced.
+
 tiers:
   micro:
     headcount_low: "15"
@@ -41,3 +48,109 @@ tiers:
   tentpole:
     headcount_low: "200"
     headcount_high: "400"
+
+# D-38: department ratios, deferred to Phase 4 plan 04-01. Each department
+# carries an OUT-04/D-77 chart-of-accounts `account` tag (ATL/BTL/POST)
+# and a per-tier `crew_share` — a quoted-string fraction of the tier's
+# resolved headcount. Every tier's shares sum to exactly "1"
+# (tests/test_engine_budget.py asserts this) — a silent residue would be
+# an unpriced department wearing no label. The same percentages are used
+# across every tier (a further modelling assumption, not scale-dependent,
+# disclosed here rather than left implicit).
+#
+# No department here carries an ATL tag: this table models below-the-line
+# crew composition only (per the file's own header above) — above-the-line
+# roles (writer/producer/director/principal cast) are not part of the
+# crew-tier headcount this file resolves and are out of scope for this
+# department breakdown.
+departments:
+  production:
+    label: "Production labour days"
+    account: "BTL"
+    crew_share:
+      micro: "0.10"
+      small: "0.10"
+      mid: "0.10"
+      large: "0.10"
+      tentpole: "0.10"
+  camera:
+    label: "Camera labour days"
+    account: "BTL"
+    crew_share:
+      micro: "0.15"
+      small: "0.15"
+      mid: "0.15"
+      large: "0.15"
+      tentpole: "0.15"
+  grip_and_electric:
+    label: "Grip and electric labour days"
+    account: "BTL"
+    crew_share:
+      micro: "0.15"
+      small: "0.15"
+      mid: "0.15"
+      large: "0.15"
+      tentpole: "0.15"
+  art:
+    label: "Art labour days"
+    account: "BTL"
+    crew_share:
+      micro: "0.15"
+      small: "0.15"
+      mid: "0.15"
+      large: "0.15"
+      tentpole: "0.15"
+  wardrobe:
+    label: "Wardrobe labour days"
+    account: "BTL"
+    crew_share:
+      micro: "0.08"
+      small: "0.08"
+      mid: "0.08"
+      large: "0.08"
+      tentpole: "0.08"
+  hair_and_makeup:
+    label: "Hair and makeup labour days"
+    account: "BTL"
+    crew_share:
+      micro: "0.07"
+      small: "0.07"
+      mid: "0.07"
+      large: "0.07"
+      tentpole: "0.07"
+  sound:
+    label: "Sound labour days"
+    account: "BTL"
+    crew_share:
+      micro: "0.05"
+      small: "0.05"
+      mid: "0.05"
+      large: "0.05"
+      tentpole: "0.05"
+  transportation:
+    label: "Transportation labour days"
+    account: "BTL"
+    crew_share:
+      micro: "0.10"
+      small: "0.10"
+      mid: "0.10"
+      large: "0.10"
+      tentpole: "0.10"
+  locations:
+    label: "Locations labour days"
+    account: "BTL"
+    crew_share:
+      micro: "0.05"
+      small: "0.05"
+      mid: "0.05"
+      large: "0.05"
+      tentpole: "0.05"
+  post:
+    label: "Post labour days"
+    account: "POST"
+    crew_share:
+      micro: "0.10"
+      small: "0.10"
+      mid: "0.10"
+      large: "0.10"
+      tentpole: "0.10"

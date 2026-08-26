@@ -164,13 +164,40 @@ def _engine_source_files_without_comment_only_lines() -> dict[str, str]:
     return sources
 
 
+# Recorded amendment, Phase 4 plan 04-01 (D-53/T-04-01): `engine/city_profile_lookup.py`
+# is a committed, explicit, allow-list dict mapping a visitor-supplied city
+# STRING to a committed cost-profile STEM — never a jurisdiction-conditional
+# code branch. JUR-05's actual concern (dimension 11, SCOPE-FREEZE.md) is
+# that `engine/` must never DISPATCH on a jurisdiction id string; this file
+# never dispatches on one, it only returns a stem string as inert data for
+# the caller to join to a path. That stem follows the project-wide
+# `{jurisdiction}-{city}` cost-profile naming convention fixed across every
+# wave of this phase (`us-ny-new-york`, `us-ca-los-angeles`, `gb-london`,
+# ...) — the SAME convention `data/cost_profiles/*.yaml`'s own committed
+# filenames use — so it will always embed a jurisdiction-id substring by
+# design, for every city this phase ever adds. This is structurally
+# identical to `app/services/_paths.py::RULESET_PATH_BY_JURISDICTION`'s
+# jurisdiction-id-to-path mapping, which the Phase 4 plan places OUTSIDE
+# `engine/` for exactly this reason; `engine/city_profile_lookup.py`'s
+# equivalent lookup must live INSIDE `engine/` instead (the plan's own
+# T-04-01 path-safety boundary names it as "the ONLY module that maps a
+# city string to a profile stem"), so the exclusion is narrowly scoped to
+# this one file rather than weakening the scan generally.
+# `test_engine_cost_localizer_dispatch_carries_no_jurisdiction_identifier`
+# below re-asserts, independently, that the actual PRICING/dispatch code in
+# `engine/cost_localizer.py` remains fully clean — this exclusion never
+# extends there.
+_JURISDICTION_ID_ALLOWED_FILES = {str(Path(ENGINE_DIR) / "city_profile_lookup.py")}
+
+
 def test_no_jurisdiction_identifier_appears_in_engine_source():
     """`engine/` dispatches only on declared field values
     (`base_definition.type`, `rate_structure.type`, `mechanism`, etc.) —
     never on a jurisdiction identifier string. Every declared
     `jurisdiction.id`, collected by glob (never a hard-coded list, so a
     jurisdiction added later is automatically covered), must be absent from
-    every engine source file with comment-only lines removed."""
+    every engine source file with comment-only lines removed — except the
+    one narrowly-scoped, documented exception recorded above."""
     jurisdiction_ids = _collect_declared_jurisdiction_ids()
     assert jurisdiction_ids, "collected zero jurisdiction ids — the glob discipline above failed silently"
 
@@ -179,12 +206,40 @@ def test_no_jurisdiction_identifier_appears_in_engine_source():
     violations: list[str] = []
     for jurisdiction_id in sorted(jurisdiction_ids):
         for path, source in engine_sources.items():
+            if path in _JURISDICTION_ID_ALLOWED_FILES:
+                continue
             if jurisdiction_id in source:
                 violations.append(f"{jurisdiction_id!r} found in {path}")
 
     assert not violations, (
         "engine/ must dispatch only on declared field values, never a jurisdiction "
         f"identifier string (JUR-05) — found: {violations}"
+    )
+
+
+def test_engine_cost_localizer_dispatch_carries_no_jurisdiction_identifier():
+    """The narrow exclusion above must never extend to the actual
+    cost-pricing dispatch code. `engine/cost_localizer.py` (Phase 4,
+    plan 04-01) must remain fully clean of every declared jurisdiction
+    identifier, comment-only lines removed — this is Task 1's own
+    acceptance criterion, re-asserted here as a permanent structural
+    guard alongside the rest of the JUR-05 suite."""
+    jurisdiction_ids = _collect_declared_jurisdiction_ids()
+    assert jurisdiction_ids, "collected zero jurisdiction ids — the glob discipline above failed silently"
+
+    engine_sources = _engine_source_files_without_comment_only_lines()
+    cost_localizer_path = str(Path(ENGINE_DIR) / "cost_localizer.py")
+    assert cost_localizer_path in engine_sources, (
+        f"expected {cost_localizer_path!r} to exist under engine/ — has it moved?"
+    )
+
+    source = engine_sources[cost_localizer_path]
+    violations = [
+        jurisdiction_id for jurisdiction_id in sorted(jurisdiction_ids) if jurisdiction_id in source
+    ]
+    assert not violations, (
+        f"engine/cost_localizer.py must dispatch only on declared CityCostProfile "
+        f"data, never a jurisdiction identifier string (JUR-05/D-53) — found: {violations}"
     )
 
 

@@ -1,0 +1,173 @@
+# data/cost_profiles/us-ny-new-york.yaml — New York's committed
+# `CityCostProfile` (Phase 4, D-53). A cost profile is a genuinely
+# different artifact from a jurisdiction rule file: it prices union
+# scale, per diem, housing, stages and equipment for a described
+# production, and needs no rule file to exist (D-53's own ARCHITECTURE.md
+# citation: stage [2] CityLocalizer is "JURISDICTION-AGNOSTIC").
+#
+# One cost line per crew department (matching engine/budget.py's D-38
+# department decomposition — plan 04-01 Task 3), all priced at the same
+# single estimated crew day rate from data/union_rates/us-ny-crew.yaml
+# (see that file's provenance_note for the full disclosed basis and
+# method) — later plans differentiate department-specific rates without
+# changing this profile's shape.
+#
+# Every numeric value below is a quoted YAML string (RD-01).
+
+city_id: "us-ny-new-york"
+city_label: "New York, NY"
+jurisdiction_id: "us-ny"
+currency: "USD"
+provenance_note: >
+  New York's cost profile for Phase 4 (plan 04-01). Ten cost lines are
+  committed here — one per crew department, matching
+  engine/budget.py::resolve_departments' D-38 decomposition — every one
+  estimated from the single day rate in data/union_rates/us-ny-crew.yaml.
+  Every other COST_CATEGORIES entry (fringe, housing, per_diem, flights,
+  stages, equipment, permits, locations, trucking) is unpriced by this
+  profile and is named in the Route A response's `not_priced` list, never
+  rendered as a $0 line (D-60). Later plans in this phase widen this same
+  profile with more cost lines and differentiated department rates; they
+  do not change its shape.
+
+cost_lines:
+  - line_id: "ny-crew-labour-production"
+    label: "Production labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+    unit_rate: "450.00"
+    rate_unit: "person-day"
+    basis: "estimated"
+    source_url: null
+    date_checked: null
+    method_note: >
+      Estimated New York production crew day rate — see
+      data/union_rates/us-ny-crew.yaml's provenance_note for the full
+      disclosed method and why this is not tagged sourced.
+  - line_id: "ny-crew-labour-camera"
+    label: "Camera labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+    unit_rate: "450.00"
+    rate_unit: "person-day"
+    basis: "estimated"
+    source_url: null
+    date_checked: null
+    method_note: >
+      Estimated New York production crew day rate — see
+      data/union_rates/us-ny-crew.yaml's provenance_note for the full
+      disclosed method and why this is not tagged sourced.
+  - line_id: "ny-crew-labour-grip-and-electric"
+    label: "Grip and electric labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+    unit_rate: "450.00"
+    rate_unit: "person-day"
+    basis: "estimated"
+    source_url: null
+    date_checked: null
+    method_note: >
+      Estimated New York production crew day rate — see
+      data/union_rates/us-ny-crew.yaml's provenance_note for the full
+      disclosed method and why this is not tagged sourced.
+  - line_id: "ny-crew-labour-art"
+    label: "Art labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+    unit_rate: "450.00"
+    rate_unit: "person-day"
+    basis: "estimated"
+    source_url: null
+    date_checked: null
+    method_note: >
+      Estimated New York production crew day rate — see
+      data/union_rates/us-ny-crew.yaml's provenance_note for the full
+      disclosed method and why this is not tagged sourced.
+  - line_id: "ny-crew-labour-wardrobe"
+    label: "Wardrobe labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+    unit_rate: "450.00"
+    rate_unit: "person-day"
+    basis: "estimated"
+    source_url: null
+    date_checked: null
+    method_note: >
+      Estimated New York production crew day rate — see
+      data/union_rates/us-ny-crew.yaml's provenance_note for the full
+      disclosed method and why this is not tagged sourced.
+  - line_id: "ny-crew-labour-hair-and-makeup"
+    label: "Hair and makeup labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+    unit_rate: "450.00"
+    rate_unit: "person-day"
+    basis: "estimated"
+    source_url: null
+    date_checked: null
+    method_note: >
+      Estimated New York production crew day rate — see
+      data/union_rates/us-ny-crew.yaml's provenance_note for the full
+      disclosed method and why this is not tagged sourced.
+  - line_id: "ny-crew-labour-sound"
+    label: "Sound labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+    unit_rate: "450.00"
+    rate_unit: "person-day"
+    basis: "estimated"
+    source_url: null
+    date_checked: null
+    method_note: >
+      Estimated New York production crew day rate — see
+      data/union_rates/us-ny-crew.yaml's provenance_note for the full
+      disclosed method and why this is not tagged sourced.
+  - line_id: "ny-crew-labour-transportation"
+    label: "Transportation labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+    unit_rate: "450.00"
+    rate_unit: "person-day"
+    basis: "estimated"
+    source_url: null
+    date_checked: null
+    method_note: >
+      Estimated New York production crew day rate — see
+      data/union_rates/us-ny-crew.yaml's provenance_note for the full
+      disclosed method and why this is not tagged sourced.
+  - line_id: "ny-crew-labour-locations"
+    label: "Locations labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+    unit_rate: "450.00"
+    rate_unit: "person-day"
+    basis: "estimated"
+    source_url: null
+    date_checked: null
+    method_note: >
+      Estimated New York production crew day rate — see
+      data/union_rates/us-ny-crew.yaml's provenance_note for the full
+      disclosed method and why this is not tagged sourced.
+  - line_id: "ny-crew-labour-post"
+    label: "Post labour days"
+    category: "labour"
+    account: "POST"
+    spend_class: "local_labour"
+    unit_rate: "450.00"
+    rate_unit: "person-day"
+    basis: "estimated"
+    source_url: null
+    date_checked: null
+    method_note: >
+      Estimated New York production crew day rate — see
+      data/union_rates/us-ny-crew.yaml's provenance_note for the full
+      disclosed method and why this is not tagged sourced.

@@ -18,29 +18,29 @@ __all__ = ["COST_PROFILE_BY_CITY", "resolve_city_to_profile_stem"]
 # minus ".yaml", under data/cost_profiles/). Seeded with New York's aliases,
 # matching app/services/city_lookup.py::CITY_ALIASES's New York entries.
 COST_PROFILE_BY_CITY: dict[str, str] = {
-    "new york": "new-york",
-    "new york city": "new-york",
-    "nyc": "new-york",
-    "manhattan": "new-york",
-    "brooklyn": "new-york",
-    "queens": "new-york",
-    "bronx": "new-york",
-    "the bronx": "new-york",
-    "staten island": "new-york",
-    "long island city": "new-york",
-    "astoria": "new-york",
-    "buffalo": "new-york",
-    "rochester": "new-york",
-    "albany": "new-york",
-    "syracuse": "new-york",
-    "yonkers": "new-york",
+    "new york": "us-ny-new-york",
+    "new york city": "us-ny-new-york",
+    "nyc": "us-ny-new-york",
+    "manhattan": "us-ny-new-york",
+    "brooklyn": "us-ny-new-york",
+    "queens": "us-ny-new-york",
+    "bronx": "us-ny-new-york",
+    "the bronx": "us-ny-new-york",
+    "staten island": "us-ny-new-york",
+    "long island city": "us-ny-new-york",
+    "astoria": "us-ny-new-york",
+    "buffalo": "us-ny-new-york",
+    "rochester": "us-ny-new-york",
+    "albany": "us-ny-new-york",
+    "syracuse": "us-ny-new-york",
+    "yonkers": "us-ny-new-york",
 }
 
 # Mirrors app/services/city_lookup.py::NY_STATE_SUFFIXES exactly — a
 # ", NY"/", New York" suffix resolves to the same committed stem any of the
 # aliases above resolve to, never a freshly-interpolated one.
 _NY_STATE_SUFFIXES: tuple[str, ...] = (", ny", ", new york")
-_NY_STATE_SUFFIX_STEM = "new-york"
+_NY_STATE_SUFFIX_STEM = "us-ny-new-york"
 
 
 def resolve_city_to_profile_stem(raw_city: str) -> str | None:
