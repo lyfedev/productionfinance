@@ -317,6 +317,21 @@ def test_post_spec_form_with_budget_shows_refusal_reason():
     assert "makes the comparison circular" in response.text
 
 
+def test_post_spec_form_non_numeric_crew_size_never_500s():
+    # Regression for CR-01: crew_size was converted with a bare int(crew_size)
+    # as an inline argument expression to SpecFormSubmission(...), which
+    # raised an uncaught ValueError before the surrounding
+    # `except ValidationError` block could catch it, escaping as an
+    # unhandled 500. Every field must fail readably, never with a bare
+    # framework error page.
+    response = client.post(
+        "/spec", data=_valid_form_data(crew_size="not-a-number")
+    )
+    assert response.status_code == 422
+    assert response.status_code != 500
+    assert "not-a-number" in response.text
+
+
 def test_post_api_v1_spec_extra_field_returns_422():
     body = _valid_json_body()
     body["unexpected_field"] = "nope"

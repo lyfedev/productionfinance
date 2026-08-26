@@ -102,12 +102,27 @@ def post_spec_form(
 ) -> HTMLResponse:
     from app.main import PUBLIC_PATH, templates
 
+    crew_size_text = crew_size.strip()
+    try:
+        crew_size_value = int(crew_size_text) if crew_size_text else None
+    except ValueError:
+        return templates.TemplateResponse(
+            request=request,
+            name="spec_form.html",
+            context={
+                "public_path": PUBLIC_PATH,
+                "refusal_reason": None,
+                "validation_error": f"Crew size must be a whole number; got {crew_size_text!r}.",
+            },
+            status_code=422,
+        )
+
     try:
         raw = SpecFormSubmission(
             production_type=production_type,
             shoot_days_stage=shoot_days_stage,
             shoot_days_location=shoot_days_location,
-            crew_size=int(crew_size) if crew_size.strip() else None,
+            crew_size=crew_size_value,
             crew_tier=crew_tier.strip() or None,
             principal_cast_count=principal_cast_count,
             principal_cast_imported_count=principal_cast_imported_count,
