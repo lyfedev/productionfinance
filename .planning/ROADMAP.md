@@ -146,7 +146,7 @@ Plans:
   3. The visitor names New York and the hosted page returns $991,190 against $3,964,760 of qualified spend, linked through to the NY ESD source document
   4. A validation test suite runs in CI on every commit asserting exact Decimal equality against the disclosed New York figures, and deliberately corrupting a rule value makes that suite fail
 
-**Plans**: 2/3 plans executed in 2 waves
+**Plans**: 3/3 plans executed in 2 waves
 
 Plans:
 **Wave 1**
@@ -156,7 +156,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion — the tracer must be green before either expansion plan lands)*
 
 - [x] 03-02-PLAN.md — Route A: the `ProductionSpec` input contract, the crew-tier table, the never-suggest city resolver, and the visible budget refusal (wave 2)
-- [ ] 03-03-PLAN.md — SHP-14: the declared mutation table, the five-step non-vacuity gate, and the sixth blocking CI job (wave 2)
+- [x] 03-03-PLAN.md — SHP-14: the declared mutation table, the five-step non-vacuity gate, and the sixth blocking CI job (wave 2)
 
 **Frontend note**: a minimal form is sufficient here — deliberately no UI hint, because the real interface treatment is Phase 6 and must not be started early at the cost of the Anora proof.
 **Why New York first**: Richest-documented curated jurisdiction, the demo's opening beat, and the first real cited number on a hosted URL. Unmissable — do not broaden before this lands. SHP-14's CI suite is born here rather than at submission time because a suite written on the last day cannot have caught anything; it is re-proven non-vacuous in Phase 8.
@@ -323,7 +323,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundations — Source Truth & Deploy Path | 1 — Accounts | 8/9 | In Progress|  |
 | 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 9/9 | Complete    | 2026-08-25 |
-| 3. New York End-to-End — The Anora Proof | 1 — Accounts | 2/3 | In Progress|  |
+| 3. New York End-to-End — The Anora Proof | 1 — Accounts | 3/3 | In Progress|  |
 | 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 0/TBD | Not started | - |
 | 5. Curated Breadth & the Validation Loop | 1 — Accounts | 0/TBD | Not started | - |
 | 6. The Interface | 1 — Accounts | 0/TBD | Not started | - |
