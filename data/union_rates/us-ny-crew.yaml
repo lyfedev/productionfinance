@@ -1,40 +1,56 @@
-# data/union_rates/us-ny-crew.yaml — the one crew day-rate row this
-# plan's tracer prices, following data/crew_tiers.yaml's header shape.
-# This file must never declare a `confidence` or `status` key — that
-# vocabulary is reserved for jurisdictions/*.yaml rule files reproducing
-# an actual government disclosure (RD-02).
+# data/union_rates/us-ny-crew.yaml — New York's IATSE general_crew row.
+#
+# Migrated (plan 04-02, Task 1) from this plan's tracer shape (a single
+# `crew_day_rate:` mapping, plan 04-01) into the same `rows:` schema every
+# other data/union_rates/*.yaml file uses, so `engine.union_rates
+# .load_union_rates()` can glob every file in this directory uniformly.
+#
+# This file's ONE row prices every crew_tiers.yaml department EXCEPT
+# camera (which now has a real IATSE Local 600 sourced row in
+# data/union_rates/iatse.yaml — see that file's header for why camera
+# split out on its own). Los Angeles's equivalent general_crew row lives
+# inside data/union_rates/iatse.yaml itself (no separate us-ca-crew.yaml
+# is declared by this plan) — the split across files is historical
+# continuity from the plan 04-01 tracer, not a schema requirement.
 #
 # basis: estimated (NOT sourced). No primary union rate card (IATSE Local
-# 52/600/700, or a New York production-crew CBA wage schedule) has been
-# fetched and archived under sources/unions/ with a sources/MANIFEST.yaml
-# entry in this session (D-58's "sourced" tier requires exactly that).
-# The day rate below is a round, defensible estimate informed by commonly
-# cited New York below-the-line production crew day-rate ranges reported
-# in trade press and production-budgeting guides — never a reproduced
-# union or government disclosure. Closing this to `sourced` requires
-# locating and archiving that primary rate card.
+# 52/700, or a New York production-crew CBA wage schedule covering
+# grip/electric/art/wardrobe/hair-makeup/sound/transportation/locations/
+# production) has been fetched and archived under sources/unions/ with a
+# sources/MANIFEST.yaml entry this session — see .planning/WINDOWS.md for
+# the open item naming exactly which locals were searched for and not
+# obtained. The day rate below is the same round, defensible estimate
+# already disclosed by the plan 04-01 tracer.
 #
 # Every numeric value below is a quoted YAML string (RD-01).
 
-basis: estimated
 provenance_note: >
-  Estimated New York production crew day rate. No primary union rate card
-  has been fetched and archived under sources/ in this session; the value
-  below is a round, defensible estimate informed by commonly cited
-  industry day-rate ranges for New York below-the-line production crew,
-  not a reproduced government or union disclosure. Labelled estimated,
-  never sourced or validated, until a primary rate card is archived under
-  sources/unions/ with a sources/MANIFEST.yaml entry.
+  Estimated New York general below-the-line crew day rate, covering every
+  crew_tiers.yaml department except camera (which has its own sourced
+  IATSE Local 600 row in data/union_rates/iatse.yaml). Carried forward
+  unchanged from the plan 04-01 tracer's estimate; no primary union rate
+  card has been fetched and archived under sources/ for these crafts in
+  this session. Labelled estimated, never sourced or validated, until a
+  primary rate card is archived under sources/unions/ with a
+  sources/MANIFEST.yaml entry.
 
-crew_day_rate:
-  line_id: "ny-crew-day-rate"
-  label: "Crew labour"
-  amount: "450.00"
-  currency: "USD"
-  rate_unit: "person-day"
-  method_note: >
-    Estimated from commonly cited New York below-the-line production
-    crew day-rate ranges reported in industry trade press and
-    production-budgeting guides (general crew day rates commonly cited
-    in the $400-$550 range for a New York studio production); no primary
-    union rate card was fetched and archived this session.
+rows:
+  - row_id: "iatse-general-crew-us-ny"
+    union: "IATSE"
+    local: null
+    region: "us-ny"
+    craft: "general_crew"
+    rate: "450.00"
+    rate_unit: "day"
+    effective_from: "2024-01-01"
+    effective_to: null
+    basis: "estimated"
+    source_url: null
+    date_checked: "2026-08-26"
+    method_note: >
+      Estimated from commonly cited New York below-the-line production
+      crew day-rate ranges reported in industry trade press and
+      production-budgeting guides (general crew day rates commonly cited
+      in the $400-$550 range for a New York studio production); no primary
+      union rate card was fetched and archived for these specific crafts
+      this session. See .planning/WINDOWS.md.

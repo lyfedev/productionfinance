@@ -1,0 +1,35 @@
+# data/union_rates/sag-aftra.yaml — SAG-AFTRA dated union rate-card rows.
+#
+# Every numeric value below is a quoted YAML string (RD-01). This file must
+# never declare a `confidence` or `status` key (RD-02).
+#
+# No crew_tiers.yaml department maps to a SAG-AFTRA craft in this phase —
+# that table models below-the-line crew composition only (its own header:
+# "above-the-line roles ... are not part of the crew-tier headcount this
+# file resolves"), and principal cast is not yet a priced budget line
+# (Phase 4's D-53 scope is cost localization, not a cast-pricing model).
+# This file exists so `engine.union_rates.load_union_rates()` has a
+# committed SAG-AFTRA row set ready for a future phase that prices
+# principal cast, and so `fringe_schedules.yaml`'s SAG-AFTRA entry (COST-03)
+# has a sibling wage file matching this directory's one-file-per-union
+# convention (Task 1's instruction: "Write one YAML file per union").
+#
+# sagaftra.org and every path under it returned HTTP 403 with a DataDome
+# bot-protection challenge for every fetch attempt this session (plain
+# curl with multiple user agents, and a real headless-Chromium fetch via
+# the gstack browse skill — both blocked identically). No SAG-AFTRA wage
+# schedule PDF was obtained. See .planning/WINDOWS.md for the full record
+# of what was attempted.
+
+provenance_note: >
+  No SAG-AFTRA rate rows are committed here — sagaftra.org's entire domain
+  returned an HTTP 403 DataDome bot-protection challenge for every fetch
+  attempt this session (plain curl and a real headless-Chromium browser,
+  both blocked). No craft in this phase's crew_tiers.yaml departments maps
+  to a SAG-AFTRA wage row (principal cast is not yet a priced budget
+  line), so an empty row set does not silently zero-price anything this
+  phase computes. See .planning/WINDOWS.md and
+  data/union_rates/fringe_schedules.yaml's SAG-AFTRA entry (its pension_
+  health_pct is `estimated`, not `sourced`, for the same reason).
+
+rows: []

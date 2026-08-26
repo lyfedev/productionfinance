@@ -1,0 +1,34 @@
+# data/union_rates/wga.yaml — WGA dated union rate-card rows.
+#
+# Every numeric value below is a quoted YAML string (RD-01). This file must
+# never declare a `confidence` or `status` key (RD-02).
+#
+# No crew_tiers.yaml department maps to a WGA craft in this phase — writer
+# is an above-the-line role, and that table models below-the-line crew
+# composition only. Unlike DGA/IATSE, no row is committed here at all: the
+# WGA's own 2026 Schedule of Minimums (fetched and archived this session,
+# sources/MANIFEST.yaml) prices screenplay work as flat per-project
+# minimums (e.g. "Original Screenplay, Excluding Treatment" theatrical
+# high-budget: $126,899), not a day/hour/week rate — `engine.union_rates
+# .RateRow.rate_unit` is a closed `Literal["day", "hour", "week"]` and
+# does not (yet) model a flat per-project unit. Adding one would be a
+# schema widening with no consumer this phase (no priced writer line
+# exists), so this file stays an empty, explicitly-explained row set
+# rather than forcing a lump-sum figure into a day-rate-shaped field.
+#
+# The archived document is still load-bearing: it resolves 04-RESEARCH.md
+# Assumptions Log — the Pension Plan, Health Fund and Paid Parental
+# Benefit Fund contribution percentages recorded in
+# data/union_rates/fringe_schedules.yaml are transcribed from it.
+
+provenance_note: >
+  No WGA wage rows are committed — the WGA's own Schedule of Minimums
+  prices screenplay work as flat per-project minimums, not a day/hour/week
+  rate this schema's closed `rate_unit` vocabulary models, and no
+  crew_tiers.yaml department needs a WGA wage row this phase (writer is
+  above-the-line). The archived document
+  (sources/unions/2026-08-26-wga-schedule-of-minimums-2026.pdf) still
+  sources data/union_rates/fringe_schedules.yaml's WGA Pension Plan,
+  Health Fund and Paid Parental Benefit Fund percentages.
+
+rows: []

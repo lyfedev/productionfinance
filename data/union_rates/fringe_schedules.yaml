@@ -1,0 +1,199 @@
+# data/union_rates/fringe_schedules.yaml — COST-03: fringe and payroll
+# burden as its own line, never folded into the wage line (D-62).
+#
+# Every numeric value below is a quoted YAML string (RD-01). This file must
+# never declare a `confidence` or `status` key (RD-02).
+#
+# One entry per union. EACH of the three percentages (pension_health_pct,
+# payroll_tax_pct, other_burden_pct) carries its OWN `basis`, `source_url`,
+# `date_checked` and `method_note` (PITFALLS E1) — a union's own document
+# may source one percentage while another on the same union is still an
+# industry estimate, and collapsing all three to one shared basis would
+# misrepresent the estimated one as sourced. This is the concrete lesson
+# of 04-RESEARCH.md Pitfall 1 and Assumptions Log rows A1/A2: a "35-45%
+# IATSE blanket fringe" figure and a "22.25% DGA P&H" figure both
+# circulate on payroll-vendor pages formatted identically to a real
+# citation, and only one of the two survived this session's attempt to
+# trace it to the union's own document.
+#
+# `payroll_tax_pct` and `other_burden_pct` are, by their nature, NEVER a
+# figure a union publishes — payroll tax (employer FICA/FUTA/SUTA) and
+# general burden (workers' compensation, general liability) are
+# government-imposed or insurance-market obligations, not collectively
+# bargained ones. Every union's payroll_tax_pct and other_burden_pct below
+# is therefore `basis: estimated`, using the same generic, disclosed
+# industry-standard figure across all four unions — a deliberate choice,
+# not an oversight, and named as such in each method_note.
+
+provenance_note: >
+  Resolves 04-RESEARCH.md Assumptions Log rows A1 and A2. A1 (IATSE's
+  35-45% blanket fringe figure) is CONFIRMED as payroll-vendor commentary,
+  not a union document — this session found no IATSE Basic Agreement text
+  itself (a large, multi-hundred-page legal document, not the rate cards
+  fetched for data/union_rates/iatse.yaml) stating a Pension & Health
+  contribution percentage, so IATSE's pension_health_pct stays
+  `basis: estimated`, citing the same industry-commentary range, per
+  Pitfall 1's explicit instruction never to promote it. A2 (DGA's 22.25%
+  Pension & Health rate) is RESOLVED to `basis: sourced` — the DGA's own
+  2026-2027 Minimum Salary Schedule, fetched and archived this session,
+  states "Company will contribute 8.75% to the Pension Plan and 13.5% to
+  the Health Plan" (8.75 + 13.5 = 22.25%), confirming the figure directly
+  from the union's own primary document rather than a payroll-vendor
+  summary. WGA's Pension Plan, Health Fund and Paid Parental Benefit Fund
+  percentages are likewise `basis: sourced` from the WGA's own 2026
+  Schedule of Minimums, fetched and archived this session. SAG-AFTRA's
+  pension_health_pct stays `basis: estimated` — sagaftra.org returned an
+  HTTP 403 DataDome bot-protection challenge for every fetch attempt this
+  session (plain curl and a real headless-Chromium browser via the
+  gstack browse skill, both blocked identically); see .planning/WINDOWS.md.
+
+fringe_schedules:
+  - union: "IATSE"
+    pension_health_pct:
+      value: "0.40"
+      basis: "estimated"
+      source_url: null
+      date_checked: "2026-08-26"
+      method_note: >
+        Industry-commentary "35-45% on top of union crew rate" range
+        (cmsproductions.com, topsheet.io — payroll-vendor blog content,
+        not IATSE's own Basic Agreement text), midpoint taken as a round
+        estimate. 04-RESEARCH.md Assumptions Log row A1, Pitfall 1: this
+        figure must never be promoted to `sourced` without locating the
+        IATSE Basic Agreement's own Pension & Health contribution
+        schedule, which this session did not obtain (only the rate cards
+        under data/union_rates/iatse.yaml, a separate document).
+    payroll_tax_pct:
+      value: "0.0965"
+      basis: "estimated"
+      source_url: null
+      date_checked: "2026-08-26"
+      method_note: >
+        Standard employer-side payroll tax estimate (FICA 7.65% +
+        blended FUTA/SUTA ~2%), never a union-published figure — payroll
+        tax is a government-imposed obligation, not a collectively
+        bargained one. Identical across all four unions in this file
+        (see this file's header note).
+    other_burden_pct:
+      value: "0.02"
+      basis: "estimated"
+      source_url: null
+      date_checked: "2026-08-26"
+      method_note: >
+        Standard general workers'-compensation/liability burden estimate
+        for below-the-line production labour, never a union-published
+        figure. Identical across all four unions in this file (see this
+        file's header note).
+
+  - union: "SAG-AFTRA"
+    pension_health_pct:
+      value: "0.21"
+      basis: "estimated"
+      source_url: null
+      date_checked: "2026-08-26"
+      method_note: >
+        A commonly cited SAG-AFTRA Pension & Health contribution figure
+        from a payroll-adjacent industry summary, NOT sagaftra.org
+        itself. sagaftra.org and every path under it (including
+        production-center/basic-agreements and
+        production-center/low-budget-agreements) returned an HTTP 403
+        DataDome bot-protection challenge for every fetch attempt this
+        session — plain curl with multiple user agents, and a real
+        headless-Chromium fetch via the gstack browse skill, both
+        blocked identically. sagaftraplans.org (the SAG-AFTRA Health
+        Plan/Pension Plan's own administrator site) was reachable but
+        its public pages are a login-gated Contributions Manager portal
+        with no published percentage table. See .planning/WINDOWS.md.
+    payroll_tax_pct:
+      value: "0.0965"
+      basis: "estimated"
+      source_url: null
+      date_checked: "2026-08-26"
+      method_note: >
+        Standard employer-side payroll tax estimate (FICA 7.65% +
+        blended FUTA/SUTA ~2%), never a union-published figure. Identical
+        across all four unions in this file (see this file's header
+        note).
+    other_burden_pct:
+      value: "0.02"
+      basis: "estimated"
+      source_url: null
+      date_checked: "2026-08-26"
+      method_note: >
+        Standard general workers'-compensation/liability burden estimate,
+        never a union-published figure. Identical across all four unions
+        in this file (see this file's header note).
+
+  - union: "DGA"
+    pension_health_pct:
+      value: "0.2225"
+      basis: "sourced"
+      source_url: "https://edge.sitecorecloud.io/directorsguf4d4-dga2c79-dgaprod1615-f6e3/media/Files/Contracts/Rate-Cards-2026-thru-2027/DGA260722Rates2026thru2027.pdf"
+      date_checked: "2026-08-26"
+      method_note: >
+        8.75% Pension Plan + 13.5% Health Plan, both employer-side
+        contributions, stated verbatim in the DGA's own 2026-2027 Minimum
+        Salary Schedule ("PENSION & HEALTH CONTRIBUTIONS: Company will
+        contribute 8.75% to the Pension Plan and 13.5% to the Health
+        Plan."). Resolves 04-RESEARCH.md Assumptions Log row A2 to
+        `sourced` — this figure was previously found only on a
+        payroll-vendor summary page; this session located and archived
+        the union's own primary document confirming it. Excludes the
+        employee's own separate 2.5% Pension Plan contribution (deducted
+        from the employee's wage, not an additional employer burden the
+        production pays).
+    payroll_tax_pct:
+      value: "0.0965"
+      basis: "estimated"
+      source_url: null
+      date_checked: "2026-08-26"
+      method_note: >
+        Standard employer-side payroll tax estimate (FICA 7.65% +
+        blended FUTA/SUTA ~2%), never a union-published figure. Identical
+        across all four unions in this file (see this file's header
+        note).
+    other_burden_pct:
+      value: "0.02"
+      basis: "estimated"
+      source_url: null
+      date_checked: "2026-08-26"
+      method_note: >
+        Standard general workers'-compensation/liability burden estimate,
+        never a union-published figure. Identical across all four unions
+        in this file (see this file's header note).
+
+  - union: "WGA"
+    pension_health_pct:
+      value: "0.2775"
+      basis: "sourced"
+      source_url: "https://www.wga.org/uploadedfiles/contracts/2026_schedule_of_minimums.pdf"
+      date_checked: "2026-08-26"
+      method_note: >
+        11.25% to the Producer-Writers Guild of America Pension Plan +
+        16.25% to the Writers Guild-Industry Health Fund + 0.25% to the
+        Paid Parental Benefit Fund, stated verbatim in the WGA's own 2026
+        Schedule of Minimums (effective May 2, 2026). The Health Fund
+        percentage rises to 16.75% effective 2027-05-02 (combined
+        28.25%) — not modelled here; this figure is the rate in effect
+        at the schedule's effective date and would need a second dated
+        row (matching the union_rates.yaml dated-range convention) to
+        model the scheduled increase.
+    payroll_tax_pct:
+      value: "0.0965"
+      basis: "estimated"
+      source_url: null
+      date_checked: "2026-08-26"
+      method_note: >
+        Standard employer-side payroll tax estimate (FICA 7.65% +
+        blended FUTA/SUTA ~2%), never a union-published figure. Identical
+        across all four unions in this file (see this file's header
+        note).
+    other_burden_pct:
+      value: "0.02"
+      basis: "estimated"
+      source_url: null
+      date_checked: "2026-08-26"
+      method_note: >
+        Standard general workers'-compensation/liability burden estimate,
+        never a union-published figure. Identical across all four unions
+        in this file (see this file's header note).

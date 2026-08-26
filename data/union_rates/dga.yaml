@@ -1,0 +1,47 @@
+# data/union_rates/dga.yaml — DGA dated union rate-card rows.
+#
+# Every numeric value below is a quoted YAML string (RD-01). This file must
+# never declare a `confidence` or `status` key (RD-02).
+#
+# No crew_tiers.yaml department maps to a DGA craft in this phase —
+# director is an above-the-line role, and that table models below-the-line
+# crew composition only (see its own header). The one row below is
+# committed for completeness and for a future phase that prices an
+# above-the-line director line; `region: "us-national"` never matches
+# either committed cost profile's `labour.region` ("us-ny"/"us-ca") this
+# phase, so it is inert data, never silently consumed.
+#
+# The DGA's own primary document (fetched and archived this session,
+# sources/MANIFEST.yaml) is used here for the director weekly rate AND
+# resolves 04-RESEARCH.md Assumptions Log row A2 for the Pension & Health
+# percentage recorded in data/union_rates/fringe_schedules.yaml.
+
+provenance_note: >
+  DGA Theatrical High Budget director weekly salary minimum, transcribed
+  from the DGA's own published 2026-2027 Minimum Salary Schedule
+  (sources/unions/2026-08-26-dga-rate-card-2026-2027.pdf,
+  sources/MANIFEST.yaml). `region: "us-national"` — the DGA Basic
+  Agreement is a national agreement, not state-specific, and does not
+  match either committed cost profile's region this phase (see this
+  file's header). See data/union_rates/fringe_schedules.yaml for the
+  DGA Pension & Health percentage this same document sources.
+
+rows:
+  - row_id: "dga-director-theatrical-high-budget-2026"
+    union: "DGA"
+    local: null
+    region: "us-national"
+    craft: "director"
+    rate: "25214.00"
+    rate_unit: "week"
+    effective_from: "2026-07-01"
+    effective_to: "2027-06-30"
+    basis: "sourced"
+    source_url: "https://edge.sitecorecloud.io/directorsguf4d4-dga2c79-dgaprod1615-f6e3/media/Files/Contracts/Rate-Cards-2026-thru-2027/DGA260722Rates2026thru2027.pdf"
+    date_checked: "2026-08-26"
+    method_note: >
+      Theatrical Motion Picture Minimums, High Budget, Weekly Salary,
+      effective July 1, 2026 to June 30, 2027 (revised 7/22/26). Not
+      consumed by this phase's labour pricing — director is
+      above-the-line and not one of crew_tiers.yaml's ten below-the-line
+      departments; committed for a future phase.

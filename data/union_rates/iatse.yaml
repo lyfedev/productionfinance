@@ -1,0 +1,151 @@
+# data/union_rates/iatse.yaml — IATSE dated union rate-card rows (COST-02).
+#
+# Every numeric value below is a quoted YAML string (RD-01: PyYAML parses an
+# unquoted decimal like 947.58 as a native float, which corrupts through
+# naive Decimal() conversion). This file must never declare a `confidence`
+# or `status` key — that vocabulary is reserved for jurisdictions/*.yaml
+# rule files reproducing an actual government disclosure (RD-02).
+#
+# Two crafts are declared, matching engine.cost_profile.CityCostProfile's
+# `labour.crafts` mapping for the ten crew_tiers.yaml departments:
+#
+#   - "camera": IATSE Local 600 (International Cinematographers Guild)'s
+#     own published Basic Agreement rate cards, region us-ny and us-ca.
+#     Fetched and archived this session under sources/unions/ with
+#     sources/MANIFEST.yaml entries (D-10). Local 600 publishes several
+#     occupation codes per region (Director of Photography, Camera
+#     Operator, 1st/2nd Assistant Photographer, DIT, Film Loader, Camera
+#     Utility, Still Photographer) at different rates; this model prices
+#     the WHOLE camera department at ONE representative published row
+#     rather than a per-occupation breakdown (department-level, not
+#     occupation-level, granularity — see engine/budget.py's D-38
+#     decomposition). "Camera Operator" (Occ. Code 1911) is the row
+#     transcribed, a mid-tier classification below the Director of
+#     Photography premium and above the assistant-level rates — a
+#     disclosed methodological choice of WHICH published row stands in for
+#     the whole department, not an invented number: the rate itself is the
+#     union's own published scale, transcribed verbatim. `basis: sourced`.
+#
+#   - "general_crew": every other crew_tiers.yaml department (production,
+#     grip_and_electric, art, wardrobe, hair_and_makeup, sound,
+#     transportation, locations, post). No IATSE local's basic agreement
+#     for these specific crafts (Local 80 grips, Local 728 lighting
+#     technicians, Local 800 art directors/set designers, Local 705
+#     costumers, Local 706 make-up artists/hairstylists, Local 695 sound,
+#     Local 871 script supervisors, Local 700 editors, Teamsters Local 399
+#     for transportation) was fetched and archived this session — each
+#     would require locating and transcribing a separate primary document,
+#     which this session's time budget did not cover. `basis: estimated`,
+#     carrying forward the same round, defensible New York day-rate
+#     estimate the tracer (plan 04-01) already disclosed, applied
+#     identically to Los Angeles pending a region-specific primary source
+#     (no differentiation invented where none is sourced). Recorded as an
+#     open item in .planning/WINDOWS.md, naming exactly which locals were
+#     not fetched and why.
+#
+# Los Angeles's general_crew row lives HERE (not in a separate
+# `data/union_rates/us-ca-crew.yaml`, which this plan's files_modified list
+# does not declare) — New York's general_crew row lives in the sibling
+# `data/union_rates/us-ny-crew.yaml` (the tracer's own file, migrated to
+# this same `rows:` schema). Both rows carry `union: "IATSE"` and are
+# loaded together by `engine.union_rates.load_union_rates()`, which globs
+# every *.yaml file under this directory — the split across two files is
+# historical continuity, not a schema requirement.
+
+provenance_note: >
+  IATSE Local 600 camera-department scale for New York and Los Angeles,
+  transcribed from the union's own published Basic Agreement rate cards
+  (archived under sources/unions/, sources/MANIFEST.yaml entries). The
+  general_crew rows for the other nine crew_tiers.yaml departments remain
+  an estimated day rate pending per-craft primary-source acquisition — see
+  .planning/WINDOWS.md.
+
+rows:
+  - row_id: "iatse-l600-camera-us-ny-2025"
+    union: "IATSE"
+    local: "600"
+    region: "us-ny"
+    craft: "camera"
+    rate: "947.58"
+    rate_unit: "day"
+    effective_from: "2025-08-03"
+    effective_to: "2026-08-01"
+    basis: "sourced"
+    source_url: "https://www.icg600.com/sites/default/files/2025-10/%28V06%29-ER-Rate-Card-2025-to-2026-ASKREP.pdf"
+    date_checked: "2026-08-26"
+    method_note: >
+      Camera Operator (Occ. Code 1911), Schedule D-1 (Daily Employees, 8
+      hours, 1.5x after 8), IATSE Local 600 Eastern Region Panel 1
+      (Features, 1 Hour Network Episodic, inside the Northeast Corridor —
+      New York is inside the Corridor). This one row represents the whole
+      camera department in this model's department-level granularity; see
+      this file's header note.
+
+  - row_id: "iatse-l600-camera-us-ca-2025"
+    union: "IATSE"
+    local: "600"
+    region: "us-ca"
+    craft: "camera"
+    rate: "719.28"
+    rate_unit: "day"
+    effective_from: "2025-08-03"
+    effective_to: "2026-08-01"
+    basis: "sourced"
+    source_url: "https://www.icg600.com/sites/default/files/2025-09/WR-Rate-Card-2025-2026-%28All-WR-Panels%29-9.28.25.pdf"
+    date_checked: "2026-08-26"
+    method_note: >
+      Camera Operator (Occ. Code 1911), Schedule A (Daily Employees, 8
+      hours, 1.5x after 8), IATSE Local 600 Western Region Panel 1
+      (Features, 1 Hour Episodic, Studio-Local). This one row represents
+      the whole camera department in this model's department-level
+      granularity; see this file's header note.
+
+  - row_id: "iatse-l600-camera-us-ca-2026"
+    union: "IATSE"
+    local: "600"
+    region: "us-ca"
+    craft: "camera"
+    rate: "744.48"
+    rate_unit: "day"
+    effective_from: "2026-08-02"
+    effective_to: "2027-07-31"
+    basis: "sourced"
+    source_url: "https://www.icg600.com/sites/default/files/2026-08/Western-Region-Rate-Card-%282026-2027%29.pdf"
+    date_checked: "2026-08-26"
+    method_note: >
+      Camera Operator (Occ. Code 1911), Schedule A, IATSE Local 600 Western
+      Region Panel 1 — the next dated window immediately following
+      iatse-l600-camera-us-ca-2025 (closed-closed, adjacent, non-
+      overlapping: that row ends 2026-08-01, this row starts 2026-08-02).
+      New York's own 2026-2027 Eastern Region rate card was found only as a
+      document explicitly marked "DRAFT" on icg600.com — not yet a ratified
+      published rate card — so no us-ny successor row is committed here;
+      see .planning/WINDOWS.md. A shoot date after 2026-08-01 in New York
+      correctly raises rather than falling back to this expired row.
+
+  - row_id: "iatse-general-crew-us-ca"
+    union: "IATSE"
+    local: null
+    region: "us-ca"
+    craft: "general_crew"
+    rate: "450.00"
+    rate_unit: "day"
+    effective_from: "2024-01-01"
+    effective_to: null
+    basis: "estimated"
+    source_url: null
+    date_checked: "2026-08-26"
+    method_note: >
+      Estimated general below-the-line crew day rate for the nine
+      crew_tiers.yaml departments other than camera (production,
+      grip_and_electric, art, wardrobe, hair_and_makeup, sound,
+      transportation, locations, post). No region-specific primary
+      document was fetched this session for Los Angeles; this figure
+      carries forward New York's identical round, defensible estimate
+      (data/union_rates/us-ny-crew.yaml) informed by commonly cited
+      below-the-line crew day-rate ranges reported in trade press and
+      production-budgeting guides, rather than inventing an unjustified
+      LA-specific adjustment with no sourced basis. See
+      .planning/WINDOWS.md for the open item naming which per-craft
+      IATSE locals (80, 728, 800, 705, 706, 695, 871, 700) and Teamsters
+      Local 399 were not fetched this session.

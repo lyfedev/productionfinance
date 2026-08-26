@@ -289,3 +289,86 @@ documents:
       figures.
     cited_for:
       - "jurisdictions/us-ct.yaml — mechanism (transferable), minimum_spend ($100,000), audit.mandatory (true), and independent corroboration of the tiered_by_spend rate bands"
+
+  - path: sources/unions/2026-08-26-icg600-eastern-region-panel1-2025-2026.pdf
+    url: "https://www.icg600.com/sites/default/files/2025-10/%28V06%29-ER-Rate-Card-2025-to-2026-ASKREP.pdf"
+    retrieved_at: "2026-08-26T12:15:00-07:00"
+    sha256: "4dd1faef7db4ddf6950294d113e1588911b1d5d7504d8287d6fd43005cb1fea5"
+    jurisdiction: null
+    document_title: "IATSE Local 600 (International Cinematographers Guild) — Basic Agreement, Amendment Agreement Inside and Outside 'The Corridor', Eastern Region Panel 1 (Features, 1 Hour Network Episodic), effective August 3, 2025 to August 1, 2026"
+    note: >
+      Fetched by direct curl (no JS execution, no AWS Textract or any other
+      AWS AI endpoint), text extracted with the local `pdftotext` utility
+      for manual transcription only — not a runtime dependency (D-57). The
+      "Camera Operator" (Occ. Code 1911) daily rate on page 1 (Schedule D-1,
+      $947.58/day) is the row transcribed into
+      data/union_rates/iatse.yaml's us-ny camera craft row.
+    cited_for:
+      - "data/union_rates/iatse.yaml — row iatse-l600-camera-us-ny-2025 (Camera Operator, Occ. 1911, $947.58/day, effective 2025-08-03 to 2026-08-01)"
+
+  - path: sources/unions/2026-08-26-icg600-western-region-panel1-2025-2026.pdf
+    url: "https://www.icg600.com/sites/default/files/2025-09/WR-Rate-Card-2025-2026-%28All-WR-Panels%29-9.28.25.pdf"
+    retrieved_at: "2026-08-26T12:15:00-07:00"
+    sha256: "06bb3b9a009e0400759dec104c6073928fca480a222e7c2ef198aba0d6eb3331"
+    jurisdiction: null
+    document_title: "IATSE Local 600 (International Cinematographers Guild) — Basic Agreement and Videotape Supplemental Agreement, Western Region Panel 1 (Features, 1 Hour Episodic, Studio-Local), effective August 3, 2025 to August 1, 2026"
+    note: >
+      Fetched by direct curl, text extracted with `pdftotext` for manual
+      transcription only. The "Camera Operator" (Occ. Code 1911) daily rate
+      (Schedule A, $719.28/day) is the row transcribed into
+      data/union_rates/iatse.yaml's us-ca camera craft row for this dated
+      window.
+    cited_for:
+      - "data/union_rates/iatse.yaml — row iatse-l600-camera-us-ca-2025 (Camera Operator, Occ. 1911, $719.28/day, effective 2025-08-03 to 2026-08-01)"
+
+  - path: sources/unions/2026-08-26-icg600-western-region-panel1-2026-2027.pdf
+    url: "https://www.icg600.com/sites/default/files/2026-08/Western-Region-Rate-Card-%282026-2027%29.pdf"
+    retrieved_at: "2026-08-26T12:15:00-07:00"
+    sha256: "bdcf8489982fdd8ebc4238ccf460ba207f53d437d68a9ca4381a9eab561a9887"
+    jurisdiction: null
+    document_title: "IATSE Local 600 (International Cinematographers Guild) — Basic Agreement and Videotape Supplemental Agreement, Western Region Panel 1 (Features, 1 Hour Episodic, Studio-Local), effective August 2, 2026 to July 31, 2027"
+    note: >
+      Fetched by direct curl, text extracted with `pdftotext` for manual
+      transcription only. The "Camera Operator" (Occ. Code 1911) daily rate
+      (Schedule A, $744.48/day) is the row transcribed into
+      data/union_rates/iatse.yaml's us-ca camera craft row for the
+      immediately-following dated window (adjacent, non-overlapping, to the
+      2025-2026 window above).
+    cited_for:
+      - "data/union_rates/iatse.yaml — row iatse-l600-camera-us-ca-2026 (Camera Operator, Occ. 1911, $744.48/day, effective 2026-08-02 to 2027-07-31)"
+
+  - path: sources/unions/2026-08-26-dga-rate-card-2026-2027.pdf
+    url: "https://edge.sitecorecloud.io/directorsguf4d4-dga2c79-dgaprod1615-f6e3/media/Files/Contracts/Rate-Cards-2026-thru-2027/DGA260722Rates2026thru2027.pdf"
+    retrieved_at: "2026-08-26T12:15:00-07:00"
+    sha256: "eaec9230f36ce646c4907b1fc13870fa05e73c3e7912bf3a41b44246f28d8fff"
+    jurisdiction: null
+    document_title: "Directors Guild of America — Minimum Salary Schedule, effective July 1, 2026 to June 30, 2027 (revised 7/22/26), Pension & Health Contributions section (page ~14 of the archived PDF)"
+    note: >
+      Fetched by direct curl from DGA's own CDN-hosted PDF link
+      (dga.org/Contracts/Rates-2026-to-2027), text extracted with
+      `pdftotext` for manual transcription only. States: "Company will
+      contribute 8.75% to the Pension Plan and 13.5% to the Health Plan."
+      (8.75 + 13.5 = 22.25%, an employer-side contribution) — this is the
+      union's OWN primary document confirming the 22.25% figure that
+      04-RESEARCH.md's Assumptions Log row A2 flagged as needing primary
+      confirmation (it had previously been sourced only from a
+      payroll-vendor summary page). A2 is resolved: `basis: sourced`.
+    cited_for:
+      - "data/union_rates/fringe_schedules.yaml — DGA pension_health_pct (0.2225 = 8.75% Pension + 13.5% Health, employer contribution, resolving research Assumption A2)"
+      - "data/union_rates/dga.yaml — row dga-director-theatrical-high-budget-2026 (Theatrical High Budget director weekly salary, $25,214/week, effective 2026-07-01 to 2027-06-30)"
+
+  - path: sources/unions/2026-08-26-wga-schedule-of-minimums-2026.pdf
+    url: "https://www.wga.org/uploadedfiles/contracts/2026_schedule_of_minimums.pdf"
+    retrieved_at: "2026-08-26T12:15:00-07:00"
+    sha256: "94ad483481659266a2271a8b8b6579a6eefba2d2de60dd638f8aca41e1a85002"
+    jurisdiction: null
+    document_title: "Writers Guild of America — Schedule of Minimums, 2026 Theatrical and Television Basic Agreement, effective May 2, 2026 (Pension Plan, Health Fund and Paid Parental Benefit Fund Contributions section)"
+    note: >
+      Fetched by direct curl from wga.org's own uploaded-files path, text
+      extracted with `pdftotext` for manual transcription only. States:
+      "11.25% to the ... PENSION PLAN ...; 16.25% (16.75% effective May 2,
+      2027) to the WRITERS GUILD-INDUSTRY HEALTH FUND; and 0.25% to the
+      PAID PARENTAL BENEFIT FUND" — 11.25 + 16.25 + 0.25 = 27.75% combined,
+      rising to 28.25% on 2027-05-02. The union's own primary document.
+    cited_for:
+      - "data/union_rates/fringe_schedules.yaml — WGA pension_health_pct (0.2775 = 11.25% Pension + 16.25% Health + 0.25% Paid Parental Benefit, effective through 2027-05-01)"
