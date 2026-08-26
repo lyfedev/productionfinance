@@ -121,3 +121,35 @@ def test_health_contract_unchanged():
     response = client.get("/health")
     assert response.status_code == 200
     assert set(response.json().keys()) == {"status", "version", "git_sha", "boot_time"}
+
+
+def test_validate_form_lists_anora_and_names_unselectable_pairs_with_reasons():
+    response = client.get("/validate")
+    assert response.status_code == 200
+    assert "Anora" in response.text
+    assert "Don't Look Up" in response.text
+    # ma_dont_look_up.yaml's own blocker text — proving the reason is shown
+    # beside the unselectable pair, not silently omitted.
+    assert "Qualifying spend is not publicly disclosed" in response.text
+
+
+def test_post_validate_reproduces_anora_via_form():
+    # This is the assertion that catches a missing form-parser dependency
+    # (python-multipart) at request time, not only at import time.
+    response = client.post("/validate", data={"pair_id": "ny_anora"})
+    assert response.status_code == 200
+    assert "991,190" in response.text
+
+
+def test_post_validate_with_unselectable_pair_names_it_and_states_reason_not_500():
+    response = client.post("/validate", data={"pair_id": "ct_christmas_always"})
+    assert response.status_code != 500
+    assert "ct_christmas_always" in response.text
+
+
+def test_landing_page_shows_both_routes_and_health_link():
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "Price a production" in response.text
+    assert "Reproduce a disclosure" in response.text
+    assert "/health" in response.text
