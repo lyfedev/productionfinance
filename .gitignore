@@ -45,3 +45,8 @@ id_ed25519*
 *.ppk
 LightsailDefaultKey*
 .uv-cache/
+.gstack/
+
+# GSD ephemeral runtime state (session-scoped: live PID / dispatch sentinel)
+.gsd/
+.planning/milestone.lock
