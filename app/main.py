@@ -9,11 +9,14 @@ exact dishonesty PROJECT.md forbids.
 import os
 import subprocess
 from datetime import datetime, timezone
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 from app import __version__
+from app.routers import validate as validate_router
 
 # Captured once at import so every request in this process reports the
 # same boot time.
@@ -59,6 +62,15 @@ GIT_SHA: str = _resolve_git_sha()
 PUBLIC_PATH: str = os.environ.get("PRODFIN_PUBLIC_PATH", "").rstrip("/")
 
 app = FastAPI(title="ProductionFinance", version=__version__)
+
+# Anchored to this module's own directory, not the process CWD, for the
+# same WorkingDirectory reason PUBLIC_PATH is documented above (D-46).
+# HTML autoescaping is Jinja2Templates' default (jinja2.select_autoescape())
+# and is never disabled here — free-text fixture values reach these
+# templates (T-03-04).
+templates = Jinja2Templates(directory=Path(__file__).resolve().parent / "templates")
+
+app.include_router(validate_router.router)
 
 
 @app.get("/health")

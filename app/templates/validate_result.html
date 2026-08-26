@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Reproduce a disclosure — {{ result.production_title }}{% endblock %}
+{% block content %}
+
+{% macro figure_node(figure) %}
+<div class="figure-node">
+  <p>
+    <strong>{{ figure.label }}</strong>:
+    {{ "{:,}".format(figure.value) }} {{ figure.unit }}
+    (confidence: {{ figure.confidence }})
+  </p>
+  <ul>
+    {% for line in figure.derivation %}
+    <li>{{ line }}</li>
+    {% endfor %}
+  </ul>
+  <p>
+    Source:
+    {% if figure.source_url %}
+      <a href="{{ figure.source_url }}">{{ figure.source_url }}</a>
+    {% else %}
+      no source URL recorded for this figure
+    {% endif %}
+    &mdash;
+    checked
+    {% if figure.date_checked %}
+      {{ figure.date_checked.isoformat() }}
+    {% else %}
+      date not recorded
+    {% endif %}
+  </p>
+  {% for child in figure.inputs %}
+    {{ figure_node(child) }}
+  {% endfor %}
+</div>
+{% endmacro %}
+
+<p><a href="{{ public_path }}/validate">&larr; Back to validation pairs</a></p>
+
+<h1>Reproduce a disclosure: {{ result.production_title }}</h1>
+<p>Jurisdiction: {{ result.jurisdiction_id }}</p>
+
+<h2>Disclosed (government-published)</h2>
+<table>
+  <tr><th>Qualified spend</th><td>{{ "{:,}".format(result.disclosed_qualified_spend) }}</td></tr>
+  <tr><th>Credit issued</th><td>{{ "{:,}".format(result.disclosed_credit) }}</td></tr>
+  <tr><th>Report period</th><td>{{ result.report_period or "not recorded" }}</td></tr>
+  <tr><th>Date checked</th><td>{{ result.date_checked or "not recorded" }}</td></tr>
+  <tr><th>Source document</th><td>{{ result.source_document or "not recorded" }}</td></tr>
+  <tr><th>Source document sha256</th><td>{{ result.source_document_sha256 or "not recorded" }}</td></tr>
+  <tr>
+    <th>Source</th>
+    <td>
+      {% if result.source_url %}
+        <a href="{{ result.source_url }}">{{ result.source_url }}</a>
+      {% else %}
+        no source URL recorded
+      {% endif %}
+    </td>
+  </tr>
+</table>
+
+<h2>Computed (this system's engine)</h2>
+{% if result.computed_credit is none %}
+<p>
+  <strong>This figure cannot be computed:</strong> {{ result.refusal_reason }}
+</p>
+{% else %}
+<table>
+  <tr><th>Credit issued</th><td>{{ "{:,}".format(result.computed_credit) }}</td></tr>
+  <tr>
+    <th>Source</th>
+    <td>
+      {% if result.computed_figure.source_url %}
+        <a href="{{ result.computed_figure.source_url }}">{{ result.computed_figure.source_url }}</a>
+      {% else %}
+        no source URL recorded for this figure
+      {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <th>Date checked</th>
+    <td>
+      {% if result.computed_figure.date_checked %}
+        {{ result.computed_figure.date_checked.isoformat() }}
+      {% else %}
+        date not recorded
+      {% endif %}
+    </td>
+  </tr>
+  <tr><th>Confidence</th><td>{{ result.computed_figure.confidence }}</td></tr>
+</table>
+{% endif %}
+
+<h2>Verdict</h2>
+<p><strong>{{ result.verdict }}</strong></p>
+
+{% if result.computed_figure %}
+<h2>Full derivation tree</h2>
+{{ figure_node(result.computed_figure) }}
+{% endif %}
+
+{% endblock %}
