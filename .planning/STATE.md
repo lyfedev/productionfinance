@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 04
 current_phase_name: Cost Localization & Landed-Cost Outputs
 status: executing
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-08-27T00:12:40.311Z"
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-08-27T00:44:36.916Z"
 last_activity: 2026-08-26
 last_activity_desc: Phase 04 execution started
-state_head: dc2f474928913359bb192cdac562cad9ac9a5fbd
+state_head: 4fc08031e86f6a04d8a264942d0682234d7565b0
 progress:
   total_phases: 11
   completed_phases: 3
   total_plans: 28
-  completed_plans: 24
+  completed_plans: 25
   percent: 27
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 ## Current Position
 
 Phase: 04 (Cost Localization & Landed-Cost Outputs) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 Status: Ready to execute
 Last activity: 2026-08-26 — Phase 04 execution started
 
@@ -85,6 +85,7 @@ Progress: [███░░░░░░░] 27%
 | Phase 04 P02 | 48min | 3 tasks | 22 files |
 | Phase 04 P03 | 95min | 3 tasks | 18 files |
 | Phase 04 P04 | 24min | 3 tasks | 15 files |
+| Phase 04 P05 | 80min | 3 tasks | 20 files |
 
 ## Accumulated Context
 
@@ -129,6 +130,7 @@ Recent decisions affecting current work:
 - [Phase 04]: [Phase 04] 04-02: labour widened from a single flat estimated day rate to real per-craft union rate rows (IATSE Local 600 camera scale sourced for both regions) plus fringe as a separate visible Figure; Los Angeles gets its first full cost profile with jurisdiction_id null (D-53 proven). Fixed-test-spec total_landed_cost moves from $253,125 (04-01) to $447,532. DGA/WGA fringe percentages resolved sourced from primary documents (Assumptions A1/A2); SAG-AFTRA and 9 of 10 crew departments remain estimated pending further sourcing, recorded in WINDOWS.md.
 - [Phase 04]: [Phase 04] 04-03: GSA FY2026 per-diem bulk file re-confirmed byte-for-byte against 04-RESEARCH.md's CITED figures for both floor cities (zero discrepancy, raised to basis: sourced); housing/per_diem/flights now price against imported crew and cast only via a new travel: profile block, and New York's start quarter genuinely moves the number through the housing line alone (per diem's M&IE is flat) while Los Angeles has zero quarter-variant lines. Fixed-test-spec total_landed_cost moves from $447,532 (04-02) to $515,867.
 - [Phase 04]: [Phase 04] 04-04: facilities (COST-06) and INC-10 exemptions land; not_priced empties for New York and Los Angeles, and both cities' total_landed_cost now reports basis: modelling_assumption (the weakest tier, from the five facilities lines). Low-bound pricing treatment chosen uniformly over the midpoint for all facilities categories, both cities (research row A5). No live document-fetch tool was available this session, so every facilities/exemption entry stayed at basis: estimated or modelling_assumption rather than a named-anchor sourced/estimated tier -- recorded honestly to WINDOWS.md (entries 15-17) rather than fabricated. D-76's four guarantees (exemption Figure ids disjoint from the incentive DAG; gross credit never greater with exemptions; cost-total delta equals the summed reduction; absent-category raise) are proven as tests against real committed New York data.
+- [Phase 04]: 04-05: dated GBP->USD FX snapshot (1.363, 2026-08-26) with refuse-rather-than-derive convert/rate_figure; London lands as the third floor city and first non-USD one with BECTU rows genuinely basis: sourced (live network access this session), zero engine changes to union_rates/per_diem/facilities/exemptions; per-component conversion added to aggregate() via reporting_currency, converted total exactly equals the sum of converted components, FX rate visible as its own named component (D-75). London's fixed-test-spec total: £548,595 GBP / $747,735 USD.
 
 ### Pending Todos
 
@@ -154,6 +156,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-27T00:12:40.156Z
-Stopped at: Completed 04-04-PLAN.md
+Last session: 2026-08-27T00:44:36.774Z
+Stopped at: Completed 04-05-PLAN.md
 Resume file: None
