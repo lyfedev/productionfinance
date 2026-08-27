@@ -624,6 +624,47 @@ def test_both_committed_profiles_not_priced_is_now_empty():
     assert la_landed.not_priced == ()
 
 
+def _london_profile() -> CityCostProfile:
+    return load_cost_profile("data/cost_profiles/gb-london.yaml")
+
+
+def test_london_prices_end_to_end_in_gbp_with_not_priced_empty():
+    """Plan 04-05 (COST-02/COST-08): London is the third committed city
+    and the first non-USD one — the schema's proof that it generalises
+    past US unions and a single currency, with zero engine changes beyond
+    the declared BECTU data and London's own committed cost profile."""
+    spec = _spec(["London, UK"])
+    budget = build_canonical_budget(spec, _crew_headcount())
+    on_date = quarter_start_date(spec.start_quarter, spec.start_year)
+
+    localized = localize(budget, _london_profile(), on_date=on_date, spec=spec)
+    landed = aggregate(localized)
+
+    assert landed.not_priced == ()
+    assert landed.cost_total.unit == "GBP"
+    for figure in localized.lines:
+        assert figure.unit == "GBP"
+
+
+def test_london_per_diem_carries_no_month_band_resolving_research_assumption_a4():
+    """Resolves 04-RESEARCH.md Assumption A4: the State Department's
+    London row is flat all year (Season Begin 01/01, Season End 12/31),
+    never a genuine month-by-month band — D-64's absent branch, exactly
+    like Los Angeles, and recorded in .planning/WINDOWS.md."""
+    from engine.landed_cost import SeasonalityState
+    from engine.per_diem import load_per_diem
+
+    london_table = load_per_diem("gb-london")
+
+    assert london_table.lodging_by_month is None
+    assert london_table.lodging_flat_rate == "424"
+    assert london_table.seasonality_note is not None
+
+    london_state = SeasonalityState(state="no_month_band", reason=london_table.seasonality_note)
+    assert london_state.state == "no_month_band"
+    assert "Assumption A4" in london_state.reason
+
+
 def test_both_committed_profiles_total_landed_cost_basis_is_modelling_assumption():
     """D-59: with facilities lines at basis 'modelling_assumption' (the
     weakest tier present across the full ten-category set), both
