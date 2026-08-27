@@ -267,9 +267,11 @@ def test_fringe_component_non_sourced_requires_method_note():
         _fringe_component(basis="estimated", source_url=None, method_note=None)
 
 
-def test_load_fringe_schedules_reads_the_committed_file_for_all_four_unions():
+def test_load_fringe_schedules_reads_the_committed_file_for_all_five_unions():
+    # Five unions as of plan 04-05: BECTU joins IATSE/SAG-AFTRA/DGA/WGA
+    # (London's committed cost profile).
     schedules = load_fringe_schedules()
-    assert set(schedules) == {"IATSE", "SAG-AFTRA", "DGA", "WGA"}
+    assert set(schedules) == {"IATSE", "SAG-AFTRA", "DGA", "WGA", "BECTU"}
     for schedule in schedules.values():
         assert isinstance(schedule, FringeSchedule)
         # Every percentage parses cleanly as a Decimal — RD-01 discipline.

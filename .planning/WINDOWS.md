@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 22
+open_count: 23
 waived_count: 0
 fixed_count: 0
-total_count: 22
-last_updated: 2026-08-27T00:32:16.754Z
+total_count: 23
+last_updated: 2026-08-27T00:39:07.071Z
 ---
 
 # Broken Windows Ledger
@@ -37,6 +37,7 @@ last_updated: 2026-08-27T00:32:16.754Z
 | 20 | 04 | unmet-truth | data/tax_exemptions/gb-london.yaml |  | London's exemptions table declares zero entries — this session did not identify or verify a UK production VAT exemption or extended-stay relief analogous to New York's sales-tax exemption or Los Angeles's hotel-occupancy exemption (INC-10 shape). The UK's VAT-based tax structure differs materially from a US-style point-of-sale sales/occupancy tax, and no primary HMRC or local-authority document was fetched this session to confirm whether an analogous relief exists. | open |  | 2026-08-27T00:32:16.594Z |  |
 | 21 | 04 | unmet-truth | data/union_rates/fringe_schedules.yaml |  | BECTU's pension_health_pct (UK statutory auto-enrolment minimum, 3%) and payroll_tax_pct (UK employer Class 1 National Insurance, 15%) are both basis: estimated, not sourced — the primary Pensions Act 2008 / HMRC NI rate documents were not fetched and archived this session, unlike DGA's and WGA's own primary Pension & Health schedules. | open |  | 2026-08-27T00:32:16.673Z |  |
 | 22 | 04 | unmet-truth | data/facilities/gb-london.yaml |  | All five London facilities entries (stages, equipment, permits, locations, trucking) are basis: modelling_assumption, matching New York and Los Angeles's identical gap (WINDOWS entry 15) — no standardized public rate card exists for any of these categories anywhere, and this session did not fetch a primary UK studio, equipment-house or borough film-office document to anchor any of the five GBP ranges. | open |  | 2026-08-27T00:32:16.754Z |  |
+| 23 | 04 | lint-warning | engine/fx.py,engine/landed_cost.py,tests/test_engine_fx.py,tests/test_engine_landed_cost.py |  | Plan 04-05 adds new FURB157 (verbose Decimal constructor, RD-01 quoted-Decimal convention) and ISC004 (implicit string concat in multi-line derivation tuples, same pre-existing pattern as every prior plan in this phase) findings -- repo-wide ruff baseline measured 394 before this plan's changes (git worktree at 8a919b2), 415 after (net +21). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-08-27T00:39:07.071Z |  |
 
 ````json
 [
@@ -302,6 +303,18 @@ last_updated: 2026-08-27T00:32:16.754Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-27T00:32:16.754Z",
+    "resolved_at": null
+  },
+  {
+    "id": 23,
+    "kind": "lint-warning",
+    "phase": "04",
+    "file": "engine/fx.py,engine/landed_cost.py,tests/test_engine_fx.py,tests/test_engine_landed_cost.py",
+    "line": null,
+    "description": "Plan 04-05 adds new FURB157 (verbose Decimal constructor, RD-01 quoted-Decimal convention) and ISC004 (implicit string concat in multi-line derivation tuples, same pre-existing pattern as every prior plan in this phase) findings -- repo-wide ruff baseline measured 394 before this plan's changes (git worktree at 8a919b2), 415 after (net +21). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-27T00:39:07.071Z",
     "resolved_at": null
   }
 ]

@@ -436,7 +436,7 @@ documents:
       day rate: GBP138.50 for a 10-hour day (10 + 1 hour lunch), the row
       transcribed into data/union_rates/bectu.yaml's "camera" craft row.
     cited_for:
-      - "data/union_rates/bectu.yaml — camera craft row (GBP138.50/day, 10hr day, effective 2025-01-01)"
+      - "data/union_rates/bectu.yaml — row bectu-camera-branch-london-2025, camera craft (GBP138.50/day, 10hr day, effective 2025-01-01)"
 
   - path: sources/unions/2026-08-26-bectu-grips-branch-ratecard-2024.pdf
     url: "https://union.bectu.org.uk/asset/B8BC82BE-6B47-40F7-AE977C6E905CC1A5/"
@@ -455,7 +455,7 @@ documents:
       departments, mirroring iatse.yaml's identical department-level (not
       occupation-level) granularity choice for New York/Los Angeles.
     cited_for:
-      - "data/union_rates/bectu.yaml — general_crew craft row (GBP424/day, TV/SVOD Band 1, dated 2024)"
+      - "data/union_rates/bectu.yaml — row bectu-grips-branch-general-crew-london-2024, general_crew craft (GBP424/day, TV/SVOD Band 1, dated 2024)"
 
   - path: sources/state-dept/2026-08-26-allowances-state-gov-uk-per-diem.html
     url: "https://allowances.state.gov/web920/per_diem_action.asp"

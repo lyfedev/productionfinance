@@ -8,17 +8,32 @@ city's profile does not price is a named entry in `not_priced` — NEVER a
 fabricated zero). Mirrors `engine/pipeline.py:238-269`'s summation shape:
 sum the values, quantize once, derive `confidence`/`basis` from the
 combined inputs.
+
+Plan 04-05 (COST-08, D-74/D-75) adds a declared `reporting_currency` to
+`aggregate`. When it differs from the localized budget's own currency,
+EVERY cost line is converted individually through `engine.fx.convert`
+(one quantize per line, via that function's own pinned call) BEFORE
+summation — the converted total is therefore the exact `Decimal` sum of
+already-quantized converted lines, never a second quantize of the sum.
+The FX rate itself is attached to `cost_total.inputs` as its own named
+`engine.fx.rate_figure` component (D-75) — visible in the DAG, excluded
+from the money sum, exactly the way `price_jurisdiction` carries a
+non-contributing programme Figure in `inputs` while excluding it from
+`total_value`.
 """
 
 from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from datetime import date
 from decimal import Decimal
 from typing import Literal
 
 from engine.cost_localizer import LocalizedBudget
 from engine.figure import Figure, combined_basis, combined_confidence
+from engine.fx import convert as fx_convert
+from engine.fx import rate_figure as fx_rate_figure
 from engine.rounding import quantize_money
 
 __all__ = [
@@ -84,6 +99,15 @@ class LandedCost:
     quarter_variant_lines: tuple[str, ...] = ()
     quarter_invariant_lines: tuple[str, ...] = ()
     seasonality_state: SeasonalityState | None = None
+    # COST-08/D-74/D-75 (plan 04-05): the currency this total is reported
+    # in, the localized budget's own (source) currency, and the FX
+    # snapshot's `as_of_date` when a conversion was applied — `None` when
+    # `reporting_currency` equalled the source currency (no conversion, no
+    # snapshot consulted). A downstream renderer never has to infer any of
+    # the three from the Figure tree.
+    reporting_currency: str = ""
+    source_currency: str = ""
+    fx_as_of_date: date | None = None
 
 
 def compute_quarter_invariance(
@@ -132,10 +156,53 @@ def compute_quarter_invariance(
     return tuple(sorted(variant)), tuple(sorted(invariant))
 
 
+def _convert_cost_lines(
+    cost_inputs: list[Figure], *, source_currency: str, target_currency: str
+) -> tuple[list[Figure], Figure]:
+    """Convert every Figure in `cost_inputs` from `source_currency` to
+    `target_currency` individually through `engine.fx.convert` — ONE
+    quantize per line (via `convert`'s own pinned call), never a second
+    quantize applied to the eventual sum. Returns the converted lines
+    (same order, same labels, so downstream lookups-by-label are
+    unaffected) plus the FX rate as its own `Figure` (D-75) — a component,
+    never a cost, and never included in the returned lines' values.
+
+    A missing FX snapshot propagates `engine.fx.convert`'s own `ValueError`
+    — the city reports a refusal with the stated reason rather than a
+    total in the wrong currency or a total silently left unconverted."""
+    converted_lines: list[Figure] = []
+    for original in cost_inputs:
+        converted = fx_convert(original.value, source_currency, target_currency)
+        converted_lines.append(
+            Figure(
+                value=converted.value,
+                unit=target_currency,
+                label=original.label,
+                derivation=(
+                    f"{original.label!r}: {original.value} {source_currency} "
+                    f"converted to {converted.value} {target_currency} via the "
+                    f"committed {source_currency}->{target_currency} FX snapshot "
+                    "(engine.fx.convert, one quantize applied to this line only)",
+                    *converted.derivation,
+                ),
+                inputs=(original,),
+                source_url=original.source_url,
+                date_checked=original.date_checked,
+                confidence=original.confidence,
+                live_fetched_this_run=False,
+                basis=original.basis,
+                caveat=original.caveat,
+            )
+        )
+    rate = fx_rate_figure(source_currency, target_currency)
+    return converted_lines, rate
+
+
 def aggregate(
     localized: LocalizedBudget,
     net_cash_figure: Figure | None = None,
     *,
+    reporting_currency: str | None = None,
     quarter_variant_lines: tuple[str, ...] = (),
     quarter_invariant_lines: tuple[str, ...] = (),
     seasonality_state: SeasonalityState | None = None,
@@ -145,7 +212,15 @@ def aggregate(
     one was priced for this city) into `total_landed_cost`. When
     `net_cash_figure` is absent, `total_landed_cost` equals `cost_total`
     and says so — an unmodelled incentive is never treated as `$0`
-    (D-56), it is simply not subtracted."""
+    (D-56), it is simply not subtracted.
+
+    `reporting_currency` (COST-08/D-74/D-75) defaults to `localized`'s own
+    currency — a same-currency city (e.g. a USD city reported in USD)
+    takes an UNCHANGED code path, byte-identical to plan 04-04's
+    behaviour, and adds no FX line at all. When it genuinely differs, every
+    cost line is converted individually (see `_convert_cost_lines`) before
+    summation, and the FX rate is attached to `cost_total.inputs` as its
+    own named component — visible, never a hidden multiplication."""
     cost_inputs = list(localized.lines)
     if not cost_inputs:
         raise ValueError(
@@ -155,24 +230,58 @@ def aggregate(
             "which combined_basis (D-59) refuses to do; commit at least one cost "
             "line to this city's profile before aggregating"
         )
-    cost_total_value = quantize_money(
-        sum((figure.value for figure in cost_inputs), start=Decimal("0"))
-    )
+
+    source_currency = localized.currency
+    target_currency = reporting_currency or source_currency
+    fx_line: Figure | None = None
+    fx_as_of_date: date | None = None
+
+    if target_currency != source_currency:
+        cost_inputs, fx_line = _convert_cost_lines(
+            cost_inputs, source_currency=source_currency, target_currency=target_currency
+        )
+        fx_as_of_date = fx_line.date_checked
+        # Already-quantized converted lines summed directly — no second
+        # quantize of the total (the plan's own explicit requirement).
+        # Summing exact integer-valued Decimals cannot produce a
+        # fractional residue, so this is not merely a style choice: it
+        # keeps "the converted total is the exact sum of the converted
+        # components" true by construction, never by coincidence.
+        cost_total_value = sum((figure.value for figure in cost_inputs), start=Decimal("0"))
+    else:
+        cost_total_value = quantize_money(
+            sum((figure.value for figure in cost_inputs), start=Decimal("0"))
+        )
+
+    basis_inputs = [*cost_inputs, fx_line] if fx_line is not None else cost_inputs
+    cost_total_derivation: list[str] = [
+        f"summed {len(cost_inputs)} localized cost line(s) for "
+        f"{localized.city_id!r}: {cost_total_value} {target_currency}",
+    ]
+    if fx_line is not None:
+        cost_total_derivation.append(
+            f"reporting currency {target_currency!r} differs from this city's own "
+            f"{source_currency!r} — every cost line above was converted "
+            "individually before this sum (see each line's own derivation)"
+        )
+        cost_total_derivation.append(
+            f"the FX rate itself ({fx_line.value} {fx_line.unit}) is carried in "
+            "this total's inputs as its own named component (D-75) — it "
+            "contributes NO money value of its own and is excluded from the sum "
+            "above; it carries the rate, not a cost"
+        )
 
     cost_total = Figure(
         value=cost_total_value,
-        unit=localized.currency,
+        unit=target_currency,
         label="Total cost (pre-incentive)",
-        derivation=(
-            f"summed {len(cost_inputs)} localized cost line(s) for "
-            f"{localized.city_id!r}: {cost_total_value} {localized.currency}",
-        ),
-        inputs=tuple(cost_inputs),
+        derivation=tuple(cost_total_derivation),
+        inputs=tuple(cost_inputs) + ((fx_line,) if fx_line is not None else ()),
         source_url=None,
         date_checked=None,
-        confidence=combined_confidence(cost_inputs),
+        confidence=combined_confidence(basis_inputs),
         live_fetched_this_run=False,
-        basis=combined_basis(cost_inputs),
+        basis=combined_basis(basis_inputs),
     )
 
     not_priced = tuple(
@@ -229,4 +338,7 @@ def aggregate(
         quarter_variant_lines=quarter_variant_lines,
         quarter_invariant_lines=quarter_invariant_lines,
         seasonality_state=seasonality_state,
+        reporting_currency=target_currency,
+        source_currency=source_currency,
+        fx_as_of_date=fx_as_of_date,
     )
