@@ -10,7 +10,6 @@ from pydantic import ValidationError
 
 from app.services.spec import (
     CityAssessment,
-    CityCost,
     RefusalResult,
     RuleTerm,
     SpecFormSubmission,
@@ -18,6 +17,8 @@ from app.services.spec import (
     handle_spec_submission,
 )
 from engine.figure_serialize import figure_to_dict
+from engine.gap import GapDecomposition
+from engine.ranker import RankedCity
 
 __all__ = ["router"]
 
@@ -55,18 +56,33 @@ def _city_assessment_to_json(assessment: CityAssessment) -> dict:
     }
 
 
-def _city_cost_to_json(cost: CityCost) -> dict:
+def _ranked_city_to_json(city: RankedCity) -> dict:
     # `figure_to_dict` is the only path a Figure takes to JSON (Pitfall 4)
     # — never `dataclasses.asdict`, which would crash on the Decimal/date
-    # fields Figure carries.
+    # fields Figure carries. `band` and `reason` are the two bands' own
+    # separate-state markers (D-55) — the JSON contract never collapses
+    # them into a single flat list with a boolean flag.
     return {
-        "city_id": cost.city_id,
-        "cost_total": figure_to_dict(cost.cost_total),
-        "total_landed_cost": figure_to_dict(cost.total_landed_cost),
-        "not_priced": list(cost.not_priced),
-        "permanent_exclusions": list(cost.permanent_exclusions),
-        "incentive_state": cost.incentive_state,
-        "incentive_state_reason": cost.incentive_state_reason,
+        "city_id": city.city_id,
+        "band": city.band,
+        "reason": city.reason,
+        "total_landed_cost": figure_to_dict(city.total_landed_cost),
+        "cost_only_total": figure_to_dict(city.cost_only_total),
+        "incentive_figure": (
+            figure_to_dict(city.incentive_figure) if city.incentive_figure is not None else None
+        ),
+    }
+
+
+def _gap_to_json(gap: GapDecomposition | None) -> dict | None:
+    if gap is None:
+        return None
+    return {
+        "city_a_id": gap.city_a_id,
+        "city_b_id": gap.city_b_id,
+        "sign_convention": gap.sign_convention,
+        "components": [figure_to_dict(c) for c in gap.components],
+        "headline_gap": figure_to_dict(gap.headline_gap),
     }
 
 
@@ -75,6 +91,19 @@ def _spec_result_to_json(result: SpecResult) -> dict:
     # result carries no bare Decimal, but rule-term `date_checked` values
     # are not JSON-native and would crash the default encoder with a 500
     # at encode time rather than a 422 if returned raw (Pitfall 4).
+    #
+    # D-55: the two bands are SEPARATE top-level JSON keys, never one list
+    # carrying a `band` flag a consumer has to filter on — a caller that
+    # forgets to check the flag would silently treat an unranked city's
+    # cost-only total as though it were net-ranked. `result.ranked_cities`
+    # itself stays ONE ordered tuple at the Python level (engine.ranker
+    # .rank's own natural shape: ranked band first, unranked band second,
+    # 04-06-PLAN.md's own instruction) — this split happens only at the
+    # JSON boundary.
+    net_ranked_cities = [c for c in result.ranked_cities if c.band == "net_ranked"]
+    incentive_not_modelled_cities = [
+        c for c in result.ranked_cities if c.band == "incentive_not_modelled"
+    ]
     return {
         "spec": result.spec.model_dump(),
         "crew_headcount": {
@@ -85,7 +114,11 @@ def _spec_result_to_json(result: SpecResult) -> dict:
         },
         "city_assessments": [_city_assessment_to_json(c) for c in result.city_assessments],
         "rule_terms": [_rule_term_to_json(t) for t in result.rule_terms],
-        "city_costs": [_city_cost_to_json(c) for c in result.city_costs],
+        "net_ranked_cities": [_ranked_city_to_json(c) for c in net_ranked_cities],
+        "incentive_not_modelled_cities": [
+            _ranked_city_to_json(c) for c in incentive_not_modelled_cities
+        ],
+        "gap": _gap_to_json(result.gap),
         "spend_origin": result.spend_origin,
     }
 

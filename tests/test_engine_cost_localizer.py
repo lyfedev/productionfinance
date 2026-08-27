@@ -283,7 +283,9 @@ def test_localize_output_for_ny_and_la_shares_the_same_canonical_budget_object(m
 
 
 # ---------------------------------------------------------------------------
-# HTTP-level: city_costs for both cities, LA never a fabricated $0 incentive
+# HTTP-level: ranked_cities for both cities, LA never a fabricated $0
+# incentive (plan 04-06 renames city_costs/CityCost -> ranked_cities/
+# RankedCity and incentive_state/incentive_state_reason -> band/reason)
 # ---------------------------------------------------------------------------
 
 
@@ -307,15 +309,15 @@ def test_route_a_prices_both_cities_and_la_incentive_is_not_modelled_not_zero():
         }
     )
     result = handle_spec_submission(submission)
-    assert len(result.city_costs) == 2
+    assert len(result.ranked_cities) == 2
 
-    la_cost = next(c for c in result.city_costs if c.city_id == "us-ca-los-angeles")
-    assert la_cost.incentive_state == "not_modelled"
-    assert la_cost.incentive_state_reason  # a plain-words reason, never blank
-    assert la_cost.total_landed_cost.value == la_cost.cost_total.value
+    la_cost = next(c for c in result.ranked_cities if c.city_id == "us-ca-los-angeles")
+    assert la_cost.band == "incentive_not_modelled"
+    assert la_cost.reason  # a plain-words reason, never blank
+    assert la_cost.total_landed_cost.value == la_cost.cost_only_total.value
 
-    ny_cost = next(c for c in result.city_costs if c.city_id == "us-ny-new-york")
-    assert ny_cost.incentive_state == "modelled"
+    ny_cost = next(c for c in result.ranked_cities if c.city_id == "us-ny-new-york")
+    assert ny_cost.band == "net_ranked"
 
 
 # ---------------------------------------------------------------------------

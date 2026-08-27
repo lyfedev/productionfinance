@@ -31,27 +31,36 @@ from app.services._paths import REPO_ROOT, RULESET_PATH_BY_JURISDICTION
 from app.services.city_lookup import resolve_city_to_jurisdiction
 from engine.budget import build_canonical_budget
 from engine.city_profile_lookup import resolve_city_to_profile_stem
-from engine.cost_localizer import localize, quarter_start_date
+from engine.cost_localizer import LocalizedBudget, localize, quarter_start_date
 from engine.cost_profile import COST_PROFILES_DIR, load_cost_profile
-from engine.figure import Figure
-from engine.landed_cost import aggregate
-from engine.models import load_ruleset
-from engine.pipeline import price_jurisdiction
+from engine.gap import GapDecomposition, decompose_gap
+from engine.models import JurisdictionRuleSet, load_ruleset
+from engine.ranker import RankedCity, rank
 from engine.spec import CrewHeadcount, CrewTier, ProductionSpec, resolve_crew_tier
 
 __all__ = [
     "REFUSAL_REASON",
     "REPO_ROOT",
+    "REPORTING_CURRENCY",
     "RULESET_PATH_BY_JURISDICTION",
     "SPEND_ORIGIN_STATEMENT",
     "CityAssessment",
-    "CityCost",
     "RefusalResult",
     "RuleTerm",
     "SpecFormSubmission",
     "SpecResult",
     "handle_spec_submission",
 ]
+
+# Plan 04-06 (D-55/D-75): the one reporting currency every candidate
+# city's landed cost is compared in, so ranking and the gap decomposition
+# never sort or subtract a raw GBP number against a raw USD one (see
+# engine.ranker.rank's own docstring for why this is REQUIRED, not
+# defaulted). USD, not GBP or a visitor-chosen currency — every curated
+# jurisdiction and the majority of the committed floor cities (New York,
+# Los Angeles) already price in USD; London is the one city this
+# genuinely converts.
+REPORTING_CURRENCY = "USD"
 
 # D-35's visible half — the exact sentence a visitor reads after typing a
 # number into the "Total budget" field.
@@ -121,28 +130,22 @@ class RuleTerm:
 
 
 @dataclass(frozen=True)
-class CityCost:
-    """One candidate city's real, cited, basis-tagged landed cost (D-71).
-    `incentive_state` is `"modelled"` only when a committed cost profile's
-    `jurisdiction_id` also has a committed rule file — never a suggestion,
-    never a fabricated $0 (D-56)."""
-
-    city_id: str
-    cost_total: Figure
-    total_landed_cost: Figure
-    not_priced: tuple[str, ...]
-    permanent_exclusions: tuple[str, ...]
-    incentive_state: Literal["modelled", "not_modelled"]
-    incentive_state_reason: str
-
-
-@dataclass(frozen=True)
 class SpecResult:
+    """Plan 04-06 (D-55/OUT-01/OUT-02) replaces the flat `city_costs` list
+    D-71 introduced with the two-band ranked structure: `ranked_cities`
+    carries every candidate city that resolved to a committed cost
+    profile, in `engine.ranker.rank`'s own order (ranked band first,
+    unranked band second — never interleaved). `gap` decomposes the
+    difference between the first two entries in that same order — `None`
+    when fewer than two candidate cities produced a total, since a gap
+    between one city and nothing is not a gap."""
+
     spec: ProductionSpec
     crew_headcount: CrewHeadcount
     city_assessments: tuple[CityAssessment, ...]
     rule_terms: tuple[RuleTerm, ...]
-    city_costs: tuple[CityCost, ...]
+    ranked_cities: tuple[RankedCity, ...]
+    gap: GapDecomposition | None
     spend_origin: str
 
 
@@ -158,13 +161,15 @@ def handle_spec_submission(raw: SpecFormSubmission) -> SpecResult | RefusalResul
     4. Resolve each candidate city to a curated status, never a suggestion.
     5. For any city resolving to `us-ny`, read New York's cited rule terms.
     6. Build the ONE canonical budget for this submission (COST-01 — never
-       once per city), and for each candidate city that resolves to a
-       committed cost profile, localize it and aggregate a landed cost —
-       pricing the incentive too when a rule file is also committed for
-       that profile's jurisdiction (D-71).
-    7. Return the echoed spec, the resolved crew headcount, the per-city
-       assessments, the rule terms, the per-city costs, and the D-73
-       spend-origin statement.
+       once per city), localize it against every candidate city that
+       resolves to a committed cost profile, and rank the results into
+       D-55's two bands (`engine.ranker.rank`) — pricing the incentive too
+       when a rule file is also committed for a profile's jurisdiction.
+    7. Decompose the gap (OUT-02) between the first two ranked cities, in
+       rank order — `None` when fewer than two cities produced a total.
+    8. Return the echoed spec, the resolved crew headcount, the per-city
+       assessments, the rule terms, the ranked cities, the gap, and the
+       D-73 spend-origin statement.
     """
     if raw.total_budget not in (None, ""):
         return RefusalResult(reason=REFUSAL_REASON, refused_field="total_budget")
@@ -198,28 +203,36 @@ def handle_spec_submission(raw: SpecFormSubmission) -> SpecResult | RefusalResul
     if "us-ny" in resolved_jurisdictions:
         rule_terms = tuple(_new_york_rule_terms())
 
-    city_costs = _price_candidate_cities(spec, crew_headcount)
+    ranked_cities = _rank_candidate_cities(spec, crew_headcount)
+    gap = _gap_for_ranked_cities(ranked_cities)
 
     return SpecResult(
         spec=spec,
         crew_headcount=crew_headcount,
         city_assessments=tuple(city_assessments),
         rule_terms=rule_terms,
-        city_costs=city_costs,
+        ranked_cities=ranked_cities,
+        gap=gap,
         spend_origin=SPEND_ORIGIN_STATEMENT,
     )
 
 
-def _price_candidate_cities(
+def _rank_candidate_cities(
     spec: ProductionSpec, crew_headcount: CrewHeadcount
-) -> tuple[CityCost, ...]:
-    """D-71/COST-01: build the ONE canonical budget for this submission
-    (lazily, and only once — never rebuilt per city), then localize it
-    against every candidate city that resolves to a committed cost
-    profile. A city with no committed cost profile keeps its Phase 3
-    behaviour and produces no `CityCost` entry at all."""
+) -> tuple[RankedCity, ...]:
+    """D-55/COST-01: build the ONE canonical budget for this submission
+    (lazily, and only once — never rebuilt per city), localize it against
+    every candidate city that resolves to a committed cost profile, and
+    hand the result to `engine.ranker.rank` for the two-band split. A city
+    with no committed cost profile keeps its Phase 3 behaviour and
+    produces no `RankedCity` entry at all — this function reaches
+    `engine.pipeline.price_jurisdiction` only indirectly, through `rank`,
+    which is what replaces D-71's old direct `price_jurisdiction` call
+    site here (see `tests/test_route_a_basis_walk.py`'s D-63 gate, which
+    still walks every `RankedCity`'s Figure tree unchanged)."""
     budget = None
-    city_costs: list[CityCost] = []
+    localized_by_city: dict[str, LocalizedBudget] = {}
+    ruleset_by_jurisdiction: dict[str, JurisdictionRuleSet] = {}
     seen_profile_stems: set[str] = set()
 
     for raw_name in spec.candidate_cities:
@@ -241,50 +254,46 @@ def _price_candidate_cities(
         # declare a `travel:` block pricing housing/per_diem/flights from
         # imported headcount — `localize()` requires the spec in that case.
         localized = localize(budget, profile, on_date=on_date, spec=spec)
+        localized_by_city[profile.city_id] = localized
 
-        net_cash_figure: Figure | None = None
-        if profile.jurisdiction_id is not None and (
-            profile.jurisdiction_id in RULESET_PATH_BY_JURISDICTION
+        jurisdiction_id = profile.jurisdiction_id
+        if (
+            jurisdiction_id is not None
+            and jurisdiction_id not in ruleset_by_jurisdiction
+            and jurisdiction_id in RULESET_PATH_BY_JURISDICTION
         ):
-            ruleset = load_ruleset(RULESET_PATH_BY_JURISDICTION[profile.jurisdiction_id])
-            priced = price_jurisdiction(
-                ruleset,
-                localized.spend_breakdown.total_spend,
-                spend_breakdown=localized.spend_breakdown,
-                # D-71/D-63: this qualified spend is MODELLED from the
-                # visitor's described production, never reproduced against
-                # a government disclosure — it must never be able to reach
-                # "validated", however curated the jurisdiction's own
-                # status is. See engine/pipeline.py::price_programme.
-                spend_confidence="researched",
-            )
-            net_cash_figure = priced.total_net_cash
-            incentive_state: Literal["modelled", "not_modelled"] = "modelled"
-            incentive_reason = (
-                "this incentive figure is MODELLED from the described production's "
-                "localized spend, not a disclosed government figure"
-            )
-        else:
-            incentive_state = "not_modelled"
-            incentive_reason = (
-                "no curated rule file is committed for this city's jurisdiction yet"
+            ruleset_by_jurisdiction[jurisdiction_id] = load_ruleset(
+                RULESET_PATH_BY_JURISDICTION[jurisdiction_id]
             )
 
-        landed = aggregate(localized, net_cash_figure)
+    if not localized_by_city:
+        return ()
 
-        city_costs.append(
-            CityCost(
-                city_id=profile.city_id,
-                cost_total=landed.cost_total,
-                total_landed_cost=landed.total_landed_cost,
-                not_priced=landed.not_priced,
-                permanent_exclusions=landed.permanent_exclusions,
-                incentive_state=incentive_state,
-                incentive_state_reason=incentive_reason,
-            )
-        )
+    return rank(
+        localized_by_city,
+        ruleset_by_jurisdiction,
+        reporting_currency=REPORTING_CURRENCY,
+    )
 
-    return tuple(city_costs)
+
+def _gap_for_ranked_cities(ranked_cities: tuple[RankedCity, ...]) -> GapDecomposition | None:
+    """OUT-02: decompose the gap between the first two `ranked_cities`, in
+    `engine.ranker.rank`'s own order (the pair the visitor's own ranked
+    list leads with) — `None` when fewer than two candidate cities
+    produced a total, since a gap between one city and nothing is not a
+    gap. Both cities' `landed_cost` were already aggregated into
+    `REPORTING_CURRENCY` by `rank` itself, so `decompose_gap`'s own
+    same-currency precondition is satisfied by construction here."""
+    if len(ranked_cities) < 2:
+        return None
+    first, second = ranked_cities[0], ranked_cities[1]
+    return decompose_gap(
+        first.city_id,
+        first.landed_cost,
+        second.city_id,
+        second.landed_cost,
+        reporting_currency=REPORTING_CURRENCY,
+    )
 
 
 def _new_york_rule_terms() -> list[RuleTerm]:

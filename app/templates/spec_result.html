@@ -71,33 +71,71 @@
 {% endif %}
 
 <h2>Cost per candidate city</h2>
-{% if result.city_costs %}
+{% if result.ranked_cities %}
 <p><em>{{ result.spend_origin }}</em></p>
-{% for cost in result.city_costs %}
-<h3>{{ cost.city_id }}</h3>
+
+{% set ranked = result.ranked_cities | selectattr("band", "equalto", "net_ranked") | list %}
+{% set unranked = result.ranked_cities | selectattr("band", "equalto", "incentive_not_modelled") | list %}
+
+<h3>Ranked on net landed cost (incentive modelled)</h3>
+{% if ranked %}
+<p>Sorted ascending by total landed cost — net of the modelled incentive.</p>
 <table>
+  <tr><th>City</th><th>Total landed cost (net)</th><th>Cost total (pre-incentive)</th></tr>
+  {% for city in ranked %}
   <tr>
-    <th>Total landed cost</th>
+    <td>{{ city.city_id }}</td>
     <td>
-      {{ cost.total_landed_cost.value }} {{ cost.total_landed_cost.unit }}
-      (<strong>{{ cost.total_landed_cost.basis }}</strong>)
+      {{ city.total_landed_cost.value }} {{ city.total_landed_cost.unit }}
+      (<strong>{{ city.total_landed_cost.basis }}</strong>)
     </td>
+    <td>{{ city.cost_only_total.value }} {{ city.cost_only_total.unit }}</td>
   </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>No candidate city has both a committed cost profile and a committed rule file yet.</p>
+{% endif %}
+
+<h3>No incentive modelled yet (cost-only total — never a fabricated $0 incentive)</h3>
+{% if unranked %}
+<p>Sorted ascending by cost-only total. Kept in a SEPARATE band from the ranked
+  cities above — never interleaved as though the two totals were comparable.</p>
+<table>
+  <tr><th>City</th><th>Cost-only total</th><th>Why no incentive is modelled</th></tr>
+  {% for city in unranked %}
   <tr>
-    <th>Cost total (pre-incentive)</th>
+    <td>{{ city.city_id }}</td>
     <td>
-      {{ cost.cost_total.value }} {{ cost.cost_total.unit }}
-      (<strong>{{ cost.cost_total.basis }}</strong>)
+      {{ city.cost_only_total.value }} {{ city.cost_only_total.unit }}
+      (<strong>{{ city.cost_only_total.basis }}</strong>)
     </td>
+    <td>{{ city.reason }}</td>
   </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>Every candidate city with a committed cost profile also has a modelled incentive.</p>
+{% endif %}
+
+{% if result.gap %}
+<h2>The gap: {{ result.gap.city_a_id }} vs {{ result.gap.city_b_id }}</h2>
+<p>{{ result.gap.sign_convention }}</p>
+<table>
+  <tr><th>Component</th><th>Delta</th></tr>
+  {% for component in result.gap.components %}
   <tr>
-    <th>Incentive</th>
-    <td>{{ cost.incentive_state }} &mdash; {{ cost.incentive_state_reason }}</td>
+    <td>{{ component.label }}</td>
+    <td>{{ component.value }} {{ component.unit }}</td>
+  </tr>
+  {% endfor %}
+  <tr>
+    <th>Headline gap</th>
+    <td><strong>{{ result.gap.headline_gap.value }} {{ result.gap.headline_gap.unit }}</strong></td>
   </tr>
 </table>
-<p><strong>Not priced by this model yet:</strong> {{ cost.not_priced | join(", ") }}</p>
-<p><strong>Permanently excluded from this model:</strong> {{ cost.permanent_exclusions | join(", ") }}</p>
-{% endfor %}
+{% endif %}
+
 {% else %}
 <p>No candidate city named resolves to a committed cost profile yet.</p>
 {% endif %}

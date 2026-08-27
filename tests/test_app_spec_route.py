@@ -251,12 +251,12 @@ def test_route_a_derives_money_as_fully_cited_figures_only():
     raw = SpecFormSubmission(**_base_form_kwargs(candidate_cities=["New York, NY"]))
     result = handle_spec_submission(raw)
     assert isinstance(result, SpecResult)
-    assert result.city_costs, "expected at least one CityCost for a New York candidate"
+    assert result.ranked_cities, "expected at least one RankedCity for a New York candidate"
 
     figure_dicts: list[dict] = []
-    for cost in result.city_costs:
-        figure_dicts.extend(_walk_figure_dicts(figure_to_dict(cost.cost_total)))
-        figure_dicts.extend(_walk_figure_dicts(figure_to_dict(cost.total_landed_cost)))
+    for city in result.ranked_cities:
+        figure_dicts.extend(_walk_figure_dicts(figure_to_dict(city.cost_only_total)))
+        figure_dicts.extend(_walk_figure_dicts(figure_to_dict(city.total_landed_cost)))
     assert len(figure_dicts) > 1, "expected more than one Figure node in the response tree"
 
     for figure_dict in figure_dicts:
@@ -266,27 +266,30 @@ def test_route_a_derives_money_as_fully_cited_figures_only():
 
 def test_route_a_service_reaches_the_pricing_path():
     """D-71 deliberately REVERSES Phase 3's D-36 import-boundary guard:
-    `app.services.spec` now DOES reach `engine.pipeline` for any candidate
-    city with both a committed cost profile and a committed rule file.
-    D-63's basis-walk gate (the full, non-vacuous version lives in
-    `tests/test_route_a_basis_walk.py`) is what replaces the deleted guard
-    as the real honesty check — this test proves the reversal is real by
-    asserting the module actually imports `price_jurisdiction`, and proves
-    the replacement gate holds by walking this call's own output tree for
-    a `confidence: "validated"` node."""
+    `app.services.spec` now DOES reach the incentive-pricing path for any
+    candidate city with both a committed cost profile and a committed
+    rule file — plan 04-06 routes that reversal through
+    `engine.ranker.rank` (D-55) rather than calling `price_jurisdiction`
+    directly here. D-63's basis-walk gate (the full, non-vacuous version
+    lives in `tests/test_route_a_basis_walk.py`) is what replaces the
+    deleted guard as the real honesty check — this test proves the
+    reversal is real by asserting the module actually imports `rank`
+    (which itself imports `price_jurisdiction`), and proves the
+    replacement gate holds by walking this call's own output tree for a
+    `confidence: "validated"` node."""
     import app.services.spec as spec_service
-    from engine.pipeline import price_jurisdiction
+    from engine.ranker import rank
 
-    assert spec_service.price_jurisdiction is price_jurisdiction
+    assert spec_service.rank is rank
 
     raw = SpecFormSubmission(**_base_form_kwargs(candidate_cities=["New York, NY"]))
     result = handle_spec_submission(raw)
     assert isinstance(result, SpecResult)
-    assert result.city_costs
+    assert result.ranked_cities
 
     figure_dicts: list[dict] = []
-    for cost in result.city_costs:
-        figure_dicts.extend(_walk_figure_dicts(figure_to_dict(cost.total_landed_cost)))
+    for city in result.ranked_cities:
+        figure_dicts.extend(_walk_figure_dicts(figure_to_dict(city.total_landed_cost)))
     assert len(figure_dicts) > 5, "expected a non-trivial Figure tree, not a flattened one"
     for figure_dict in figure_dicts:
         assert figure_dict["confidence"] != "validated", figure_dict["label"]
@@ -428,6 +431,15 @@ def test_index_route_a_link_resolves_to_200():
 
 
 def test_post_api_v1_spec_new_york_candidate_returns_real_landed_cost():
+    """Plan 04-06 replaces the flat `city_costs` JSON key with two
+    band-separated keys, `net_ranked_cities`/`incentive_not_modelled_cities`
+    (D-55) — each entry's `cost_only_total` is the direct successor of the
+    old `cost_total` field, and `not_priced`/`permanent_exclusions` are no
+    longer part of the per-city JSON contract (they remain internally
+    computed and asserted at the engine level —
+    `tests/test_engine_cost_localizer.py` and
+    `tests/test_engine_landed_cost.py` — this HTTP contract is
+    deliberately leaner per 04-06-PLAN.md Task 3's own declared shape)."""
     response = client.post(
         "/api/v1/spec", json=_valid_json_body(candidate_cities=["New York, NY"])
     )
@@ -435,31 +447,14 @@ def test_post_api_v1_spec_new_york_candidate_returns_real_landed_cost():
     body = response.json()
 
     assert "spend_not_derived" not in body
-    assert body["city_costs"], "expected a city_costs entry for a New York candidate"
+    assert body["net_ranked_cities"], "expected a net_ranked_cities entry for New York"
 
-    city_cost = body["city_costs"][0]
-    total_landed_cost = city_cost["total_landed_cost"]
+    ranked_city = body["net_ranked_cities"][0]
+    total_landed_cost = ranked_city["total_landed_cost"]
     value = Decimal(total_landed_cost["value"])
     assert value != Decimal("0")
     assert total_landed_cost["basis"] is not None
-
-    # D-60: an unpriced category is a named entry in `not_priced`, never a
-    # fabricated $0 line item.
-    assert set(city_cost["not_priced"]).issubset(
-        {
-            "labour",
-            "fringe",
-            "housing",
-            "per_diem",
-            "flights",
-            "stages",
-            "equipment",
-            "permits",
-            "locations",
-            "trucking",
-        }
-    )
-    assert "labour" not in city_cost["not_priced"], "the tracer's one line prices labour"
+    assert ranked_city["band"] == "net_ranked"
 
     assert "modelled" in body["spend_origin"].lower()
     assert "disclosed" in body["spend_origin"].lower()
@@ -471,10 +466,56 @@ def test_post_api_v1_spec_new_york_candidate_returns_real_landed_cost():
     # "modelling_assumption" — the weakest tier present, so the combined
     # cost total now reports that tier (previously "estimated", before
     # facilities landed).
-    cost_side_nodes = _walk_figure_dicts(city_cost["cost_total"])
+    cost_side_nodes = _walk_figure_dicts(ranked_city["cost_only_total"])
     assert len(cost_side_nodes) > 1
     assert all(node["basis"] is not None for node in cost_side_nodes)
-    assert city_cost["cost_total"]["basis"] == "modelling_assumption"
+    assert ranked_city["cost_only_total"]["basis"] == "modelling_assumption"
+
+
+# ---------------------------------------------------------------------------
+# Plan 04-06 (D-55/OUT-01/OUT-02) — the ranked list and gap, over HTTP
+# ---------------------------------------------------------------------------
+
+
+def test_post_api_v1_spec_ny_and_la_returns_separate_bands_and_a_gap():
+    response = client.post(
+        "/api/v1/spec",
+        json=_valid_json_body(candidate_cities=["New York, NY", "Los Angeles, CA"]),
+    )
+    assert response.status_code == 200
+    body = response.json()
+
+    # The two bands are SEPARATE top-level keys — never one list a
+    # consumer has to filter by a `band` flag (D-55).
+    net_ranked = body["net_ranked_cities"]
+    unranked = body["incentive_not_modelled_cities"]
+    assert len(net_ranked) == 1
+    assert len(unranked) == 1
+    assert net_ranked[0]["city_id"] == "us-ny-new-york"
+    assert unranked[0]["city_id"] == "us-ca-los-angeles"
+
+    unranked_entry = unranked[0]
+    assert unranked_entry["reason"], "expected a non-empty plain-words reason"
+    unranked_total = Decimal(unranked_entry["total_landed_cost"]["value"])
+    assert unranked_total != Decimal("0")
+
+    gap = body["gap"]
+    assert gap is not None
+    assert {gap["city_a_id"], gap["city_b_id"]} == {"us-ny-new-york", "us-ca-los-angeles"}
+    assert gap["sign_convention"]
+    component_sum = sum(Decimal(c["value"]) for c in gap["components"])
+    assert component_sum == Decimal(gap["headline_gap"]["value"])
+
+
+def test_post_api_v1_spec_single_city_has_no_gap():
+    response = client.post(
+        "/api/v1/spec", json=_valid_json_body(candidate_cities=["New York, NY"])
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body["net_ranked_cities"]) == 1
+    assert body["incentive_not_modelled_cities"] == []
+    assert body["gap"] is None
 
 
 def test_no_spend_not_derived_symbol_anywhere_in_app_or_engine():

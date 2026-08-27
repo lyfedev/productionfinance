@@ -17,6 +17,7 @@ from decimal import Decimal
 from engine.budget import build_canonical_budget
 from engine.cost_localizer import LocalizedBudget, localize, quarter_start_date
 from engine.cost_profile import load_cost_profile
+from engine.landed_cost import aggregate
 from engine.models import JurisdictionRuleSet, TransferDiscount, load_ruleset
 from engine.ranker import rank
 from engine.spec import CrewHeadcount, ProductionSpec
@@ -104,7 +105,7 @@ def test_ranked_and_unranked_bands_never_interleave_even_when_unranked_total_is_
         "unranked-cheap": _localized(UNRANKED_PROFILE, 50),
     }
 
-    result = rank(localized_by_city, ruleset_by_jurisdiction)
+    result = rank(localized_by_city, ruleset_by_jurisdiction, reporting_currency="USD")
 
     assert [c.city_id for c in result] == ["ranked-large", "ranked-small", "unranked-cheap"]
     bands = [c.band for c in result]
@@ -120,7 +121,7 @@ def test_ranked_and_unranked_bands_never_interleave_even_when_unranked_total_is_
 
 def test_unranked_total_landed_cost_equals_cost_only_total_and_is_never_zero():
     localized_by_city = {"unranked-cheap": _localized(UNRANKED_PROFILE, 50)}
-    result = rank(localized_by_city, ruleset_by_jurisdiction={})
+    result = rank(localized_by_city, ruleset_by_jurisdiction={}, reporting_currency="USD")
 
     assert len(result) == 1
     city = result[0]
@@ -132,7 +133,7 @@ def test_unranked_total_landed_cost_equals_cost_only_total_and_is_never_zero():
 
 def test_no_rule_file_reason_names_the_absence_never_a_zero_incentive():
     localized_by_city = {"unranked-cheap": _localized(UNRANKED_PROFILE, 50)}
-    result = rank(localized_by_city, ruleset_by_jurisdiction={})
+    result = rank(localized_by_city, ruleset_by_jurisdiction={}, reporting_currency="USD")
 
     city = result[0]
     assert city.reason is not None
@@ -153,7 +154,7 @@ def test_rule_file_exists_but_net_cash_refuses_falls_into_unranked_without_raisi
     localized = localize(budget, broken)
 
     ruleset_by_jurisdiction = {"zz-synthetic-broken": _broken_transferable_ruleset()}
-    result = rank({"broken-city": localized}, ruleset_by_jurisdiction)
+    result = rank({"broken-city": localized}, ruleset_by_jurisdiction, reporting_currency="USD")
 
     assert len(result) == 1
     city = result[0]
@@ -185,6 +186,7 @@ def test_both_unranked_reason_shapes_are_produced_by_the_conditions_that_cause_t
     result = rank(
         {"no-file": no_file_localized, "broken": broken_localized},
         {"zz-synthetic-broken": _broken_transferable_ruleset()},
+        reporting_currency="USD",
     )
 
     reasons = {c.city_id: c.reason for c in result}
@@ -196,7 +198,9 @@ def test_both_unranked_reason_shapes_are_produced_by_the_conditions_that_cause_t
 def test_net_ranked_city_carries_a_populated_incentive_figure():
     ruleset_by_jurisdiction = {"zz-synthetic-mechanisms": _mechanisms_ruleset()}
     result = rank(
-        {"ranked-small": _localized(RANKED_PROFILE, 50)}, ruleset_by_jurisdiction
+        {"ranked-small": _localized(RANKED_PROFILE, 50)},
+        ruleset_by_jurisdiction,
+        reporting_currency="USD",
     )
 
     assert len(result) == 1
@@ -247,7 +251,7 @@ def test_real_committed_profiles_produce_exactly_one_net_ranked_city():
     }
     ruleset_by_jurisdiction = {"us-ny": load_ruleset("jurisdictions/us-ny.yaml")}
 
-    result = rank(localized_by_city, ruleset_by_jurisdiction)
+    result = rank(localized_by_city, ruleset_by_jurisdiction, reporting_currency="USD")
 
     net_ranked = [c for c in result if c.band == "net_ranked"]
     unranked = [c for c in result if c.band == "incentive_not_modelled"]
@@ -260,6 +264,41 @@ def test_real_committed_profiles_produce_exactly_one_net_ranked_city():
     for city in unranked:
         assert city.total_landed_cost.value != Decimal("0")
         assert "no curated or live-researched rule file exists" in city.reason
+        # Every city's total is expressed in the SAME reporting currency
+        # (D-55/D-75) — never a raw GBP number sorted against raw USD.
+        assert city.total_landed_cost.unit == "USD"
+        assert city.landed_cost.reporting_currency == "USD"
+
+
+def test_unranked_band_compares_a_gbp_city_and_a_usd_city_in_the_same_currency():
+    """London (GBP) and Los Angeles (USD) both land in the unranked band.
+    `rank` must convert London into the shared `reporting_currency`
+    BEFORE comparing — never sort on London's raw GBP number against Los
+    Angeles's raw USD number as though they were the same unit (D-55)."""
+    localized_by_city = {
+        "us-ca-los-angeles": _real_localized("data/cost_profiles/us-ca-los-angeles.yaml"),
+        "gb-london": _real_localized("data/cost_profiles/gb-london.yaml"),
+    }
+
+    result = rank(localized_by_city, ruleset_by_jurisdiction={}, reporting_currency="USD")
+
+    assert len(result) == 2
+    assert {c.total_landed_cost.unit for c in result} == {"USD"}
+    la = next(c for c in result if c.city_id == "us-ca-los-angeles")
+    london = next(c for c in result if c.city_id == "gb-london")
+
+    # London's total, CONVERTED to USD, genuinely exceeds Los Angeles's —
+    # asserted against the converted Figure, never the raw GBP number.
+    assert london.landed_cost.source_currency == "GBP"
+    assert london.landed_cost.reporting_currency == "USD"
+    assert london.total_landed_cost.value > la.total_landed_cost.value
+
+    # The bug this proves fixed: London's RAW (unconverted) GBP total is
+    # numerically LOWER than Los Angeles's raw USD total — comparing the
+    # two without conversion would have produced the opposite (wrong)
+    # order.
+    raw_london = aggregate(localized_by_city["gb-london"])
+    assert raw_london.cost_total.value < la.landed_cost.cost_total.value
 
 
 # ---------------------------------------------------------------------------

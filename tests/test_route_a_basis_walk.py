@@ -6,7 +6,9 @@ to the entire cost side, where the surface is now hundreds of Figures
 deep. Submits a `SpecFormSubmission` naming New York through
 `handle_spec_submission`, serializes every returned Figure through
 `figure_to_dict`, and walks the FULL recursive `inputs` DAG from both
-`cost_total` and `total_landed_cost` for every `CityCost`.
+`cost_only_total` and `total_landed_cost` for every `RankedCity` (plan
+04-06 renames `CityCost` to `RankedCity`; the two fields this gate walks
+are the direct successors of the old `cost_total`/`total_landed_cost`).
 
 **Non-vacuity proof (performed once, by hand, and reverted):** to prove
 this test is not vacuously green, `app/services/spec.py::_price_candidate_cities`'s
@@ -76,7 +78,7 @@ def _route_a_new_york_result() -> SpecResult:
     raw = SpecFormSubmission(**_base_submission_kwargs())
     result = handle_spec_submission(raw)
     assert isinstance(result, SpecResult)
-    assert result.city_costs, "expected at least one CityCost for a New York candidate"
+    assert result.ranked_cities, "expected at least one RankedCity for a New York candidate"
     return result
 
 
@@ -84,9 +86,9 @@ def test_no_validated_confidence_anywhere_in_the_dag():
     result = _route_a_new_york_result()
 
     all_nodes: list[dict] = []
-    for city_cost in result.city_costs:
-        all_nodes.extend(_walk(figure_to_dict(city_cost.cost_total)))
-        all_nodes.extend(_walk(figure_to_dict(city_cost.total_landed_cost)))
+    for ranked_city in result.ranked_cities:
+        all_nodes.extend(_walk(figure_to_dict(ranked_city.cost_only_total)))
+        all_nodes.extend(_walk(figure_to_dict(ranked_city.total_landed_cost)))
 
     validated_nodes = [node for node in all_nodes if node["confidence"] == "validated"]
     assert not validated_nodes, (
@@ -99,9 +101,9 @@ def test_no_validated_confidence_anywhere_in_the_dag():
 def test_every_node_reachable_from_a_cost_total_has_a_non_null_basis():
     result = _route_a_new_york_result()
 
-    for city_cost in result.city_costs:
-        nodes = _walk(figure_to_dict(city_cost.cost_total))
-        assert nodes, "expected a non-empty cost_total subtree"
+    for ranked_city in result.ranked_cities:
+        nodes = _walk(figure_to_dict(ranked_city.cost_only_total))
+        assert nodes, "expected a non-empty cost_only_total subtree"
         for node in nodes:
             assert node["basis"] is not None, (
                 f"cost-side node {node['label']!r} carries a null basis — every "
@@ -116,8 +118,8 @@ def test_the_walk_visits_a_non_trivial_number_of_nodes():
     result = _route_a_new_york_result()
 
     all_nodes: list[dict] = []
-    for city_cost in result.city_costs:
-        all_nodes.extend(_walk(figure_to_dict(city_cost.total_landed_cost)))
+    for ranked_city in result.ranked_cities:
+        all_nodes.extend(_walk(figure_to_dict(ranked_city.total_landed_cost)))
 
     assert len(all_nodes) >= _MINIMUM_VISITED_NODES, (
         f"walk visited only {len(all_nodes)} node(s), fewer than the declared minimum "

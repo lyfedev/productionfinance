@@ -35,7 +35,7 @@ from typing import Literal
 
 from engine.cost_localizer import LocalizedBudget
 from engine.figure import Figure
-from engine.landed_cost import aggregate
+from engine.landed_cost import LandedCost, aggregate
 from engine.models import JurisdictionRuleSet
 from engine.pipeline import price_jurisdiction
 
@@ -56,7 +56,11 @@ class RankedCity:
     city, `None` for an unranked one. `cost_only_total` is ALWAYS
     populated (both bands) — the pre-incentive cost total, so a renderer
     can show "what net cash bought" for a ranked city without a second
-    lookup.
+    lookup. `landed_cost` is the full `engine.landed_cost.LandedCost` this
+    band decision was computed from — carried so a caller (Route A's gap
+    decomposition, plan 04-06 Task 3) never has to re-run `aggregate` a
+    second time just to reach `reporting_currency`/`fx_as_of_date`/
+    `source_currency` for `engine.gap.decompose_gap`.
     """
 
     city_id: str
@@ -65,6 +69,7 @@ class RankedCity:
     reason: str | None
     incentive_figure: Figure | None
     cost_only_total: Figure
+    landed_cost: LandedCost
 
 
 def _no_rule_file_reason(jurisdiction_id: str | None) -> str:
@@ -94,6 +99,8 @@ def _cannot_convert_reason(jurisdiction_id: str, error: Exception) -> str:
 def rank(
     localized_by_city: Mapping[str, LocalizedBudget],
     ruleset_by_jurisdiction: Mapping[str, JurisdictionRuleSet],
+    *,
+    reporting_currency: str,
 ) -> tuple[RankedCity, ...]:
     """Price every city in `localized_by_city` and place it in the
     `net_ranked` or `incentive_not_modelled` band.
@@ -106,6 +113,15 @@ def rank(
     COST-ONLY total (`engine.landed_cost.aggregate` called with no
     net-cash figure) — never `$0`, never cost minus an assumed-zero
     incentive (D-56).
+
+    `reporting_currency` is REQUIRED, not defaulted — the committed city
+    set is not all one currency (London is GBP), and ranking on raw
+    `.value` across two different currencies would be comparing dollars
+    to pounds as though they were the same number. Every `aggregate` call
+    below passes it through, so a same-currency city (New York, Los
+    Angeles) takes an unchanged, byte-identical code path while a
+    different-currency city (London) is converted before its total ever
+    enters either band's sort.
 
     Each band is sorted independently, ascending by `total_landed_cost
     .value`; the return value is the ranked band followed by the unranked
@@ -120,7 +136,7 @@ def rank(
         ruleset = ruleset_by_jurisdiction.get(jurisdiction_id) if jurisdiction_id else None
 
         if ruleset is None:
-            landed = aggregate(localized)
+            landed = aggregate(localized, reporting_currency=reporting_currency)
             unranked.append(
                 RankedCity(
                     city_id=city_id,
@@ -129,6 +145,7 @@ def rank(
                     reason=_no_rule_file_reason(jurisdiction_id),
                     incentive_figure=None,
                     cost_only_total=landed.cost_total,
+                    landed_cost=landed,
                 )
             )
             continue
@@ -145,7 +162,7 @@ def rank(
                 spend_confidence="researched",
             )
         except ValueError as error:
-            landed = aggregate(localized)
+            landed = aggregate(localized, reporting_currency=reporting_currency)
             unranked.append(
                 RankedCity(
                     city_id=city_id,
@@ -154,12 +171,13 @@ def rank(
                     reason=_cannot_convert_reason(jurisdiction_id, error),
                     incentive_figure=None,
                     cost_only_total=landed.cost_total,
+                    landed_cost=landed,
                 )
             )
             continue
 
         net_cash_figure = priced.total_net_cash
-        landed = aggregate(localized, net_cash_figure)
+        landed = aggregate(localized, net_cash_figure, reporting_currency=reporting_currency)
         ranked.append(
             RankedCity(
                 city_id=city_id,
@@ -168,6 +186,7 @@ def rank(
                 reason=None,
                 incentive_figure=net_cash_figure,
                 cost_only_total=landed.cost_total,
+                landed_cost=landed,
             )
         )
 
