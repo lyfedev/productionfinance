@@ -23,6 +23,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal
+from itertools import pairwise
 
 import yaml
 
@@ -93,6 +94,55 @@ def _load_crew_tiers_table() -> dict:
         return yaml.safe_load(handle)
 
 
+def _check_tier_boundaries_for_ambiguous_crew_share(table: dict) -> None:
+    """WR-01 (04-REVIEW.md): `tiers:`'s brackets are inclusive-inclusive
+    and touch at every boundary (e.g. `micro`'s `headcount_high` of 30
+    equals `small`'s `headcount_low` of 30). `_infer_department_tier`
+    resolves a boundary headcount to the narrower (lower) tier by
+    iterating `_TIER_ORDER` narrowest-first — a deterministic but
+    undocumented tie-break that is silently SAFE only as long as every
+    department's `crew_share` is identical on both sides of the boundary.
+    Mirrors `engine.union_rates._check_rate_rows_for_overlaps`'s
+    "authoring error, never silently resolved by iteration order"
+    discipline: raise loudly, at load time, the moment a future data edit
+    differentiates a department's `crew_share` across a shared boundary,
+    rather than let a real discontinuity resolve silently by declaration
+    order."""
+    tiers = table["tiers"]
+    departments = table["departments"]
+    bounds = {
+        tier: (int(entry["headcount_low"]), int(entry["headcount_high"]))
+        for tier, entry in tiers.items()
+    }
+    for lower_tier, upper_tier in pairwise(_TIER_ORDER):
+        if lower_tier not in bounds or upper_tier not in bounds:
+            # A synthetic/test table declaring only a subset of
+            # `_TIER_ORDER`'s five tiers (e.g. this module's own
+            # regression tests) has no boundary to check for the missing
+            # tier(s) — never a `KeyError`.
+            continue
+        lower_high = bounds[lower_tier][1]
+        upper_low = bounds[upper_tier][0]
+        if lower_high != upper_low:
+            continue
+        for name, entry in departments.items():
+            lower_share = entry["crew_share"][lower_tier]
+            upper_share = entry["crew_share"][upper_tier]
+            if lower_share != upper_share:
+                raise ValueError(
+                    f"crew_tiers.yaml: department {name!r} declares crew_share "
+                    f"{lower_share!r} for tier {lower_tier!r} but {upper_share!r} "
+                    f"for tier {upper_tier!r} — these tiers share boundary "
+                    f"headcount {lower_high}, so a headcount of exactly "
+                    f"{lower_high} would silently resolve to {lower_tier!r} by "
+                    "_infer_department_tier's narrowest-first iteration order. "
+                    "That is a real discontinuity now that the shares differ, "
+                    "not a harmless tie-break — declare the brackets half-open "
+                    "or otherwise resolve the ambiguity explicitly before "
+                    "shipping differentiated shares across a shared boundary."
+                )
+
+
 def resolve_departments(tier: CrewTier) -> tuple[DepartmentShare, ...]:
     """Resolve `tier` to its department-ratio breakdown via the committed
     `data/crew_tiers.yaml::departments` table (D-38).
@@ -101,9 +151,13 @@ def resolve_departments(tier: CrewTier) -> tuple[DepartmentShare, ...]:
     `CREW_TIERS_PATH` `engine.spec.resolve_crew_tier` reads. A tier absent
     from any declared department's `crew_share` table raises
     `UnknownCrewTierError` — the identical contract `resolve_crew_tier`
-    already holds — never a default department set.
+    already holds — never a default department set. Also checks every
+    pair of tiers sharing a boundary headcount for a differentiated
+    `crew_share` (WR-01) — see
+    `_check_tier_boundaries_for_ambiguous_crew_share`.
     """
     table = _load_crew_tiers_table()
+    _check_tier_boundaries_for_ambiguous_crew_share(table)
     departments = table["departments"]
 
     shares: list[DepartmentShare] = []

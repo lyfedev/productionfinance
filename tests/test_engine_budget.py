@@ -15,6 +15,7 @@ from decimal import Decimal
 
 import pytest
 
+import engine.budget as budget_module
 from engine.budget import build_canonical_budget, resolve_departments
 from engine.spec import CREW_TIERS_PATH, CrewHeadcount, ProductionSpec, UnknownCrewTierError
 
@@ -87,6 +88,67 @@ def test_crew_tiers_yaml_still_declares_no_confidence_or_status_key():
     non_comment_source = "\n".join(kept_lines)
     assert "confidence:" not in non_comment_source
     assert "status:" not in non_comment_source
+
+
+# ---------------------------------------------------------------------------
+# WR-01 (04-REVIEW.md): a shared tier boundary with a differentiated
+# crew_share is a real, unflagged discontinuity — never silently resolved
+# by _TIER_ORDER's narrowest-first iteration.
+# ---------------------------------------------------------------------------
+
+
+def _synthetic_tiers_table(*, camera_small_share: str, camera_mid_share: str) -> dict:
+    """A minimal one-department, two-tier synthetic table whose shape
+    mirrors `data/crew_tiers.yaml` closely enough to exercise
+    `_check_tier_boundaries_for_ambiguous_crew_share` — `small`'s
+    `headcount_high` (60) touches `mid`'s `headcount_low` (60), matching
+    the real committed file's boundary layout exactly. Deliberately omits
+    `micro`/`large`/`tentpole` — the check must skip a boundary pair
+    absent from a (synthetic or real) table's declared tiers, never raise
+    a `KeyError`."""
+    return {
+        "basis": "modelling_assumption",
+        "provenance_note": "synthetic fixture for WR-01's regression test",
+        "tiers": {
+            "small": {"headcount_low": "30", "headcount_high": "60"},
+            "mid": {"headcount_low": "60", "headcount_high": "120"},
+        },
+        "departments": {
+            "camera": {
+                "label": "Camera labour days",
+                "account": "BTL",
+                "crew_share": {
+                    "small": camera_small_share,
+                    "mid": camera_mid_share,
+                },
+            },
+        },
+    }
+
+
+def test_resolve_departments_raises_on_a_differentiated_shared_boundary_crew_share(
+    monkeypatch,
+):
+    """A headcount of exactly 60 (the `small`/`mid` shared boundary) would
+    silently resolve to `small` by iteration order — this is a real
+    discontinuity, not a harmless tie-break, once `crew_share` differs
+    across that boundary, and must raise rather than resolve silently."""
+    table = _synthetic_tiers_table(camera_small_share="0.5", camera_mid_share="0.6")
+    monkeypatch.setattr(budget_module, "_load_crew_tiers_table", lambda: table)
+
+    with pytest.raises(ValueError, match="small.*mid|mid.*small"):
+        resolve_departments("small")
+
+
+def test_resolve_departments_allows_an_identical_shared_boundary_crew_share(monkeypatch):
+    """The mirror-image case: adjacent tiers sharing a boundary with the
+    SAME `crew_share` (the real committed file's current state) must not
+    raise — the guard only fires on an actual differentiation."""
+    table = _synthetic_tiers_table(camera_small_share="0.5", camera_mid_share="0.5")
+    monkeypatch.setattr(budget_module, "_load_crew_tiers_table", lambda: table)
+
+    departments = resolve_departments("small")
+    assert departments[0].crew_share == Decimal("0.5")
 
 
 # ---------------------------------------------------------------------------
