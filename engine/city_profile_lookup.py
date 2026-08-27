@@ -23,6 +23,23 @@ extended to a country suffix, since "London" alone is ambiguous with
 London, Ontario or a US "London" (Kentucky, Ohio) in a way "New York" or
 "Los Angeles" are not; the ", UK"/", United Kingdom"/", England" suffixes
 resolve it unambiguously, mirroring the state-suffix pattern exactly.
+
+KNOWN LIMITATION (04-REVIEW.md WR-02, an ACCEPTED tradeoff, not a bug to
+"fix" later): `resolve_city_to_profile_stem`'s suffix fallback matches on
+the trailing suffix ALONE, independent of what precedes it. A string like
+"New York, CA" or "New York, UK" resolves to Los Angeles's or London's
+profile respectively — any nonsense prefix followed by a committed suffix
+resolves to that suffix's stem. This mirrors the exact discipline
+`app/services/city_lookup.py::CITY_ALIASES`'s own New-York-only suffix
+fallback already accepts; widening from one suffix family to three here
+increases the theoretical collision surface (a `", CA"` or `", UK"`
+mismatch was not previously reachable) but not the real-world risk — a
+visitor would have to type an internally self-contradictory city/state or
+city/country pair. Deliberately NOT resolved with a fuzzy/edit-distance
+check on the prefix: this module's whole discipline is "no fuzzy match,
+explicit allow-list only" (see the top of this docstring), and validating
+the prefix against the suffix's city name would reintroduce exactly the
+fuzzy matching this module exists to avoid.
 """
 
 from __future__ import annotations
