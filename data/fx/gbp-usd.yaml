@@ -1,0 +1,21 @@
+# data/fx/gbp-usd.yaml — committed dated FX snapshot, GBP -> USD
+# (COST-08, D-74). Fetched once from Frankfurter's no-key dated endpoint
+# (api.frankfurter.dev), archived verbatim under
+# sources/fx/2026-08-26-frankfurter-gbp-usd.json with a sources/MANIFEST.yaml
+# entry carrying its sha256 (D-10). This is a one-time acquisition — no
+# runtime code path this phase adds calls the network (D-57); Phase 7's
+# freshness gate takes this live later.
+#
+# `engine.fx.convert`/`engine.fx.rate_figure` read this file by plain
+# base/quote string equality — the reverse pair (USD -> GBP) is NOT served
+# by inverting this rate; it requires its own committed `usd-gbp.yaml`,
+# which does not exist. Converting USD to GBP therefore refuses (D-74).
+#
+# Every numeric value below is a quoted YAML string (RD-01).
+
+base: "GBP"
+quote: "USD"
+rate: "1.363"
+as_of_date: "2026-08-26"
+source_url: "https://api.frankfurter.dev/v1/2026-08-26?base=GBP&symbols=USD"
+retrieved_at: "2026-08-26"
