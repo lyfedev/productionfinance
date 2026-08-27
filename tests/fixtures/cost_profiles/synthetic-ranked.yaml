@@ -1,0 +1,35 @@
+# tests/fixtures/cost_profiles/synthetic-ranked.yaml — a synthetic,
+# structurally-separate `CityCostProfile` fixture exercising
+# engine.ranker's `net_ranked` band (tests/test_engine_ranker.py).
+#
+# `jurisdiction_id` deliberately matches the existing
+# tests/fixtures/jurisdictions/synthetic-mechanisms.yaml fixture's own
+# `jurisdiction.id` (zz-synthetic-mechanisms) — pairing the two lets a
+# ranker test price a real (synthetic) incentive end to end without
+# reaching for a real committed rule file or a real committed city
+# (04-06-PLAN.md's own instruction: prove the ranked band's multi-city
+# behaviour with synthetic fixtures, never by pulling a Phase 5 rule file
+# forward). Not a real committed city — never referenced from
+# app/services or data/cost_profiles/.
+
+city_id: "synthetic-ranked"
+city_label: "Synthetic Ranked City"
+jurisdiction_id: "zz-synthetic-mechanisms"
+currency: "USD"
+provenance_note: >
+  A synthetic CityCostProfile used only to exercise engine.ranker's
+  net_ranked band in tests/test_engine_ranker.py. Not a real committed
+  city; pairs with tests/fixtures/jurisdictions/synthetic-mechanisms.yaml.
+
+cost_lines:
+  - line_id: "synthetic-ranked-labour"
+    label: "Production labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+    unit_rate: "500.00"
+    rate_unit: "person-day"
+    basis: "estimated"
+    source_url: null
+    date_checked: null
+    method_note: "synthetic test fixture for tests/test_engine_ranker.py"

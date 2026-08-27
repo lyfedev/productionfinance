@@ -1,0 +1,32 @@
+# tests/fixtures/cost_profiles/synthetic-unranked.yaml — a synthetic,
+# structurally-separate `CityCostProfile` fixture exercising
+# engine.ranker's `incentive_not_modelled` band (tests/test_engine_ranker.py).
+#
+# `jurisdiction_id: null` — this city's cost profile declares no
+# jurisdiction at all, the "no rule file exists for this jurisdiction yet"
+# reason shape (04-06-PLAN.md Task 1). Its unit_rate is deliberately LOWER
+# than synthetic-ranked.yaml's so a ranker test can prove an unranked
+# city's lower cost-only total still sorts AFTER every net_ranked city
+# (D-55 — never interleaved). Not a real committed city.
+
+city_id: "synthetic-unranked"
+city_label: "Synthetic Unranked City"
+jurisdiction_id: null
+currency: "USD"
+provenance_note: >
+  A synthetic CityCostProfile used only to exercise engine.ranker's
+  incentive_not_modelled band in tests/test_engine_ranker.py. Not a real
+  committed city.
+
+cost_lines:
+  - line_id: "synthetic-unranked-labour"
+    label: "Production labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+    unit_rate: "50.00"
+    rate_unit: "person-day"
+    basis: "estimated"
+    source_url: null
+    date_checked: null
+    method_note: "synthetic test fixture for tests/test_engine_ranker.py"
