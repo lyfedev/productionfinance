@@ -58,7 +58,7 @@ Resolve before modelling. Wrong inputs produce confidently wrong outputs, and th
 
 - [x] **OUT-01**: Total landed cost is reported per candidate city, ranked
 - [x] **OUT-02**: Cost gap between any two cities is reported, decomposed by component
-- [ ] **OUT-03**: Sensitivity is displayed — which single input most moves the gap, shown as a delta and never as a prescriptive recommendation
+- [x] **OUT-03**: Sensitivity is displayed — which single input most moves the gap, shown as a delta and never as a prescriptive recommendation
 - [x] **OUT-04**: Cost breakdown is available aligned to the standard ATL / BTL / Post chart of accounts *(stretch for Accounts; full treatment in Balances)*
 
 ### Provenance and Proof
@@ -227,7 +227,7 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | INC-10 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Complete |
 | OUT-01 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Complete |
 | OUT-02 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Complete |
-| OUT-03 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Pending |
+| OUT-03 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Complete |
 | OUT-04 | Phase 4 — Cost Localization & Landed-Cost Outputs | 1 — Accounts | Complete |
 | PRV-01 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
 | PRV-02 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |

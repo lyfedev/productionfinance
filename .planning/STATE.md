@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 current_phase: 04
 current_phase_name: Cost Localization & Landed-Cost Outputs
-status: executing
-stopped_at: Completed 04-06-PLAN.md
-last_updated: "2026-08-27T01:25:46.881Z"
+status: verifying
+stopped_at: Completed 04-07-PLAN.md
+last_updated: "2026-08-27T02:00:46.349Z"
 last_activity: 2026-08-26
 last_activity_desc: Phase 04 execution started
-state_head: 91445b44da79b69958fbc1bb669e9cde88735079
+state_head: f080c39f9e4c95c0bb86a52c7c585d416a9f1882
 progress:
   total_phases: 11
   completed_phases: 3
   total_plans: 28
-  completed_plans: 26
+  completed_plans: 27
   percent: 27
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 
 Phase: 04 (Cost Localization & Landed-Cost Outputs) — EXECUTING
 Plan: 7 of 7
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-08-26 — Phase 04 execution started
 
 Progress: [███░░░░░░░] 27%
@@ -87,6 +87,7 @@ Progress: [███░░░░░░░] 27%
 | Phase 04 P04 | 24min | 3 tasks | 15 files |
 | Phase 04 P05 | 80min | 3 tasks | 20 files |
 | Phase 04 P06 | 220min | 3 tasks | 14 files |
+| Phase 04 P07 | 33min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,7 @@ Recent decisions affecting current work:
 - [Phase 04]: [Phase 04] 04-04: facilities (COST-06) and INC-10 exemptions land; not_priced empties for New York and Los Angeles, and both cities' total_landed_cost now reports basis: modelling_assumption (the weakest tier, from the five facilities lines). Low-bound pricing treatment chosen uniformly over the midpoint for all facilities categories, both cities (research row A5). No live document-fetch tool was available this session, so every facilities/exemption entry stayed at basis: estimated or modelling_assumption rather than a named-anchor sourced/estimated tier -- recorded honestly to WINDOWS.md (entries 15-17) rather than fabricated. D-76's four guarantees (exemption Figure ids disjoint from the incentive DAG; gross credit never greater with exemptions; cost-total delta equals the summed reduction; absent-category raise) are proven as tests against real committed New York data.
 - [Phase 04]: 04-05: dated GBP->USD FX snapshot (1.363, 2026-08-26) with refuse-rather-than-derive convert/rate_figure; London lands as the third floor city and first non-USD one with BECTU rows genuinely basis: sourced (live network access this session), zero engine changes to union_rates/per_diem/facilities/exemptions; per-component conversion added to aggregate() via reporting_currency, converted total exactly equals the sum of converted components, FX rate visible as its own named component (D-75). London's fixed-test-spec total: £548,595 GBP / $747,735 USD.
 - [Phase 04]: 04-06: Two-band ranked list (engine.ranker) and component-by-component gap decomposition (engine.gap) land; rank() requires reporting_currency after catching a Rule-1 bug where a GBP city would have sorted against a raw USD total; decompose_gap folds a city-specific INC-10 exemption reduction into its target cost line before by-label matching (another real discovery against NY/LA's genuinely different exemption types). Golden Decimal totals pinned in CI (D-78): NY $758,427, LA $693,521, London £548,595/$747,735, NY-vs-LA gap $64,906 -- every value independently hand-derived and confirmed exact against the pipeline, non-vacuity proven via an in-memory rate perturbation. Route A's JSON contract splits the two bands into separate top-level keys (net_ranked_cities/incentive_not_modelled_cities), resolving a contradiction between the plan's own action prose and its acceptance criteria in favor of the criteria.
+- [Phase 04]: [Phase 04] 04-07: seven-row declared sensitivity step table drives a real-pipeline perturbation engine (D-67/D-68); regime-signature diffing reads chain-produced derivation text to detect crew-tier and incentive tiered-band cliff crossings (D-69); a non-vacuous D-70 gate (proven to fail on an inserted word, twice) covers both engine strings and rendered HTML. Fixed golden NY-vs-LA gap $64,906; quarter-forward is the only cliff-crossing row (per-diem month band shifts April->July); full 8-run perturbation set measured ~539ms. Fixed a real bug: the new four-quarter quarter-invariance re-run must exclude a quarter a dated union rate row does not cover, rather than crashing the visitor's own request.
 
 ### Pending Todos
 
@@ -158,6 +160,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-27T01:25:46.746Z
-Stopped at: Completed 04-06-PLAN.md
+Last session: 2026-08-27T02:00:46.219Z
+Stopped at: Completed 04-07-PLAN.md
 Resume file: None
