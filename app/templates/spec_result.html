@@ -136,6 +136,84 @@
 </table>
 {% endif %}
 
+<h2>Sensitivity: which single input moves the gap most</h2>
+<p>{{ result.sensitivity_reason }}</p>
+{% if result.sensitivity %}
+{% if result.most_moving_sensitivity_row %}
+<p>The single input that moved the gap most:
+  <strong>{{ result.most_moving_sensitivity_row.step_text }}</strong>
+  — delta {{ result.most_moving_sensitivity_row.delta }}, direction
+  {{ result.most_moving_sensitivity_row.direction }}.</p>
+{% endif %}
+<table>
+  <tr><th>Step</th><th>Delta</th><th>Direction</th><th>Cliff crossings</th><th>Note</th></tr>
+  {% for row in result.sensitivity %}
+  <tr>
+    <td>{{ row.step_text }}</td>
+    <td>{{ row.delta }}</td>
+    <td>{{ row.direction }}</td>
+    <td>
+      {% if row.cliff_crossings %}
+        <ul>
+        {% for crossing in row.cliff_crossings %}
+          <li>{{ crossing }}</li>
+        {% endfor %}
+        </ul>
+      {% else %}
+        none
+      {% endif %}
+    </td>
+    <td>{{ row.note or "—" }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+{% if result.assumptions %}
+<h2>Assumptions this model rests on</h2>
+<p>
+  Shooting cadence: {{ result.assumptions.shoot_days_per_week }} days/week.
+  {{ result.assumptions.shoot_days_per_week_note }}
+</p>
+<p>{{ result.assumptions.department_share_note }}</p>
+<p>This model deliberately does not price:</p>
+<ul>
+  {% for exclusion in result.assumptions.permanent_exclusions %}
+  <li>{{ exclusion }}</li>
+  {% endfor %}
+</ul>
+<table>
+  <tr><th>City</th><th>Seasonality</th><th>Quarter-variant lines</th><th>Quarter-invariant lines</th></tr>
+  {% for city_assumption in result.assumptions.by_city %}
+  <tr>
+    <td>{{ city_assumption.city_id }}</td>
+    <td>
+      {% if city_assumption.seasonality_state %}
+        {{ city_assumption.seasonality_state.state }} —
+        {{ city_assumption.seasonality_state.reason }}
+      {% else %}
+        not measured for this city
+      {% endif %}
+    </td>
+    <td>
+      {% if city_assumption.quarter_variant_lines %}
+        {{ city_assumption.quarter_variant_lines | join(", ") }}
+      {% else %}
+        none measured
+      {% endif %}
+    </td>
+    <td>
+      {% if city_assumption.quarter_invariant_lines %}
+        {{ city_assumption.quarter_invariant_lines | join(", ") }}
+      {% else %}
+        none measured
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
 {% else %}
 <p>No candidate city named resolves to a committed cost profile yet.</p>
 {% endif %}

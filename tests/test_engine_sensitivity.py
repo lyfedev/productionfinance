@@ -31,7 +31,7 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-import engine.sensitivity as sensitivity
+from engine import sensitivity
 from engine.budget import build_canonical_budget
 from engine.cost_localizer import localize, quarter_start_date
 from engine.cost_profile import COST_PROFILES_DIR, load_cost_profile

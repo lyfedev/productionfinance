@@ -518,6 +518,115 @@ def test_post_api_v1_spec_single_city_has_no_gap():
     assert body["gap"] is None
 
 
+# ---------------------------------------------------------------------------
+# Plan 04-07 (OUT-03) — sensitivity and the assumptions panel, over HTTP
+# ---------------------------------------------------------------------------
+
+# Sourced from 04-CONTEXT.md § D-70 — the SAME vocabulary
+# tests/test_engine_sensitivity.py's own module-level constant carries,
+# duplicated here (not imported) so this HTTP-level gate has its own
+# independent copy, matching that module's own "defined once, in the test
+# file" discipline applied per test module.
+_PRESCRIPTIVE_VOCABULARY: tuple[str, ...] = (
+    "recommend",
+    "recommends",
+    "recommended",
+    "recommendation",
+    "should",
+    "consider",
+    "considers",
+    "considered",
+    "considering",
+    "best",
+    "optimal",
+    "you could",
+    "you should",
+)
+_VOCABULARY_PATTERNS = {
+    word: re.compile(r"\b" + re.escape(word) + r"\b", re.IGNORECASE)
+    for word in _PRESCRIPTIVE_VOCABULARY
+}
+
+
+def test_post_api_v1_spec_ny_and_la_returns_non_empty_sensitivity_list():
+    response = client.post(
+        "/api/v1/spec",
+        json=_valid_json_body(candidate_cities=["New York, NY", "Los Angeles, CA"]),
+    )
+    assert response.status_code == 200
+    body = response.json()
+
+    sensitivity = body["sensitivity"]
+    assert sensitivity, "expected a non-empty sensitivity list for a two-city submission"
+    for row in sensitivity:
+        assert row["step_text"].strip()
+        # delta parses as a Decimal without loss.
+        Decimal(row["delta"])
+        Decimal(row["baseline_gap"])
+        Decimal(row["perturbed_gap"])
+
+    assert body["most_moving_sensitivity_row"] is not None
+    assert body["most_moving_sensitivity_row"]["step_text"].strip()
+
+
+def test_post_api_v1_spec_single_city_has_empty_sensitivity_with_reason():
+    response = client.post(
+        "/api/v1/spec", json=_valid_json_body(candidate_cities=["New York, NY"])
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["sensitivity"] == []
+    assert body["most_moving_sensitivity_row"] is None
+    assert "two" in body["sensitivity_reason"].lower()
+
+
+def test_rendered_spec_result_page_shows_sensitivity_and_assumptions():
+    response = client.post(
+        "/spec",
+        data=_valid_form_data(candidate_cities="New York, NY\nLos Angeles, CA"),
+    )
+    assert response.status_code == 200
+    text = response.text
+
+    assert "Sensitivity" in text
+    assert "shoot day" in text or "crew member" in text
+    assert "Assumptions this model rests on" in text
+    assert "days/week" in text
+    assert "Housing" in text or "modelling assumption" in text.lower()
+
+
+def test_d70_vocabulary_condition_holds_over_rendered_html_body():
+    """The D-70 gate also covers the rendered HTML body — a template
+    string could reintroduce what the engine gate excluded.
+
+    **Non-vacuity proof (performed once, by hand, and reverted):**
+    `app/templates/spec_result.html`'s sensitivity `<h2>` heading was
+    temporarily edited to read "Sensitivity: which single input moves the
+    gap most (we recommend reviewing this)", and this test was re-run in
+    isolation. Observed result: RED —
+
+        AssertionError: prescriptive vocabulary found in rendered HTML:
+        ['recommend']
+
+    The edit was reverted immediately afterward (confirmed green again,
+    full `tests/test_app_spec_route.py` re-run, 29 passed); the assertion
+    below is the permanent, always-green version guarding the reverted
+    (correct) template."""
+    response = client.post(
+        "/spec",
+        data=_valid_form_data(candidate_cities="New York, NY\nLos Angeles, CA"),
+    )
+    assert response.status_code == 200
+    text = response.text
+
+    violations = [
+        word
+        for word in _PRESCRIPTIVE_VOCABULARY
+        if _VOCABULARY_PATTERNS[word].search(text)
+    ]
+    assert not violations, f"prescriptive vocabulary found in rendered HTML: {violations}"
+
+
 def test_no_spend_not_derived_symbol_anywhere_in_app_or_engine():
     import subprocess
 

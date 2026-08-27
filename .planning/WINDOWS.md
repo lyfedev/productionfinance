@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 24
+open_count: 25
 waived_count: 0
 fixed_count: 0
-total_count: 24
-last_updated: 2026-08-27T01:22:48.542Z
+total_count: 25
+last_updated: 2026-08-27T01:55:54.368Z
 ---
 
 # Broken Windows Ledger
@@ -39,6 +39,7 @@ last_updated: 2026-08-27T01:22:48.542Z
 | 22 | 04 | unmet-truth | data/facilities/gb-london.yaml |  | All five London facilities entries (stages, equipment, permits, locations, trucking) are basis: modelling_assumption, matching New York and Los Angeles's identical gap (WINDOWS entry 15) — no standardized public rate card exists for any of these categories anywhere, and this session did not fetch a primary UK studio, equipment-house or borough film-office document to anchor any of the five GBP ranges. | open |  | 2026-08-27T00:32:16.754Z |  |
 | 23 | 04 | lint-warning | engine/fx.py,engine/landed_cost.py,tests/test_engine_fx.py,tests/test_engine_landed_cost.py |  | Plan 04-05 adds new FURB157 (verbose Decimal constructor, RD-01 quoted-Decimal convention) and ISC004 (implicit string concat in multi-line derivation tuples, same pre-existing pattern as every prior plan in this phase) findings -- repo-wide ruff baseline measured 394 before this plan's changes (git worktree at 8a919b2), 415 after (net +21). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-08-27T00:39:07.071Z |  |
 | 24 | 04 | lint-warning | engine/ranker.py,engine/gap.py,app/services/spec.py,app/routers/spec.py,tests/test_engine_ranker.py,tests/test_engine_gap.py,tests/test_golden_cost.py |  | Plan 04-06 adds new FURB157 (verbose Decimal constructor, RD-01 quoted-Decimal convention), ISC004 (implicit string concat in multi-line derivation tuples, same pre-existing pattern as every prior plan in this phase) and one RUF022 (__all__ not fully sorted -- app/services/spec.py's __all__ already interleaved constants/classes before this plan; REPORTING_CURRENCY was inserted into the existing unsorted list, not a new category) finding -- repo-wide ruff baseline measured 415 before this plan's changes (matching WINDOWS entry 23), 451 after (net +36). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-08-27T01:22:48.542Z |  |
+| 25 | 04 | lint-warning | engine/sensitivity.py,tests/test_engine_sensitivity.py,app/services/spec.py,app/routers/spec.py |  | Plan 04-07 adds new FURB157 (verbose Decimal constructor, RD-01 quoted-Decimal convention) findings, matching every prior plan in this phase's precedent -- repo-wide ruff baseline measured 451 before this plan's changes (matching WINDOWS entry 24), 463 after (net +12). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-08-27T01:55:54.368Z |  |
 
 ````json
 [
@@ -328,6 +329,18 @@ last_updated: 2026-08-27T01:22:48.542Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-27T01:22:48.542Z",
+    "resolved_at": null
+  },
+  {
+    "id": 25,
+    "kind": "lint-warning",
+    "phase": "04",
+    "file": "engine/sensitivity.py,tests/test_engine_sensitivity.py,app/services/spec.py,app/routers/spec.py",
+    "line": null,
+    "description": "Plan 04-07 adds new FURB157 (verbose Decimal constructor, RD-01 quoted-Decimal convention) findings, matching every prior plan in this phase's precedent -- repo-wide ruff baseline measured 451 before this plan's changes (matching WINDOWS entry 24), 463 after (net +12). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-27T01:55:54.368Z",
     "resolved_at": null
   }
 ]

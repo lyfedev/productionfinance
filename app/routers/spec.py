@@ -10,6 +10,8 @@ from pydantic import ValidationError
 
 from app.services.spec import (
     CityAssessment,
+    CityAssumptions,
+    ModelAssumptions,
     RefusalResult,
     RuleTerm,
     SpecFormSubmission,
@@ -19,6 +21,7 @@ from app.services.spec import (
 from engine.figure_serialize import figure_to_dict
 from engine.gap import GapDecomposition
 from engine.ranker import RankedCity
+from engine.sensitivity import SensitivityRow
 
 __all__ = ["router"]
 
@@ -86,6 +89,49 @@ def _gap_to_json(gap: GapDecomposition | None) -> dict | None:
     }
 
 
+def _sensitivity_row_to_json(row: SensitivityRow) -> dict:
+    # D-68: every Decimal converted with str(...) so precision survives
+    # the JSON boundary intact — the same rule figure_to_dict already
+    # follows for a Figure's own `value` field.
+    return {
+        "step_id": row.step_id,
+        "spec_field": row.spec_field,
+        "step_text": row.step_text,
+        "baseline_gap": str(row.baseline_gap),
+        "perturbed_gap": str(row.perturbed_gap),
+        "delta": str(row.delta),
+        "direction": row.direction,
+        "cliff_crossings": list(row.cliff_crossings),
+        "note": row.note,
+    }
+
+
+def _city_assumptions_to_json(assumptions: CityAssumptions) -> dict:
+    seasonality = assumptions.seasonality_state
+    return {
+        "city_id": assumptions.city_id,
+        "quarter_invariant_lines": list(assumptions.quarter_invariant_lines),
+        "quarter_variant_lines": list(assumptions.quarter_variant_lines),
+        "seasonality_state": (
+            {"state": seasonality.state, "reason": seasonality.reason}
+            if seasonality is not None
+            else None
+        ),
+    }
+
+
+def _assumptions_to_json(assumptions: ModelAssumptions | None) -> dict | None:
+    if assumptions is None:
+        return None
+    return {
+        "shoot_days_per_week": assumptions.shoot_days_per_week,
+        "shoot_days_per_week_note": assumptions.shoot_days_per_week_note,
+        "department_share_note": assumptions.department_share_note,
+        "permanent_exclusions": list(assumptions.permanent_exclusions),
+        "by_city": [_city_assumptions_to_json(c) for c in assumptions.by_city],
+    }
+
+
 def _spec_result_to_json(result: SpecResult) -> dict:
     # Every value converted to a JSON-native type before returning — the
     # result carries no bare Decimal, but rule-term `date_checked` values
@@ -120,6 +166,14 @@ def _spec_result_to_json(result: SpecResult) -> dict:
         ],
         "gap": _gap_to_json(result.gap),
         "spend_origin": result.spend_origin,
+        "sensitivity": [_sensitivity_row_to_json(r) for r in result.sensitivity],
+        "sensitivity_reason": result.sensitivity_reason,
+        "most_moving_sensitivity_row": (
+            _sensitivity_row_to_json(result.most_moving_sensitivity_row)
+            if result.most_moving_sensitivity_row is not None
+            else None
+        ),
+        "assumptions": _assumptions_to_json(result.assumptions),
     }
 
 

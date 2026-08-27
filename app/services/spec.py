@@ -25,6 +25,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Literal
 
+import yaml
 from pydantic import BaseModel, ConfigDict
 
 from app.services._paths import REPO_ROOT, RULESET_PATH_BY_JURISDICTION
@@ -32,19 +33,31 @@ from app.services.city_lookup import resolve_city_to_jurisdiction
 from engine.budget import build_canonical_budget
 from engine.city_profile_lookup import resolve_city_to_profile_stem
 from engine.cost_localizer import LocalizedBudget, localize, quarter_start_date
-from engine.cost_profile import COST_PROFILES_DIR, load_cost_profile
+from engine.cost_profile import COST_PROFILES_DIR, CityCostProfile, load_cost_profile
 from engine.gap import GapDecomposition, decompose_gap
+from engine.landed_cost import (
+    PERMANENT_EXCLUSIONS,
+    SeasonalityState,
+    compute_quarter_invariance,
+)
 from engine.models import JurisdictionRuleSet, load_ruleset
+from engine.per_diem import load_per_diem
 from engine.ranker import RankedCity, rank
-from engine.spec import CrewHeadcount, CrewTier, ProductionSpec, resolve_crew_tier
+from engine.seasonality import SHOOT_DAYS_PER_WEEK, SHOOT_DAYS_PER_WEEK_NOTE
+from engine.sensitivity import SensitivityRow, most_moving_row, sensitivity_rows
+from engine.spec import CREW_TIERS_PATH, CrewHeadcount, CrewTier, ProductionSpec, resolve_crew_tier
 
 __all__ = [
+    "NO_GAP_SENSITIVITY_REASON",
     "REFUSAL_REASON",
-    "REPO_ROOT",
     "REPORTING_CURRENCY",
+    "REPO_ROOT",
     "RULESET_PATH_BY_JURISDICTION",
+    "SENSITIVITY_STEPS_NOT_COMPARABLE_NOTE",
     "SPEND_ORIGIN_STATEMENT",
     "CityAssessment",
+    "CityAssumptions",
+    "ModelAssumptions",
     "RefusalResult",
     "RuleTerm",
     "SpecFormSubmission",
@@ -75,6 +88,27 @@ REFUSAL_REASON = (
 SPEND_ORIGIN_STATEMENT = (
     "This qualified spend is MODELLED from the production you described — "
     "it is not a figure any government has disclosed."
+)
+
+# D-68: the sentence that makes the sensitivity table's ordering honest —
+# every row displays its own step, and none is comparable in magnitude to
+# any other. Plain description, subject to the same D-70 gate the engine
+# strings carry (tests/test_engine_sensitivity.py) — never a verb, never
+# an evaluation.
+SENSITIVITY_STEPS_NOT_COMPARABLE_NOTE = (
+    "Each row below shows the effect of its own named step; the steps are "
+    "not comparable magnitudes to one another."
+)
+
+# Plan 04-07: a gap between one city and nothing is not a gap
+# (app/services/spec.py::_gap_for_ranked_cities) — sensitivity, which
+# perturbs an input in the gap between two specific cities, has the
+# identical precondition. Stated as an absence, never an empty section
+# left to be interpreted.
+NO_GAP_SENSITIVITY_REASON = (
+    "Sensitivity requires two candidate cities that both produced a priced "
+    "total — fewer than two priced cities were submitted, so no gap exists "
+    "to perturb."
 )
 
 _RULE_TERM_BASIS = "quoted verbatim from the curated rule file; not a computed figure"
@@ -130,6 +164,36 @@ class RuleTerm:
 
 
 @dataclass(frozen=True)
+class CityAssumptions:
+    """Plan 04-07 (D-65/D-66): per-city assumptions data — Phase 4 owes
+    the data and a plain rendering of it; Phase 6 owns the consolidated
+    printable panel (PRV-04). `quarter_invariant_lines`/
+    `quarter_variant_lines` are a GENUINE measurement over four real
+    re-runs of `localize()` at this submission's own start_year
+    (`engine.landed_cost.compute_quarter_invariance`), never a hardcoded
+    list. `seasonality_state` is `None` only when this city's profile
+    declares no `travel` block at all (no per-diem table to measure)."""
+
+    city_id: str
+    quarter_invariant_lines: tuple[str, ...]
+    quarter_variant_lines: tuple[str, ...]
+    seasonality_state: SeasonalityState | None
+
+
+@dataclass(frozen=True)
+class ModelAssumptions:
+    """The model-wide assumptions this phase's costing rests on (plan
+    04-07 Task 3), drawn from data rather than written into the
+    template."""
+
+    shoot_days_per_week: str
+    shoot_days_per_week_note: str
+    department_share_note: str
+    permanent_exclusions: tuple[str, ...]
+    by_city: tuple[CityAssumptions, ...]
+
+
+@dataclass(frozen=True)
 class SpecResult:
     """Plan 04-06 (D-55/OUT-01/OUT-02) replaces the flat `city_costs` list
     D-71 introduced with the two-band ranked structure: `ranked_cities`
@@ -138,7 +202,12 @@ class SpecResult:
     unranked band second — never interleaved). `gap` decomposes the
     difference between the first two entries in that same order — `None`
     when fewer than two candidate cities produced a total, since a gap
-    between one city and nothing is not a gap."""
+    between one city and nothing is not a gap.
+
+    Plan 04-07 (OUT-03): `sensitivity` is computed ONLY when `gap` is not
+    `None` — an empty tuple, plus `sensitivity_reason` naming why, when it
+    is. `assumptions` is populated whenever at least one candidate city
+    produced a total, independent of whether a gap exists."""
 
     spec: ProductionSpec
     crew_headcount: CrewHeadcount
@@ -147,6 +216,10 @@ class SpecResult:
     ranked_cities: tuple[RankedCity, ...]
     gap: GapDecomposition | None
     spend_origin: str
+    sensitivity: tuple[SensitivityRow, ...]
+    sensitivity_reason: str
+    most_moving_sensitivity_row: SensitivityRow | None
+    assumptions: ModelAssumptions | None
 
 
 def handle_spec_submission(raw: SpecFormSubmission) -> SpecResult | RefusalResult:
@@ -203,8 +276,21 @@ def handle_spec_submission(raw: SpecFormSubmission) -> SpecResult | RefusalResul
     if "us-ny" in resolved_jurisdictions:
         rule_terms = tuple(_new_york_rule_terms())
 
-    ranked_cities = _rank_candidate_cities(spec, crew_headcount)
+    ranked_cities, profile_by_city_id = _rank_candidate_cities(spec, crew_headcount)
     gap = _gap_for_ranked_cities(ranked_cities)
+
+    if gap is None:
+        sensitivity: tuple[SensitivityRow, ...] = ()
+        sensitivity_reason = NO_GAP_SENSITIVITY_REASON
+        most_moving_sensitivity_row: SensitivityRow | None = None
+    else:
+        sensitivity = sensitivity_rows(
+            spec, gap.city_a_id, gap.city_b_id, reporting_currency=REPORTING_CURRENCY
+        )
+        sensitivity_reason = SENSITIVITY_STEPS_NOT_COMPARABLE_NOTE
+        most_moving_sensitivity_row = most_moving_row(sensitivity) if sensitivity else None
+
+    assumptions = _compute_assumptions(spec, crew_headcount, ranked_cities, profile_by_city_id)
 
     return SpecResult(
         spec=spec,
@@ -214,12 +300,16 @@ def handle_spec_submission(raw: SpecFormSubmission) -> SpecResult | RefusalResul
         ranked_cities=ranked_cities,
         gap=gap,
         spend_origin=SPEND_ORIGIN_STATEMENT,
+        sensitivity=sensitivity,
+        sensitivity_reason=sensitivity_reason,
+        most_moving_sensitivity_row=most_moving_sensitivity_row,
+        assumptions=assumptions,
     )
 
 
 def _rank_candidate_cities(
     spec: ProductionSpec, crew_headcount: CrewHeadcount
-) -> tuple[RankedCity, ...]:
+) -> tuple[tuple[RankedCity, ...], dict[str, CityCostProfile]]:
     """D-55/COST-01: build the ONE canonical budget for this submission
     (lazily, and only once — never rebuilt per city), localize it against
     every candidate city that resolves to a committed cost profile, and
@@ -229,10 +319,17 @@ def _rank_candidate_cities(
     `engine.pipeline.price_jurisdiction` only indirectly, through `rank`,
     which is what replaces D-71's old direct `price_jurisdiction` call
     site here (see `tests/test_route_a_basis_walk.py`'s D-63 gate, which
-    still walks every `RankedCity`'s Figure tree unchanged)."""
+    still walks every `RankedCity`'s Figure tree unchanged).
+
+    Also returns `profile_by_city_id` — every localized city's own
+    `CityCostProfile`, keyed by `city_id` — so plan 04-07's assumptions
+    panel (`_compute_assumptions`) never has to re-resolve a candidate
+    city string a second time just to reach its `travel`/`facilities_id`
+    declaration."""
     budget = None
     localized_by_city: dict[str, LocalizedBudget] = {}
     ruleset_by_jurisdiction: dict[str, JurisdictionRuleSet] = {}
+    profile_by_city_id: dict[str, CityCostProfile] = {}
     seen_profile_stems: set[str] = set()
 
     for raw_name in spec.candidate_cities:
@@ -243,6 +340,7 @@ def _rank_candidate_cities(
 
         profile_path = COST_PROFILES_DIR / f"{profile_stem}.yaml"
         profile = load_cost_profile(profile_path)
+        profile_by_city_id[profile.city_id] = profile
 
         if budget is None:
             # Built exactly once for the whole submission — COST-01 made
@@ -267,12 +365,109 @@ def _rank_candidate_cities(
             )
 
     if not localized_by_city:
-        return ()
+        return (), profile_by_city_id
 
-    return rank(
+    ranked = rank(
         localized_by_city,
         ruleset_by_jurisdiction,
         reporting_currency=REPORTING_CURRENCY,
+    )
+    return ranked, profile_by_city_id
+
+
+_ALL_QUARTERS: tuple[str, ...] = ("Q1", "Q2", "Q3", "Q4")
+
+
+def _department_share_note() -> str:
+    """D-38: `data/crew_tiers.yaml`'s own `provenance_note` — the
+    department crew-share table's disclosed modelling-assumption basis,
+    read from data rather than duplicated into this module."""
+    with open(CREW_TIERS_PATH, encoding="utf-8") as handle:
+        table = yaml.safe_load(handle)
+    return str(table["provenance_note"]).strip()
+
+
+def _seasonality_state_for_profile(profile: CityCostProfile) -> SeasonalityState | None:
+    """D-64/D-66: `None` only when this city's profile declares no
+    `travel` block at all (no per-diem table exists to measure) — mirrors
+    `tests/test_engine_seasonality.py`'s own established convention for
+    the `month_banded`/`no_month_band` reason text exactly."""
+    if profile.travel is None:
+        return None
+    table = load_per_diem(profile.travel.per_diem_id)
+    if table.lodging_by_month is not None:
+        return SeasonalityState(
+            state="month_banded",
+            reason=f"{table.per_diem_id!r} carries a genuine month-banded lodging rate",
+        )
+    return SeasonalityState(state="no_month_band", reason=table.seasonality_note)
+
+
+def _quarter_invariance_for_city(
+    spec: ProductionSpec, budget, profile: CityCostProfile
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """D-66: a GENUINE measurement over real re-runs of `localize()` at
+    every quarter of this submission's own `start_year` — never a
+    hardcoded list. Mirrors `engine.sensitivity`'s own re-run-the-real-
+    pipeline discipline (D-67). Returns `(quarter_variant_lines,
+    quarter_invariant_lines)`, the same order
+    `engine.landed_cost.compute_quarter_invariance` returns — `((), ())`
+    when NO quarter re-run succeeds (nothing to compare).
+
+    A quarter whose dated union rate row does not cover it (`localize()`
+    raising `ValueError` — e.g. a rate card's own `effective_to` boundary)
+    is EXCLUDED from the comparison rather than crashing this ancillary
+    measurement into a 500 for the visitor's own submitted quarter — this
+    mirrors `engine.ranker.rank`'s own refuse-rather-than-crash shape for
+    a city whose net cash cannot be computed."""
+    runs: dict[str, tuple] = {}
+    for quarter in _ALL_QUARTERS:
+        on_date = quarter_start_date(quarter, spec.start_year)
+        quarter_spec = ProductionSpec.model_validate(
+            {**spec.model_dump(), "start_quarter": quarter}
+        )
+        try:
+            localized = localize(budget, profile, on_date=on_date, spec=quarter_spec)
+        except ValueError:
+            continue
+        runs[quarter] = localized.lines
+    if not runs:
+        return (), ()
+    return compute_quarter_invariance(runs)
+
+
+def _compute_assumptions(
+    spec: ProductionSpec,
+    crew_headcount: CrewHeadcount,
+    ranked_cities: tuple[RankedCity, ...],
+    profile_by_city_id: dict[str, CityCostProfile],
+) -> ModelAssumptions | None:
+    """Plan 04-07 Task 3: the assumptions this phase's model rests on,
+    drawn from data — `None` only when no candidate city produced a
+    total at all (nothing to report assumptions about)."""
+    if not ranked_cities:
+        return None
+
+    budget = build_canonical_budget(spec, crew_headcount)
+    by_city: list[CityAssumptions] = []
+    for city in ranked_cities:
+        profile = profile_by_city_id[city.city_id]
+        quarter_variant, quarter_invariant = _quarter_invariance_for_city(spec, budget, profile)
+        by_city.append(
+            CityAssumptions(
+                city_id=city.city_id,
+                quarter_invariant_lines=quarter_invariant,
+                quarter_variant_lines=quarter_variant,
+                seasonality_state=_seasonality_state_for_profile(profile),
+            )
+        )
+
+    return ModelAssumptions(
+        shoot_days_per_week=str(SHOOT_DAYS_PER_WEEK),
+        shoot_days_per_week_note=SHOOT_DAYS_PER_WEEK_NOTE,
+        department_share_note=_department_share_note(),
+        permanent_exclusions=PERMANENT_EXCLUSIONS,
+        by_city=tuple(by_city),
     )
 
 
