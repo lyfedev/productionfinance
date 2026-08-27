@@ -91,8 +91,23 @@ SpendClass = Literal["local_labour", "local_non_labour", "non_local"]
 # Categories priced dynamically (never via a static per-line unit_rate):
 # "labour" through the profile's `labour` block (plan 04-02); "housing",
 # "per_diem" and "flights" through the profile's `travel` block from
-# imported headcount only (plan 04-03, COST-04/COST-05).
-_DYNAMICALLY_PRICED_CATEGORIES = ("labour", "housing", "per_diem", "flights")
+# imported headcount only (plan 04-03, COST-04/COST-05); "stages",
+# "equipment", "permits", "locations" and "trucking" through the profile's
+# `facilities_id`-selected table (plan 04-04, COST-06) — every facilities
+# category is priced from the shoot calendar's day counts, never a static
+# per-line rate that could silently drift out of sync with
+# engine/facilities.py's committed range.
+_DYNAMICALLY_PRICED_CATEGORIES = (
+    "labour",
+    "housing",
+    "per_diem",
+    "flights",
+    "stages",
+    "equipment",
+    "permits",
+    "locations",
+    "trucking",
+)
 
 
 class CostLine(StrictModel):
@@ -245,6 +260,16 @@ class CityCostProfile(StrictModel):
     cost_lines: list[CostLine]
     labour: LabourBlock | None = None
     travel: TravelBlock | None = None
+    # Plan 04-04 (COST-06): selects a committed `engine.facilities
+    # .FacilitiesTable` for the stages/equipment/permits/locations/trucking
+    # cost lines, priced dynamically from the shoot calendar's day counts —
+    # `None`-able for the identical reason `labour`/`travel` are.
+    facilities_id: str | None = None
+    # Plan 04-04 (INC-10): selects a committed `engine.exemptions
+    # .ExemptionsTable` of stackable cost-reduction Figures. `None`-able —
+    # a city that offers no sales-tax or hotel-occupancy exemption simply
+    # declares no `exemptions_id` (never an entry with a zero rate).
+    exemptions_id: str | None = None
 
     @model_validator(mode="after")
     def _labour_covers_every_department_when_declared(self) -> CityCostProfile:

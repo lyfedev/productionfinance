@@ -1,0 +1,126 @@
+# data/facilities/us-ny-new-york.yaml — New York's committed facilities
+# reference table (Phase 4 plan 04-04, COST-06). Stages, equipment,
+# permits, locations and trucking: no standardized public rate card exists
+# anywhere for any of these five categories (04-RESEARCH.md Pitfall 4 —
+# confirmed this session by searching for one: individual studio/vendor
+# marketing listings, wildly variable, none representative of what a real
+# production actually negotiates). Every entry below is therefore
+# `basis: "modelling_assumption"` — this executor session had no live
+# document-fetch capability, so even the categories most likely to carry a
+# genuine government-published anchor (a city film office's permit fee
+# schedule) could not be independently verified and archived this session.
+# This gap is recorded in .planning/WINDOWS.md rather than papered over
+# with an invented `basis: "estimated"` anchor. `basis: "sourced"` is
+# rejected by engine/facilities.py::FacilitiesEntry at load time — a
+# schema guarantee, not a review convention (T-04-15).
+#
+# Every rate is priced at its LOW BOUND uniformly (see
+# engine/facilities.py's module docstring and 04-04-SUMMARY.md for the
+# stated rationale) — the disclosed rate_high upper bound is carried in
+# every Figure's derivation, never silently dropped.
+#
+# rate_unit is "shoot_day" for all five categories: Task 2's own driving-
+# quantity language (stages per stage shoot day; locations/permits per
+# location shoot day; equipment/trucking per total shoot day) is expressed
+# most directly this way, and it avoids inventing an unverified
+# week-conversion or flat-fee convention this session cannot confirm
+# either. `rate_unit: "week"`/`"flat"` remain legal schema values for a
+# later plan that sources a category billed that way.
+#
+# Every numeric value below is a quoted YAML string (RD-01).
+
+facilities_id: "us-ny-new-york"
+city_label: "New York, NY"
+provenance_note: >
+  New York's facilities reference table (stages, equipment, permits,
+  locations, trucking). No standardized public rate card exists for any
+  of these categories (04-RESEARCH.md Pitfall 4) and this executor session
+  had no live document-fetch capability to establish even a disclosed
+  single-listing anchor for any of them — every entry is
+  `basis: "modelling_assumption"`, a disclosed round planning range
+  informed by general industry knowledge, not a specific verified public
+  document. Recorded as an open sourcing gap in .planning/WINDOWS.md.
+  Identical ranges are used for New York and Los Angeles: inventing a
+  city-specific differential without any evidence to support one would be
+  a fabricated precision this data does not have (see
+  data/facilities/us-ca-los-angeles.yaml's matching note).
+
+entries:
+  stages:
+    category: "stages"
+    rate_low: "2500"
+    rate_high: "6000"
+    rate_unit: "shoot_day"
+    basis: "modelling_assumption"
+    source_url: null
+    date_checked: null
+    anchor_note: null
+    method_note: >
+      A disclosed planning range for a mid-size soundstage day rate,
+      informed by general industry knowledge of typical New York
+      soundstage pricing rather than a single named studio's published
+      rate card (research row A5 — a single marketing listing is not
+      representative enough to anchor a point estimate, and this session
+      could not independently fetch and verify one). No government or
+      union document publishes a stage rate card.
+  equipment:
+    category: "equipment"
+    rate_low: "1800"
+    rate_high: "4500"
+    rate_unit: "shoot_day"
+    basis: "modelling_assumption"
+    source_url: null
+    date_checked: null
+    anchor_note: null
+    method_note: >
+      A disclosed planning range for a combined camera + grip/electric
+      equipment package per shoot day, informed by general industry
+      knowledge rather than a single vendor's published rental listing.
+      No standardized public equipment rate card exists.
+  permits:
+    category: "permits"
+    rate_low: "300"
+    rate_high: "900"
+    rate_unit: "shoot_day"
+    basis: "modelling_assumption"
+    source_url: null
+    date_checked: null
+    anchor_note: null
+    method_note: >
+      A disclosed planning range for location-permit administration and
+      fees per shoot day. New York City's Mayor's Office of Media and
+      Entertainment is commonly understood to waive permit fees for many
+      narrative productions, but this claim could not be independently
+      fetched and verified against a primary nyc.gov document this
+      session — this range is a conservative planning figure covering
+      possible city, borough or site-specific permit costs instead of
+      asserting a $0 permit cost this session cannot confirm.
+  locations:
+    category: "locations"
+    rate_low: "1500"
+    rate_high: "5000"
+    rate_unit: "shoot_day"
+    basis: "modelling_assumption"
+    source_url: null
+    date_checked: null
+    anchor_note: null
+    method_note: >
+      A disclosed planning range for a location site fee per shoot day
+      (paid to a private property owner or a public-space location
+      manager), informed by general industry knowledge. No standardized
+      public location-rate schedule exists — every real location fee is
+      individually negotiated.
+  trucking:
+    category: "trucking"
+    rate_low: "800"
+    rate_high: "2000"
+    rate_unit: "shoot_day"
+    basis: "modelling_assumption"
+    source_url: null
+    date_checked: null
+    anchor_note: null
+    method_note: >
+      A disclosed planning range for production-vehicle trucking (grip
+      trucks, honeywagons, generator trucks) per shoot day, informed by
+      general industry knowledge rather than a single vendor's published
+      rate card. No standardized public trucking rate card exists.

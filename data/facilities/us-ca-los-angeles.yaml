@@ -1,0 +1,108 @@
+# data/facilities/us-ca-los-angeles.yaml — Los Angeles's committed
+# facilities reference table (Phase 4 plan 04-04, COST-06). Same shape and
+# rationale as data/facilities/us-ny-new-york.yaml — see that file's
+# header for the full method. Identical ranges are used for both cities:
+# no primary document was fetched this session to establish a defensible
+# city-specific differential (e.g. Los Angeles's larger stage supply
+# plausibly lowering typical stage rates relative to New York), and
+# inventing one without evidence would be a fabricated precision this data
+# does not have. Recorded as an open sourcing gap in .planning/WINDOWS.md.
+#
+# Every rate is priced at its LOW BOUND uniformly (see
+# engine/facilities.py's module docstring) — the disclosed rate_high upper
+# bound is carried in every Figure's derivation, never silently dropped.
+# `basis: "sourced"` is rejected by engine/facilities.py::FacilitiesEntry
+# at load time — a schema guarantee, not a review convention (T-04-15).
+#
+# Every numeric value below is a quoted YAML string (RD-01).
+
+facilities_id: "us-ca-los-angeles"
+city_label: "Los Angeles, CA"
+provenance_note: >
+  Los Angeles's facilities reference table (stages, equipment, permits,
+  locations, trucking). No standardized public rate card exists for any
+  of these categories (04-RESEARCH.md Pitfall 4) and this executor session
+  had no live document-fetch capability to establish even a disclosed
+  single-listing anchor for any of them — every entry is
+  `basis: "modelling_assumption"`, the same disclosed round planning
+  range used for New York (see that file's provenance_note for the full
+  rationale). Recorded as an open sourcing gap in .planning/WINDOWS.md.
+
+entries:
+  stages:
+    category: "stages"
+    rate_low: "2500"
+    rate_high: "6000"
+    rate_unit: "shoot_day"
+    basis: "modelling_assumption"
+    source_url: null
+    date_checked: null
+    anchor_note: null
+    method_note: >
+      A disclosed planning range for a mid-size soundstage day rate,
+      informed by general industry knowledge rather than a single named
+      studio's published rate card (research row A5). Los Angeles's
+      genuinely larger stage supply plausibly puts real-world typical
+      rates somewhat below New York's, but this session could not
+      independently establish or verify a city-specific figure, so the
+      identical New York range is used rather than an invented
+      differential.
+  equipment:
+    category: "equipment"
+    rate_low: "1800"
+    rate_high: "4500"
+    rate_unit: "shoot_day"
+    basis: "modelling_assumption"
+    source_url: null
+    date_checked: null
+    anchor_note: null
+    method_note: >
+      A disclosed planning range for a combined camera + grip/electric
+      equipment package per shoot day, informed by general industry
+      knowledge rather than a single vendor's published rental listing.
+      No standardized public equipment rate card exists.
+  permits:
+    category: "permits"
+    rate_low: "300"
+    rate_high: "900"
+    rate_unit: "shoot_day"
+    basis: "modelling_assumption"
+    source_url: null
+    date_checked: null
+    anchor_note: null
+    method_note: >
+      A disclosed planning range for location-permit administration and
+      fees per shoot day. FilmLA is commonly understood to administer Los
+      Angeles-area permits for a fee, but the current fee schedule could
+      not be independently fetched and verified against a primary
+      filmla.com document this session — this range is a conservative
+      planning figure rather than an unverified specific fee.
+  locations:
+    category: "locations"
+    rate_low: "1500"
+    rate_high: "5000"
+    rate_unit: "shoot_day"
+    basis: "modelling_assumption"
+    source_url: null
+    date_checked: null
+    anchor_note: null
+    method_note: >
+      A disclosed planning range for a location site fee per shoot day
+      (paid to a private property owner or a public-space location
+      manager), informed by general industry knowledge. No standardized
+      public location-rate schedule exists — every real location fee is
+      individually negotiated.
+  trucking:
+    category: "trucking"
+    rate_low: "800"
+    rate_high: "2000"
+    rate_unit: "shoot_day"
+    basis: "modelling_assumption"
+    source_url: null
+    date_checked: null
+    anchor_note: null
+    method_note: >
+      A disclosed planning range for production-vehicle trucking (grip
+      trucks, honeywagons, generator trucks) per shoot day, informed by
+      general industry knowledge rather than a single vendor's published
+      rate card. No standardized public trucking rate card exists.
