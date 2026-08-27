@@ -18,6 +18,16 @@ A labour line with no craft mapping (or a profile with no `labour` block
 at all) keeps plan 04-01's static per-line `unit_rate` path unchanged —
 this is what keeps every pre-04-02 synthetic test fixture passing byte-
 for-byte.
+
+Plan 04-04 (COST-06/INC-10) closes the last two seams: a `category` in
+`engine.facilities.FACILITIES_CATEGORIES` is priced dynamically from the
+shoot calendar's day counts when the profile declares a `facilities_id`
+(mirroring the travel-category dispatch shape exactly), and — when the
+profile declares an `exemptions_id` — every stackable cost-reduction
+exemption it names is appended to `LocalizedBudget.lines` as its own
+Figure AFTER every cost line above is priced, matched by
+`Figure.label == CostLine.label` against the closed `CostCategory`
+vocabulary (never a positional index, never a jurisdiction-id branch).
 """
 
 from __future__ import annotations
@@ -30,6 +40,8 @@ import yaml
 
 from engine.budget import CREW_TIERS_PATH, CanonicalBudget
 from engine.cost_profile import CityCostProfile, CostLine, CraftMapping
+from engine.exemptions import exemption_reductions, load_exemptions
+from engine.facilities import FACILITIES_CATEGORIES, facilities_lines, load_facilities
 from engine.figure import Figure
 from engine.per_diem import load_per_diem
 from engine.qualifying_base import SpendBreakdown
@@ -55,6 +67,12 @@ _QUARTER_START_MONTH: dict[str, int] = {"Q1": 1, "Q2": 4, "Q3": 7, "Q4": 10}
 # headcount only, through the profile's `travel` block — never via the
 # canonical budget's department quantities.
 _TRAVEL_CATEGORIES = ("housing", "per_diem", "flights")
+
+# COST-06 (plan 04-04): categories priced dynamically from the shoot
+# calendar's day counts, through the profile's `facilities_id`-selected
+# table — never via the canonical budget's department quantities. Reuses
+# `engine.facilities.FACILITIES_CATEGORIES`'s declaration order.
+_FACILITIES_CATEGORIES = FACILITIES_CATEGORIES
 
 
 def quarter_start_date(start_quarter: str, start_year: int) -> date:
@@ -386,13 +404,28 @@ def localize(
     declared — `spec` is REQUIRED in that case (imported headcount and the
     shoot calendar both come from it). A profile with no `travel` block
     keeps such a line on the static per-line path unaffected by `spec`,
-    exactly mirroring the labour/`on_date` relationship above."""
+    exactly mirroring the labour/`on_date` relationship above.
+
+    A `category` in `engine.facilities.FACILITIES_CATEGORIES` ("stages",
+    "equipment", "permits", "locations", "trucking") is priced dynamically
+    (COST-06) ONLY when `profile.facilities_id` is also declared — `spec`
+    is REQUIRED in that case (the stage/location/total shoot-day counts
+    all come from it). A profile with no `facilities_id` keeps such a line
+    on the static per-line path unaffected by `spec`.
+
+    When `profile.exemptions_id` is declared, every stackable cost
+    reduction it names (INC-10, D-76) is appended to the returned
+    `LocalizedBudget.lines` as its own first-class Figure AFTER every cost
+    line above has been priced — an exemption's `applies_to_category` is
+    matched against the already-priced Figures by `Figure.label ==
+    CostLine.label`, never a positional index."""
     cost_line_by_label = {cost_line.label: cost_line for cost_line in profile.cost_lines}
     department_name_by_label = _department_name_by_label()
 
     rows: list[RateRow] | None = None
     fringe_schedules: dict[str, FringeSchedule] | None = None
     travel_figures: dict[str, Figure] | None = None
+    facilities_figures: dict[str, Figure] | None = None
 
     lines: list[Figure] = []
     categories_priced: set[str] = set()
@@ -408,6 +441,32 @@ def localize(
                     )
                 travel_figures = _price_travel_categories(profile, spec)
             figure = travel_figures[cost_line.category]
+            lines.append(figure)
+            cost_line_by_label[figure.label] = cost_line
+            categories_priced.add(cost_line.category)
+            continue
+
+        if cost_line.category in _FACILITIES_CATEGORIES and profile.facilities_id is not None:
+            if facilities_figures is None:
+                if spec is None:
+                    raise ValueError(
+                        f"localize(): {profile.city_id!r}'s cost line "
+                        f"{cost_line.label!r} (category {cost_line.category!r}) is "
+                        "priced via profile.facilities_id from the shoot calendar's "
+                        "day counts, but no ProductionSpec was supplied"
+                    )
+                facilities_table = load_facilities(profile.facilities_id)
+                priced_facilities = facilities_lines(
+                    facilities_table,
+                    shoot_days_stage=Decimal(spec.shoot_days_stage),
+                    shoot_days_location=Decimal(spec.shoot_days_location),
+                    total_shoot_days=budget.shoot_days,
+                    currency=profile.currency,
+                )
+                facilities_figures = dict(
+                    zip(_FACILITIES_CATEGORIES, priced_facilities, strict=True)
+                )
+            figure = facilities_figures[cost_line.category]
             lines.append(figure)
             cost_line_by_label[figure.label] = cost_line
             categories_priced.add(cost_line.category)
@@ -447,6 +506,25 @@ def localize(
         else:
             lines.append(_price_line(cost_line, quantity, budget, profile))
             categories_priced.add(cost_line.category)
+
+    if profile.exemptions_id is not None:
+        exemptions_table = load_exemptions(profile.exemptions_id)
+        figures_by_category: dict[str, list[Figure]] = {}
+        for cost_line in profile.cost_lines:
+            for figure in lines:
+                if figure.label == cost_line.label:
+                    figures_by_category.setdefault(cost_line.category, []).append(figure)
+        for reduction in exemption_reductions(exemptions_table, figures_by_category, profile.currency):
+            lines.append(reduction)
+            # The reduction Figure has no CostLine of its own — attribute
+            # it to the SAME CostLine as the cost line it reduces
+            # (`inputs[0]` is exactly that target Figure), mirroring the
+            # fringe-Figure attribution above, so `_derive_spend_breakdown`
+            # accounts for the reduction consistently rather than as a
+            # bare orphan with no declared spend_class.
+            matched_cost_line = cost_line_by_label.get(reduction.inputs[0].label)
+            if matched_cost_line is not None:
+                cost_line_by_label[reduction.label] = matched_cost_line
 
     spend_breakdown = _derive_spend_breakdown(tuple(lines), cost_line_by_label)
 

@@ -116,8 +116,10 @@ def test_every_labour_department_produces_two_figures_with_different_labels():
     assert len(fringe_labels) == 10
     assert wage_labels.isdisjoint(fringe_labels)
     # 10 wage + 10 fringe (labour departments) + housing + per_diem +
-    # flights (plan 04-03's travel categories, COST-04/COST-05).
-    assert len(localized.lines) == 23
+    # flights (plan 04-03's travel categories, COST-04/COST-05) + stages +
+    # equipment + permits + locations + trucking (plan 04-04's facilities
+    # categories, COST-06) + 1 sales-tax exemption reduction (INC-10).
+    assert len(localized.lines) == 29
 
 
 def test_fringe_figure_carries_the_wage_figure_as_its_single_input():
@@ -606,7 +608,11 @@ def test_increasing_locally_hired_crew_alone_leaves_travel_costs_unchanged():
         assert travel_a[label].value == travel_b[label].value, label
 
 
-def test_both_committed_profiles_not_priced_names_only_five_facilities_categories():
+def test_both_committed_profiles_not_priced_is_now_empty():
+    """Plan 04-04 (COST-06) prices the last five categories (stages,
+    equipment, permits, locations, trucking) via each profile's
+    `facilities_id` — `not_priced` must now compute to empty for both
+    committed cities."""
     spec = _spec()
     budget = build_canonical_budget(spec, _crew_headcount())
     on_date = quarter_start_date(spec.start_quarter, spec.start_year)
@@ -614,9 +620,44 @@ def test_both_committed_profiles_not_priced_names_only_five_facilities_categorie
     ny_landed = aggregate(localize(budget, _ny_profile(), on_date=on_date, spec=spec))
     la_landed = aggregate(localize(budget, _la_profile(), on_date=on_date, spec=spec))
 
-    expected = {"stages", "equipment", "permits", "locations", "trucking"}
-    assert set(ny_landed.not_priced) == expected
-    assert set(la_landed.not_priced) == expected
+    assert ny_landed.not_priced == ()
+    assert la_landed.not_priced == ()
+
+
+def test_both_committed_profiles_total_landed_cost_basis_is_modelling_assumption():
+    """D-59: with facilities lines at basis 'modelling_assumption' (the
+    weakest tier present across the full ten-category set), both
+    committed cities' total_landed_cost must report 'modelling_assumption'
+    — never a stronger tier while an assumption is present."""
+    spec = _spec()
+    budget = build_canonical_budget(spec, _crew_headcount())
+    on_date = quarter_start_date(spec.start_quarter, spec.start_year)
+
+    ny_landed = aggregate(localize(budget, _ny_profile(), on_date=on_date, spec=spec))
+    la_landed = aggregate(localize(budget, _la_profile(), on_date=on_date, spec=spec))
+
+    assert ny_landed.total_landed_cost.basis == "modelling_assumption"
+    assert la_landed.total_landed_cost.basis == "modelling_assumption"
+
+
+def test_removing_a_facilities_category_reintroduces_it_to_not_priced():
+    """`not_priced` must be a genuine MEASUREMENT, never a hardcoded empty
+    tuple — deleting one category's cost line from a real committed
+    profile must make that category reappear in `not_priced`, and nothing
+    else."""
+    spec = _spec()
+    budget = build_canonical_budget(spec, _crew_headcount())
+    on_date = quarter_start_date(spec.start_quarter, spec.start_year)
+
+    profile = _ny_profile()
+    remaining_lines = [
+        cost_line for cost_line in profile.cost_lines if cost_line.category != "stages"
+    ]
+    profile_without_stages = profile.model_copy(update={"cost_lines": remaining_lines})
+
+    landed = aggregate(localize(budget, profile_without_stages, on_date=on_date, spec=spec))
+
+    assert landed.not_priced == ("stages",)
 
 
 def test_every_per_diem_and_housing_figure_has_a_non_null_caveat():

@@ -32,12 +32,25 @@
 # per-route or per-city published airfare table was sourced this session
 # (.planning/WINDOWS.md).
 #
+# Plan 04-04 (COST-06/INC-10) adds `facilities_id` and five more cost
+# lines (stages, equipment, permits, locations, trucking), priced
+# dynamically from the shoot calendar's day counts via
+# data/facilities/us-ny-new-york.yaml — every entry there is
+# `basis: modelling_assumption` (COST-06: never sourced, no standardized
+# public rate card exists for any of these five categories). `not_priced`
+# is now empty for this profile. `exemptions_id` adds one stackable
+# sales-tax cost reduction against the Equipment line
+# (data/tax_exemptions/us-ny-new-york.yaml, `basis: estimated`) — a cost-
+# side reduction only, never touching the incentive figure (D-76).
+#
 # Every numeric value below is a quoted YAML string (RD-01).
 
 city_id: "us-ny-new-york"
 city_label: "New York, NY"
 jurisdiction_id: "us-ny"
 currency: "USD"
+facilities_id: "us-ny-new-york"
+exemptions_id: "us-ny-new-york"
 provenance_note: >
   New York's cost profile. Ten labour cost lines are committed here — one
   per crew department, matching engine/budget.py::resolve_departments' D-38
@@ -46,12 +59,13 @@ provenance_note: >
   static estimated day rate. The camera department is genuinely
   `basis: sourced` from IATSE Local 600's own published rate card; every
   other department is `basis: estimated` pending per-craft primary-source
-  acquisition (.planning/WINDOWS.md). Every other COST_CATEGORIES entry
-  (housing, per_diem, flights, stages, equipment, permits, locations,
-  trucking) is unpriced by this profile and is named in the Route A
-  response's `not_priced` list, never rendered as a $0 line (D-60). Later
-  plans in this phase widen this same profile with more cost lines; they
-  do not change its shape.
+  acquisition (.planning/WINDOWS.md). Plan 04-04 adds the five facilities
+  categories (stages, equipment, permits, locations, trucking), every one
+  `basis: modelling_assumption` (COST-06), plus one stackable sales-tax
+  exemption against the Equipment line (INC-10). Every COST_CATEGORIES
+  entry is now priced by this profile — `not_priced` is empty. Later plans
+  in this phase widen this same profile further; they do not change its
+  shape.
 
 labour:
   region: "us-ny"
@@ -170,3 +184,28 @@ cost_lines:
     category: "flights"
     account: "BTL"
     spend_class: "non_local"
+  - line_id: "ny-facilities-stages"
+    label: "Stages"
+    category: "stages"
+    account: "BTL"
+    spend_class: "local_non_labour"
+  - line_id: "ny-facilities-equipment"
+    label: "Equipment"
+    category: "equipment"
+    account: "BTL"
+    spend_class: "local_non_labour"
+  - line_id: "ny-facilities-permits"
+    label: "Permits"
+    category: "permits"
+    account: "BTL"
+    spend_class: "local_non_labour"
+  - line_id: "ny-facilities-locations"
+    label: "Locations"
+    category: "locations"
+    account: "BTL"
+    spend_class: "local_non_labour"
+  - line_id: "ny-facilities-trucking"
+    label: "Trucking"
+    category: "trucking"
+    account: "BTL"
+    spend_class: "local_non_labour"

@@ -1,0 +1,58 @@
+# data/tax_exemptions/us-ca-los-angeles.yaml — Los Angeles's committed
+# exemptions table (Phase 4 plan 04-04, INC-10, D-76). Same wiring and
+# guarantee as data/tax_exemptions/us-ny-new-york.yaml — see that file's
+# header for the full method.
+#
+# basis: "estimated" for this entry — not "sourced". This executor session
+# had no live document-fetch capability to fetch and archive a primary
+# City of Los Angeles Office of Finance document confirming the current
+# Transient Occupancy Tax (TOT) rate or the exact 30-consecutive-night
+# extended-stay exemption threshold wording. The existence of a general
+# (not film-specific) extended-stay TOT exemption is well-established
+# general municipal-tax knowledge, but is not independently re-verified
+# against a primary document this session. Recorded as an open sourcing
+# gap in .planning/WINDOWS.md.
+#
+# Every numeric value below is a quoted YAML string (RD-01).
+
+exemptions_id: "us-ca-los-angeles"
+city_label: "Los Angeles, CA"
+provenance_note: >
+  Los Angeles's exemptions table. One entry: a Transient Occupancy Tax
+  (TOT) exemption for guests occupying a hotel room for 30 or more
+  consecutive nights — a general municipal extended-stay exemption, not
+  film-specific, but applicable to an imported-crew shoot whose housing
+  stay meets the threshold. Neither the current TOT rate nor the exact
+  30-night threshold wording was independently fetched and archived
+  against a primary City of Los Angeles Office of Finance document this
+  session — tagged basis: "estimated" rather than "sourced", and recorded
+  as an open gap in .planning/WINDOWS.md.
+
+exemptions:
+  - exemption_id: "la-hotel-occupancy-extended-stay"
+    label: "Hotel occupancy tax exemption — extended stay (30+ consecutive nights)"
+    applies_to_category: "housing"
+    kind: "hotel_occupancy"
+    rate: "0.14"
+    basis: "estimated"
+    source_url: null
+    date_checked: null
+    method_note: >
+      Many California municipalities, including the City of Los Angeles,
+      exempt occupants of a hotel room for 30 or more consecutive days
+      from the local Transient Occupancy Tax (TOT) — a general
+      extended-stay exemption, not film-specific, but applicable to an
+      imported-crew shoot whose housing stay meets the threshold. No
+      primary City of Los Angeles Office of Finance document was fetched
+      and archived this session to confirm the exact current TOT rate
+      (0.14, 14%, is used here as a commonly-cited approximate figure for
+      Los Angeles's TOT rate) or the precise 30-day threshold wording.
+      Recorded as an open sourcing gap in .planning/WINDOWS.md pending
+      primary-document confirmation.
+    eligibility_note: >
+      Applies to guests occupying a hotel room for 30 or more consecutive
+      days — a general municipal extended-stay exemption, not specific to
+      film production. This model applies it to the full imported-crew
+      Housing cost-line Figure without separately checking whether this
+      production's actual shoot length reaches the 30-night threshold — a
+      disclosed simplification, not a per-production eligibility check.

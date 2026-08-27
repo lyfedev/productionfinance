@@ -466,11 +466,15 @@ def test_post_api_v1_spec_new_york_candidate_returns_real_landed_cost():
 
     # Every cost-side Figure (the D-58 basis axis's own subject matter)
     # carries a non-null basis, and the cost total's basis is the weakest
-    # among its cost-line inputs — never a fallback default (D-59).
+    # among its cost-line inputs — never a fallback default (D-59). Plan
+    # 04-04 adds the five facilities categories at basis
+    # "modelling_assumption" — the weakest tier present, so the combined
+    # cost total now reports that tier (previously "estimated", before
+    # facilities landed).
     cost_side_nodes = _walk_figure_dicts(city_cost["cost_total"])
     assert len(cost_side_nodes) > 1
     assert all(node["basis"] is not None for node in cost_side_nodes)
-    assert city_cost["cost_total"]["basis"] == "estimated"
+    assert city_cost["cost_total"]["basis"] == "modelling_assumption"
 
 
 def test_no_spend_not_derived_symbol_anywhere_in_app_or_engine():

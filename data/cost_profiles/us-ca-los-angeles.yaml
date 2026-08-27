@@ -21,12 +21,24 @@
 # source (see data/union_rates/iatse.yaml's header and
 # .planning/WINDOWS.md).
 #
+# Plan 04-04 (COST-06/INC-10) adds `facilities_id` and five more cost
+# lines (stages, equipment, permits, locations, trucking), priced
+# dynamically from the shoot calendar's day counts via
+# data/facilities/us-ca-los-angeles.yaml — every entry there is
+# `basis: modelling_assumption` (COST-06: never sourced). `not_priced` is
+# now empty for this profile. `exemptions_id` adds one stackable hotel-
+# occupancy cost reduction against the Housing line
+# (data/tax_exemptions/us-ca-los-angeles.yaml, `basis: estimated`) — a
+# cost-side reduction only, never touching the incentive figure (D-76).
+#
 # Every numeric value below is a quoted YAML string (RD-01).
 
 city_id: "us-ca-los-angeles"
 city_label: "Los Angeles, CA"
 jurisdiction_id: null
 currency: "USD"
+facilities_id: "us-ca-los-angeles"
+exemptions_id: "us-ca-los-angeles"
 provenance_note: >
   Los Angeles's cost profile. `jurisdiction_id` is null because Phase 4
   builds cost profiles for cities whose rule files do not yet exist
@@ -46,10 +58,12 @@ provenance_note: >
   per_diem and flights, priced dynamically from imported crew and imported
   principal cast headcount only, against the committed Los Angeles County
   GSA per-diem snapshot — genuinely flat all year for FY2026 (D-64), a
-  stated absence rather than a backfilled seasonal swing. Every remaining
-  COST_CATEGORIES entry (stages, equipment, permits, locations, trucking)
-  is unpriced by this profile and is named in the Route A response's
-  `not_priced` list, never rendered as a $0 line (D-60).
+  stated absence rather than a backfilled seasonal swing. Plan 04-04 adds
+  the five facilities categories (stages, equipment, permits, locations,
+  trucking), every one `basis: modelling_assumption` (COST-06), plus one
+  stackable hotel-occupancy exemption against the Housing line (INC-10).
+  Every COST_CATEGORIES entry is now priced by this profile —
+  `not_priced` is empty.
 
 labour:
   region: "us-ca"
@@ -169,3 +183,28 @@ cost_lines:
     category: "flights"
     account: "BTL"
     spend_class: "non_local"
+  - line_id: "la-facilities-stages"
+    label: "Stages"
+    category: "stages"
+    account: "BTL"
+    spend_class: "local_non_labour"
+  - line_id: "la-facilities-equipment"
+    label: "Equipment"
+    category: "equipment"
+    account: "BTL"
+    spend_class: "local_non_labour"
+  - line_id: "la-facilities-permits"
+    label: "Permits"
+    category: "permits"
+    account: "BTL"
+    spend_class: "local_non_labour"
+  - line_id: "la-facilities-locations"
+    label: "Locations"
+    category: "locations"
+    account: "BTL"
+    spend_class: "local_non_labour"
+  - line_id: "la-facilities-trucking"
+    label: "Trucking"
+    category: "trucking"
+    account: "BTL"
+    spend_class: "local_non_labour"

@@ -1,0 +1,61 @@
+# data/tax_exemptions/us-ny-new-york.yaml — New York's committed
+# exemptions table (Phase 4 plan 04-04, INC-10, D-76). An exemption here
+# is a stackable COST-side reduction, wired into engine/cost_localizer.py
+# as a first-class line in `LocalizedBudget.lines` — it never touches
+# `engine.pipeline.price_jurisdiction` or the incentive Figure DAG
+# (proved by tests/test_engine_exemptions.py).
+#
+# basis: "estimated" for this entry — not "sourced". This executor session
+# had no live document-fetch capability to fetch and archive a primary NY
+# Department of Taxation and Finance document confirming the exact
+# qualifying scope of the sales-tax exemption on production purchases, or
+# the exact combined sales-tax rate the exemption removes. The existence
+# of such an exemption (a "qualified production" exemption certificate for
+# tangible personal property used directly and predominantly in film/TV
+# production) is well-established general industry/tax knowledge, but is
+# not independently re-verified against a primary document this session.
+# Recorded as an open sourcing gap in .planning/WINDOWS.md.
+#
+# Every numeric value below is a quoted YAML string (RD-01).
+
+exemptions_id: "us-ny-new-york"
+city_label: "New York, NY"
+provenance_note: >
+  New York's exemptions table. One entry: a sales-tax exemption on
+  production equipment purchased or leased for direct and predominant use
+  in film/television production. Neither this exemption's exact
+  qualifying scope nor its removed rate was independently fetched and
+  archived against a primary New York State Department of Taxation and
+  Finance document this session — tagged basis: "estimated" rather than
+  "sourced", and recorded as an open gap in .planning/WINDOWS.md.
+
+exemptions:
+  - exemption_id: "ny-sales-tax-production-equipment"
+    label: "Sales tax exemption — production equipment"
+    applies_to_category: "equipment"
+    kind: "sales_tax"
+    rate: "0.08875"
+    basis: "estimated"
+    source_url: null
+    date_checked: null
+    method_note: >
+      New York State tax law provides a sales-tax exemption for tangible
+      personal property purchased or leased for direct and predominant use
+      in film or television production (a "qualified production" exemption
+      certificate) — a well-established feature of NY production tax
+      practice, but no primary NY Department of Taxation and Finance
+      document was fetched and archived this session to confirm the exact
+      qualifying scope or the current combined rate. 0.08875 (8.875%) is
+      New York City's current combined state, city and MCTD sales-tax
+      rate, used here as the disclosed proxy for "the sales-tax rate this
+      exemption removes." Recorded as an open sourcing gap in
+      .planning/WINDOWS.md pending primary-document confirmation.
+    eligibility_note: >
+      Applies to tangible personal property — purchased or leased
+      camera, grip, electric and similar production equipment — used
+      directly and predominantly in film or television production within
+      New York State. Does not apply to services, real property, or
+      general overhead purchases. This model applies it to the full
+      Equipment cost-line Figure as a disclosed simplification, without
+      separately verifying each individual equipment purchase's
+      qualifying use.
