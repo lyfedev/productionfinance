@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 14
+open_count: 17
 waived_count: 0
 fixed_count: 0
-total_count: 14
-last_updated: 2026-08-26T23:40:34.000Z
+total_count: 17
+last_updated: 2026-08-27T00:08:59.696Z
 ---
 
 # Broken Windows Ledger
@@ -29,6 +29,9 @@ last_updated: 2026-08-26T23:40:34.000Z
 | 12 | 04 | unmet-truth | data/per_diem/gsa/us-ny-new-york-county.yaml |  | The committed FY2026 GSA per-diem snapshot for New York covers 2025-10 through 2026-09 only (a genuine October-2025-through-September-2026 federal fiscal year). A shoot whose derived calendar reaches October 2026 or later (e.g. start_quarter Q4 combined with start_year 2026) correctly raises ValueError from lodging_for_month rather than fabricating a rate (D-64) — this means the phase's quarter_invariant_lines measurement for New York currently covers Q1-Q3 2026 only, until a FY2027 snapshot is committed in a later plan. | open |  | 2026-08-26T23:40:34.000Z |  |
 | 13 | 04 | unmet-truth | data/cost_profiles/us-ny-new-york.yaml,data/cost_profiles/us-ca-los-angeles.yaml |  | flight_round_trip_rate ($450) is basis: estimated for both New York and Los Angeles — no per-route or per-city published domestic airfare table was sourced this session; a national-average industry-commentary figure is used uniformly for both cities (04-RESEARCH.md Assumption A5). | open |  | 2026-08-26T23:40:34.000Z |  |
 | 14 | 04 | lint-warning | engine/per_diem.py,engine/seasonality.py,engine/landed_cost.py,engine/cost_localizer.py,tests/test_engine_seasonality.py,tests/test_engine_cost_localizer.py |  | Plan 04-03 adds new FURB157 (verbose Decimal constructor, RD-01 quoted-Decimal convention) and ISC004 (implicit string concat in multi-line derivation tuples, same pre-existing pattern as _price_line/_price_labour_department) findings — repo-wide ruff baseline measured 320 before this plan's changes, 343 after (net +23). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-08-26T23:40:34.000Z |  |
+| 15 | 04 | unmet-truth | data/facilities/us-ny-new-york.yaml,data/facilities/us-ca-los-angeles.yaml |  | All ten facilities entries (stages, equipment, permits, locations, trucking x2 cities) are basis: modelling_assumption -- this executor session had no live document-fetch capability (no WebFetch/WebSearch tool) to establish even a disclosed single-listing anchor for any category, let alone a genuine government permit-fee schedule. Identical ranges are used for New York and Los Angeles rather than an invented city-specific differential. Recorded rather than presented as basis: estimated with a fabricated anchor. | open |  | 2026-08-27T00:08:49.539Z |  |
+| 16 | 04 | unmet-truth | data/tax_exemptions/us-ny-new-york.yaml,data/tax_exemptions/us-ca-los-angeles.yaml |  | New York's sales-tax-on-production-equipment exemption and Los Angeles's 30-night extended-stay hotel-occupancy-tax exemption are both basis: estimated, not sourced -- this executor session had no live document-fetch capability to fetch and archive a primary NY Department of Taxation and Finance document or a primary City of Los Angeles Office of Finance document. The existence of both exemption types is well-established general industry/municipal-tax knowledge; the exact qualifying scope, current rate and threshold wording are not independently re-verified this session. | open |  | 2026-08-27T00:08:59.617Z |  |
+| 17 | 04 | lint-warning | engine/facilities.py,engine/exemptions.py,engine/cost_localizer.py,tests/test_engine_facilities.py,tests/test_engine_exemptions.py |  | Plan 04-04 adds new FURB157 (verbose Decimal constructor, RD-01 quoted-Decimal convention) and ISC004 (implicit string concat in multi-line derivation tuples, same pre-existing pattern as _price_line/_price_labour_department/_price_travel_categories) findings -- repo-wide ruff baseline measured 343 before this plan's changes, 394 after (net +51). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-08-27T00:08:59.696Z |  |
 
 ````json
 [
@@ -198,6 +201,42 @@ last_updated: 2026-08-26T23:40:34.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-26T23:40:34.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 15,
+    "kind": "unmet-truth",
+    "phase": "04",
+    "file": "data/facilities/us-ny-new-york.yaml,data/facilities/us-ca-los-angeles.yaml",
+    "line": null,
+    "description": "All ten facilities entries (stages, equipment, permits, locations, trucking x2 cities) are basis: modelling_assumption -- this executor session had no live document-fetch capability (no WebFetch/WebSearch tool) to establish even a disclosed single-listing anchor for any category, let alone a genuine government permit-fee schedule. Identical ranges are used for New York and Los Angeles rather than an invented city-specific differential. Recorded rather than presented as basis: estimated with a fabricated anchor.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-27T00:08:49.539Z",
+    "resolved_at": null
+  },
+  {
+    "id": 16,
+    "kind": "unmet-truth",
+    "phase": "04",
+    "file": "data/tax_exemptions/us-ny-new-york.yaml,data/tax_exemptions/us-ca-los-angeles.yaml",
+    "line": null,
+    "description": "New York's sales-tax-on-production-equipment exemption and Los Angeles's 30-night extended-stay hotel-occupancy-tax exemption are both basis: estimated, not sourced -- this executor session had no live document-fetch capability to fetch and archive a primary NY Department of Taxation and Finance document or a primary City of Los Angeles Office of Finance document. The existence of both exemption types is well-established general industry/municipal-tax knowledge; the exact qualifying scope, current rate and threshold wording are not independently re-verified this session.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-27T00:08:59.617Z",
+    "resolved_at": null
+  },
+  {
+    "id": 17,
+    "kind": "lint-warning",
+    "phase": "04",
+    "file": "engine/facilities.py,engine/exemptions.py,engine/cost_localizer.py,tests/test_engine_facilities.py,tests/test_engine_exemptions.py",
+    "line": null,
+    "description": "Plan 04-04 adds new FURB157 (verbose Decimal constructor, RD-01 quoted-Decimal convention) and ISC004 (implicit string concat in multi-line derivation tuples, same pre-existing pattern as _price_line/_price_labour_department/_price_travel_categories) findings -- repo-wide ruff baseline measured 343 before this plan's changes, 394 after (net +51). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-27T00:08:59.696Z",
     "resolved_at": null
   }
 ]
