@@ -429,6 +429,7 @@ def localize(
 
     lines: list[Figure] = []
     categories_priced: set[str] = set()
+    consumed_labels: set[str] = set()
     for cost_line in profile.cost_lines:
         if cost_line.category in _TRAVEL_CATEGORIES and profile.travel is not None:
             if travel_figures is None:
@@ -444,6 +445,7 @@ def localize(
             lines.append(figure)
             cost_line_by_label[figure.label] = cost_line
             categories_priced.add(cost_line.category)
+            consumed_labels.add(cost_line.label)
             continue
 
         if cost_line.category in _FACILITIES_CATEGORIES and profile.facilities_id is not None:
@@ -470,11 +472,13 @@ def localize(
             lines.append(figure)
             cost_line_by_label[figure.label] = cost_line
             categories_priced.add(cost_line.category)
+            consumed_labels.add(cost_line.label)
             continue
 
         quantity = budget.line_quantities.get(cost_line.label)
         if quantity is None:
             continue
+        consumed_labels.add(cost_line.label)
 
         craft_mapping: CraftMapping | None = None
         if cost_line.category == "labour" and profile.labour is not None:
@@ -506,6 +510,19 @@ def localize(
         else:
             lines.append(_price_line(cost_line, quantity, budget, profile))
             categories_priced.add(cost_line.category)
+
+    unmatched = {
+        cost_line.label
+        for cost_line in profile.cost_lines
+        if cost_line.label not in consumed_labels
+    }
+    if unmatched:
+        raise ValueError(
+            f"localize(): {profile.city_id!r} declares cost line label(s) "
+            f"{sorted(unmatched)!r} that match no budget quantity, travel "
+            "category, or facilities category — a label mismatch is a data "
+            "authoring error, never a silent partial total"
+        )
 
     if profile.exemptions_id is not None:
         exemptions_table = load_exemptions(profile.exemptions_id)

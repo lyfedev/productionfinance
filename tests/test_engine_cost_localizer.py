@@ -187,6 +187,52 @@ def test_localize_raises_when_on_date_is_missing_for_a_dynamic_labour_line():
 
 
 # ---------------------------------------------------------------------------
+# CR-01 (04-REVIEW.md): a cost line whose label matches no budget quantity,
+# travel category, or facilities category must raise — never a silent
+# `continue` that drops the line's cost from the total with `not_priced`
+# still reporting the category as fully priced.
+# ---------------------------------------------------------------------------
+
+
+def test_localize_raises_on_a_cost_line_label_that_matches_nothing():
+    """A committed `data/cost_profiles/*.yaml` labour line whose `label`
+    doesn't byte-for-byte match a `data/crew_tiers.yaml` department label
+    (a capitalization slip, an extra space, a rename on one side but not
+    the other) must raise loudly, naming the offending label — never be
+    silently dropped from `LocalizedBudget.lines` while the category
+    still reports as priced. Without CR-01's fix this line is silently
+    skipped and `localize()` returns a `LocalizedBudget` missing the
+    line's cost entirely, with no exception raised."""
+    profile = CityCostProfile(
+        city_id="synthetic-mismatched-label",
+        city_label="Synthetic Mismatched Label City",
+        jurisdiction_id=None,
+        currency="USD",
+        provenance_note="synthetic fixture — a label matching no budget quantity",
+        cost_lines=[
+            CostLine(
+                line_id="synthetic-typo-department",
+                label="Camera Labour Days",  # capitalization slip — real
+                # label is "Camera labour days" (data/crew_tiers.yaml)
+                category="labour",
+                account="BTL",
+                spend_class="local_labour",
+                unit_rate="450.00",
+                rate_unit="person-day",
+                basis="estimated",
+                source_url=None,
+                date_checked=None,
+                method_note="synthetic test fixture for CR-01's regression test",
+            )
+        ],
+    )
+    spec = _spec()
+    budget = build_canonical_budget(spec, _crew_headcount())
+    with pytest.raises(ValueError, match="Camera Labour Days"):
+        localize(budget, profile)
+
+
+# ---------------------------------------------------------------------------
 # Backward compatibility: a profile with no `labour` block keeps the
 # static single-Figure path (pre-04-02 fixtures must stay green).
 # ---------------------------------------------------------------------------
