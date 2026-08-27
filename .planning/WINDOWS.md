@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 17
+open_count: 22
 waived_count: 0
 fixed_count: 0
-total_count: 17
-last_updated: 2026-08-27T00:08:59.696Z
+total_count: 22
+last_updated: 2026-08-27T00:32:16.754Z
 ---
 
 # Broken Windows Ledger
@@ -32,6 +32,11 @@ last_updated: 2026-08-27T00:08:59.696Z
 | 15 | 04 | unmet-truth | data/facilities/us-ny-new-york.yaml,data/facilities/us-ca-los-angeles.yaml |  | All ten facilities entries (stages, equipment, permits, locations, trucking x2 cities) are basis: modelling_assumption -- this executor session had no live document-fetch capability (no WebFetch/WebSearch tool) to establish even a disclosed single-listing anchor for any category, let alone a genuine government permit-fee schedule. Identical ranges are used for New York and Los Angeles rather than an invented city-specific differential. Recorded rather than presented as basis: estimated with a fabricated anchor. | open |  | 2026-08-27T00:08:49.539Z |  |
 | 16 | 04 | unmet-truth | data/tax_exemptions/us-ny-new-york.yaml,data/tax_exemptions/us-ca-los-angeles.yaml |  | New York's sales-tax-on-production-equipment exemption and Los Angeles's 30-night extended-stay hotel-occupancy-tax exemption are both basis: estimated, not sourced -- this executor session had no live document-fetch capability to fetch and archive a primary NY Department of Taxation and Finance document or a primary City of Los Angeles Office of Finance document. The existence of both exemption types is well-established general industry/municipal-tax knowledge; the exact qualifying scope, current rate and threshold wording are not independently re-verified this session. | open |  | 2026-08-27T00:08:59.617Z |  |
 | 17 | 04 | lint-warning | engine/facilities.py,engine/exemptions.py,engine/cost_localizer.py,tests/test_engine_facilities.py,tests/test_engine_exemptions.py |  | Plan 04-04 adds new FURB157 (verbose Decimal constructor, RD-01 quoted-Decimal convention) and ISC004 (implicit string concat in multi-line derivation tuples, same pre-existing pattern as _price_line/_price_labour_department/_price_travel_categories) findings -- repo-wide ruff baseline measured 343 before this plan's changes, 394 after (net +51). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-08-27T00:08:59.696Z |  |
+| 18 | 04 | unmet-truth | data/per_diem/state-dept/gb-london.yaml |  | London's State Department per-diem row shows Season Begin 01/01 and Season End 12/31 (the full calendar year) — a flat rate, not a genuine month-by-month lodging band. This resolves 04-RESEARCH.md Assumption A4: London falls into D-64's absent-seasonality branch, the same as Los Angeles, narrowing what COST-07's cross-city seasonality claim can honestly say (both non-New-York floor cities are flat). | open |  | 2026-08-27T00:31:58.689Z |  |
+| 19 | 04 | unmet-truth | data/union_rates/bectu.yaml |  | The general_crew craft for London prices from Bectu's Grips Branch rate card's Grip (non-key) role, TV/SVOD Band 1 (GBP424/day), standing in for the nine non-camera crew_tiers.yaml departments (production, grip_and_electric, art, wardrobe, hair_and_makeup, sound, transportation, locations, post) — a single genuinely dated, sourced published row, but one specific grip-branch grade, not a true cross-department blended rate. No per-department Bectu branch card (art, wardrobe, hair and makeup, sound, transportation, locations, post) was fetched this session. | open |  | 2026-08-27T00:32:16.513Z |  |
+| 20 | 04 | unmet-truth | data/tax_exemptions/gb-london.yaml |  | London's exemptions table declares zero entries — this session did not identify or verify a UK production VAT exemption or extended-stay relief analogous to New York's sales-tax exemption or Los Angeles's hotel-occupancy exemption (INC-10 shape). The UK's VAT-based tax structure differs materially from a US-style point-of-sale sales/occupancy tax, and no primary HMRC or local-authority document was fetched this session to confirm whether an analogous relief exists. | open |  | 2026-08-27T00:32:16.594Z |  |
+| 21 | 04 | unmet-truth | data/union_rates/fringe_schedules.yaml |  | BECTU's pension_health_pct (UK statutory auto-enrolment minimum, 3%) and payroll_tax_pct (UK employer Class 1 National Insurance, 15%) are both basis: estimated, not sourced — the primary Pensions Act 2008 / HMRC NI rate documents were not fetched and archived this session, unlike DGA's and WGA's own primary Pension & Health schedules. | open |  | 2026-08-27T00:32:16.673Z |  |
+| 22 | 04 | unmet-truth | data/facilities/gb-london.yaml |  | All five London facilities entries (stages, equipment, permits, locations, trucking) are basis: modelling_assumption, matching New York and Los Angeles's identical gap (WINDOWS entry 15) — no standardized public rate card exists for any of these categories anywhere, and this session did not fetch a primary UK studio, equipment-house or borough film-office document to anchor any of the five GBP ranges. | open |  | 2026-08-27T00:32:16.754Z |  |
 
 ````json
 [
@@ -237,6 +242,66 @@ last_updated: 2026-08-27T00:08:59.696Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-27T00:08:59.696Z",
+    "resolved_at": null
+  },
+  {
+    "id": 18,
+    "kind": "unmet-truth",
+    "phase": "04",
+    "file": "data/per_diem/state-dept/gb-london.yaml",
+    "line": null,
+    "description": "London's State Department per-diem row shows Season Begin 01/01 and Season End 12/31 (the full calendar year) — a flat rate, not a genuine month-by-month lodging band. This resolves 04-RESEARCH.md Assumption A4: London falls into D-64's absent-seasonality branch, the same as Los Angeles, narrowing what COST-07's cross-city seasonality claim can honestly say (both non-New-York floor cities are flat).",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-27T00:31:58.689Z",
+    "resolved_at": null
+  },
+  {
+    "id": 19,
+    "kind": "unmet-truth",
+    "phase": "04",
+    "file": "data/union_rates/bectu.yaml",
+    "line": null,
+    "description": "The general_crew craft for London prices from Bectu's Grips Branch rate card's Grip (non-key) role, TV/SVOD Band 1 (GBP424/day), standing in for the nine non-camera crew_tiers.yaml departments (production, grip_and_electric, art, wardrobe, hair_and_makeup, sound, transportation, locations, post) — a single genuinely dated, sourced published row, but one specific grip-branch grade, not a true cross-department blended rate. No per-department Bectu branch card (art, wardrobe, hair and makeup, sound, transportation, locations, post) was fetched this session.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-27T00:32:16.513Z",
+    "resolved_at": null
+  },
+  {
+    "id": 20,
+    "kind": "unmet-truth",
+    "phase": "04",
+    "file": "data/tax_exemptions/gb-london.yaml",
+    "line": null,
+    "description": "London's exemptions table declares zero entries — this session did not identify or verify a UK production VAT exemption or extended-stay relief analogous to New York's sales-tax exemption or Los Angeles's hotel-occupancy exemption (INC-10 shape). The UK's VAT-based tax structure differs materially from a US-style point-of-sale sales/occupancy tax, and no primary HMRC or local-authority document was fetched this session to confirm whether an analogous relief exists.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-27T00:32:16.594Z",
+    "resolved_at": null
+  },
+  {
+    "id": 21,
+    "kind": "unmet-truth",
+    "phase": "04",
+    "file": "data/union_rates/fringe_schedules.yaml",
+    "line": null,
+    "description": "BECTU's pension_health_pct (UK statutory auto-enrolment minimum, 3%) and payroll_tax_pct (UK employer Class 1 National Insurance, 15%) are both basis: estimated, not sourced — the primary Pensions Act 2008 / HMRC NI rate documents were not fetched and archived this session, unlike DGA's and WGA's own primary Pension & Health schedules.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-27T00:32:16.673Z",
+    "resolved_at": null
+  },
+  {
+    "id": 22,
+    "kind": "unmet-truth",
+    "phase": "04",
+    "file": "data/facilities/gb-london.yaml",
+    "line": null,
+    "description": "All five London facilities entries (stages, equipment, permits, locations, trucking) are basis: modelling_assumption, matching New York and Los Angeles's identical gap (WINDOWS entry 15) — no standardized public rate card exists for any of these categories anywhere, and this session did not fetch a primary UK studio, equipment-house or borough film-office document to anchor any of the five GBP ranges.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-27T00:32:16.754Z",
     "resolved_at": null
   }
 ]

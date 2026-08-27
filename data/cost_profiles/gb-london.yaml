@@ -1,0 +1,217 @@
+# data/cost_profiles/gb-london.yaml — London's committed `CityCostProfile`
+# (Phase 4, plan 04-05, D-53/D-54). London is the third committed city and
+# the first non-USD one — the floor set's proof that the schema
+# generalises past a single currency and past US unions (COST-02, COST-08,
+# D-74/D-75). `jurisdiction_id` is null: the UK rule file is not in this
+# phase's scope (D-53 — a `CityCostProfile` needs no rule file to exist),
+# so `incentive_state` reports `"not_modelled"` for London exactly the way
+# it already does for Los Angeles pending California's Phase 5 rule file.
+#
+# `currency: "GBP"` — every cost line below prices in GBP. Converting to a
+# common reporting currency (USD, to compare against New York and Los
+# Angeles) is `engine.landed_cost.aggregate`'s `reporting_currency`
+# keyword (plan 04-05 Task 3), via `engine.fx.convert`'s committed
+# `data/fx/gbp-usd.yaml` snapshot — never a hidden multiplication inside
+# this file.
+#
+# Same shape as data/cost_profiles/us-ca-los-angeles.yaml: ten labour cost
+# lines, one per crew_tiers.yaml department, each priced dynamically
+# through the `labour:` block below. `region: "gb-london"` selects
+# London's own dated rows from data/union_rates/bectu.yaml — the camera
+# department's craft ("camera") resolves to a genuinely `basis: sourced`
+# Bectu Camera Branch rate row; every other department's craft
+# ("general_crew") resolves to a genuinely `basis: sourced` Bectu Grips
+# Branch rate row (see data/union_rates/bectu.yaml's header note for
+# exactly which published row stands in for the whole bucket).
+#
+# `facilities_id`/`exemptions_id` add the five facilities categories
+# (stages, equipment, permits, locations, trucking — every entry
+# `basis: modelling_assumption`, COST-06: never sourced) and zero
+# exemptions (see data/tax_exemptions/gb-london.yaml's provenance_note for
+# why). `not_priced` is empty for this profile, exactly like New York and
+# Los Angeles.
+#
+# Every numeric value below is a quoted YAML string (RD-01).
+
+city_id: "gb-london"
+city_label: "London, UK"
+jurisdiction_id: null
+currency: "GBP"
+facilities_id: "gb-london"
+exemptions_id: "gb-london"
+provenance_note: >
+  London's cost profile, priced in GBP throughout. `jurisdiction_id` is
+  null because Phase 4 builds cost profiles for cities whose rule files
+  do not yet exist (D-53) — the UK's curated jurisdiction rule file is
+  out of this phase's scope entirely (not merely deferred to Phase 5 the
+  way California's and New Jersey's are; see 04-CONTEXT.md's scope
+  boundary). This is a deliberate proof, not a gap: London prices its
+  full landed cost here with no incentive term modelled, and
+  `app/services/spec.py` reports `incentive_state: "not_modelled"` with a
+  plain-words reason, never a fabricated GBP0 incentive (D-56). Every
+  figure below is denominated in GBP before any currency conversion —
+  converting to a common reporting currency for cross-city comparison is
+  `engine.landed_cost.aggregate`'s job (plan 04-05 Task 3), never a
+  conversion baked into this data file. Ten labour cost lines are
+  committed here — one per crew department, matching
+  engine/budget.py::resolve_departments' D-38 decomposition — each priced
+  dynamically through the `labour:` block below against
+  data/union_rates/bectu.yaml's two genuinely `basis: sourced` Bectu rows
+  (camera; general_crew standing in for the other nine departments — see
+  that file's header note). Housing, per_diem and flights price
+  dynamically from imported crew and imported principal cast headcount
+  only, against the committed London State Department per-diem snapshot
+  (data/per_diem/state-dept/gb-london.yaml) — genuinely flat all year
+  (D-64's absent branch, resolving 04-RESEARCH.md Assumption A4), a
+  stated absence rather than a backfilled seasonal swing, exactly like
+  Los Angeles. The five facilities categories are every one
+  `basis: modelling_assumption` (COST-06); zero exemptions are declared
+  (see data/tax_exemptions/gb-london.yaml). Every COST_CATEGORIES entry
+  is priced by this profile — `not_priced` is empty.
+
+labour:
+  region: "gb-london"
+  crafts:
+    production:
+      union: "BECTU"
+      craft: "general_crew"
+    camera:
+      union: "BECTU"
+      craft: "camera"
+    grip_and_electric:
+      union: "BECTU"
+      craft: "general_crew"
+    art:
+      union: "BECTU"
+      craft: "general_crew"
+    wardrobe:
+      union: "BECTU"
+      craft: "general_crew"
+    hair_and_makeup:
+      union: "BECTU"
+      craft: "general_crew"
+    sound:
+      union: "BECTU"
+      craft: "general_crew"
+    transportation:
+      union: "BECTU"
+      craft: "general_crew"
+    locations:
+      union: "BECTU"
+      craft: "general_crew"
+    post:
+      union: "BECTU"
+      craft: "general_crew"
+
+travel:
+  per_diem_id: "gb-london"
+  flight_round_trip_rate: "650"
+  basis: "estimated"
+  source_url: null
+  date_checked: null
+  method_note: >
+    A disclosed round-trip international economy airfare estimate for
+    flying an imported crew or cast member to London, higher than the
+    $450 domestic-US figure used for New York and Los Angeles because an
+    international (typically transatlantic) flight is a materially
+    different, more expensive travel product — no per-route or
+    per-origin-city published fare table was located this session
+    (mirrors 04-RESEARCH.md Assumption A5's sourcing tier for the
+    domestic figure).
+  housing_uplift_note: >
+    Housing for imported crew and cast is priced at exactly the committed
+    per-diem table's lodging component — no additional negotiated-rate
+    uplift is modelled. A negotiated hotel rate stays in
+    PERMANENT_EXCLUSIONS (D-60) and is never fabricated here.
+
+cost_lines:
+  - line_id: "london-crew-labour-production"
+    label: "Production labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "london-crew-labour-camera"
+    label: "Camera labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "london-crew-labour-grip-and-electric"
+    label: "Grip and electric labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "london-crew-labour-art"
+    label: "Art labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "london-crew-labour-wardrobe"
+    label: "Wardrobe labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "london-crew-labour-hair-and-makeup"
+    label: "Hair and makeup labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "london-crew-labour-sound"
+    label: "Sound labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "london-crew-labour-transportation"
+    label: "Transportation labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "london-crew-labour-locations"
+    label: "Locations labour days"
+    category: "labour"
+    account: "BTL"
+    spend_class: "local_labour"
+  - line_id: "london-crew-labour-post"
+    label: "Post labour days"
+    category: "labour"
+    account: "POST"
+    spend_class: "local_labour"
+  - line_id: "london-housing-imported"
+    label: "Housing — imported crew and cast"
+    category: "housing"
+    account: "BTL"
+    spend_class: "non_local"
+  - line_id: "london-per-diem-imported"
+    label: "Per diem (M&IE) — imported crew and cast"
+    category: "per_diem"
+    account: "BTL"
+    spend_class: "local_non_labour"
+  - line_id: "london-flights-imported"
+    label: "Flights — imported crew and cast"
+    category: "flights"
+    account: "BTL"
+    spend_class: "non_local"
+  - line_id: "london-facilities-stages"
+    label: "Stages"
+    category: "stages"
+    account: "BTL"
+    spend_class: "local_non_labour"
+  - line_id: "london-facilities-equipment"
+    label: "Equipment"
+    category: "equipment"
+    account: "BTL"
+    spend_class: "local_non_labour"
+  - line_id: "london-facilities-permits"
+    label: "Permits"
+    category: "permits"
+    account: "BTL"
+    spend_class: "local_non_labour"
+  - line_id: "london-facilities-locations"
+    label: "Locations"
+    category: "locations"
+    account: "BTL"
+    spend_class: "local_non_labour"
+  - line_id: "london-facilities-trucking"
+    label: "Trucking"
+    category: "trucking"
+    account: "BTL"
+    spend_class: "local_non_labour"

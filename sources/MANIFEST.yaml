@@ -420,3 +420,65 @@ documents:
     cited_for:
       - "data/fx/gbp-usd.yaml — base GBP, quote USD, rate 1.363, as_of_date 2026-08-26"
 
+  - path: sources/unions/2026-08-26-bectu-camera-branch-ratecard-2025.pdf
+    url: "https://union.bectu.org.uk/asset/5A177826-5E39-4A41-AD69DA9A39E97BFA/"
+    retrieved_at: "2026-08-26T17:15:00-07:00"
+    sha256: "03e24c8c2dcd832141b9295d362071ad1548d5052d84549e0bbde2cce3d5af84"
+    jurisdiction: null
+    document_title: "Bectu Camera Branch rate card — Film and TV Drama, effective 01/01/25, terms per the Pact/Bectu TV Drama Agreement 2023 and Major Motion Picture Agreement 2021 (camerabranch.org.uk)"
+    note: >
+      Fetched by direct curl from Bectu's own asset CDN, linked from
+      bectu.org.uk/get-involved/ratecards/, text extracted with
+      `pdftotext` for manual transcription only. The document's main
+      per-grade table (DoP, Camera Operator, 1st/2nd Assistant, etc.) is
+      rendered as a graphic and did not extract as text; the one row that
+      DID extract as text is the base ("London Living Wage") camera-crew
+      day rate: GBP138.50 for a 10-hour day (10 + 1 hour lunch), the row
+      transcribed into data/union_rates/bectu.yaml's "camera" craft row.
+    cited_for:
+      - "data/union_rates/bectu.yaml — camera craft row (GBP138.50/day, 10hr day, effective 2025-01-01)"
+
+  - path: sources/unions/2026-08-26-bectu-grips-branch-ratecard-2024.pdf
+    url: "https://union.bectu.org.uk/asset/B8BC82BE-6B47-40F7-AE977C6E905CC1A5/"
+    retrieved_at: "2026-08-26T17:15:00-07:00"
+    sha256: "0db9c32b0354362d7ae88c9aa5e6e7d64e28f0e2837565749bbf3d996f0a31a0"
+    jurisdiction: null
+    document_title: "Bectu Grips Branch rate card 2024: TV/SVOD and Feature Films, terms per the Pact/Bectu TV Drama Agreement 2023 and Major Motion Picture Agreement 2019"
+    note: >
+      Fetched by direct curl from Bectu's own asset CDN, linked from
+      bectu.org.uk/get-involved/ratecards/, text extracted with
+      `pdftotext -layout` for manual transcription. The "Grip" (non-key,
+      non-specialist) role's TV/Streaming Band 1 daily rate, GBP424/day,
+      is transcribed into data/union_rates/bectu.yaml's "general_crew"
+      craft row — used as a single representative below-the-line day
+      rate standing in for the nine non-camera crew_tiers.yaml
+      departments, mirroring iatse.yaml's identical department-level (not
+      occupation-level) granularity choice for New York/Los Angeles.
+    cited_for:
+      - "data/union_rates/bectu.yaml — general_crew craft row (GBP424/day, TV/SVOD Band 1, dated 2024)"
+
+  - path: sources/state-dept/2026-08-26-allowances-state-gov-uk-per-diem.html
+    url: "https://allowances.state.gov/web920/per_diem_action.asp"
+    retrieved_at: "2026-08-26T17:15:00-07:00"
+    sha256: "8b83a510c7d6b22af69e5b3631139344338313f4edb3ec77031b7da31371a2ba"
+    jurisdiction: null
+    document_title: "U.S. Department of State, Office of Allowances — Foreign Per Diem Rates, United Kingdom (DSSR Section 925), queried by CountryCode=1114"
+    note: >
+      Fetched by direct curl (POST form submission mirroring the site's
+      own per_diem.asp form, CountryCode=1114 for United Kingdom),
+      archived as the server-rendered HTML results table — the site is a
+      stateful ASP.NET form, not a static file, so "archive as published"
+      means the exact response body a visitor's browser receives for this
+      query. Resolves 04-RESEARCH.md Assumption A4: the London row shows
+      "Season Begin" 01/01 and "Season End" 12/31 (the full year, not a
+      genuine seasonal band) with a single Maximum Lodging Rate of
+      GBP424, M&IE Rate GBP174, effective 06/01/2025 — this is a flat,
+      year-round rate, NOT a month-by-month table analogous to GSA's NYC
+      seasonal bands. London therefore falls into D-64's "absent"
+      seasonality branch, alongside Los Angeles, and this finding is
+      recorded in .planning/WINDOWS.md. Footnote 13 (also archived on
+      this page) is a geographic definition of "London" (Greater London,
+      32 boroughs plus Heathrow), not a seasonality note.
+    cited_for:
+      - "data/per_diem/state-dept/gb-london.yaml — lodging_flat_rate GBP424, mie_daily GBP174, effective 2025-06-01"
+

@@ -1,0 +1,33 @@
+# data/tax_exemptions/gb-london.yaml — London's committed exemptions
+# table (Phase 4 plan 04-05, INC-10, D-76). Same schema as
+# data/tax_exemptions/{us-ny-new-york,us-ca-los-angeles}.yaml, but this
+# table declares NO entries — see provenance_note below for why.
+#
+# An empty exemptions list is legal (engine.exemptions.ExemptionsTable
+# permits it) and is deliberately DIFFERENT from omitting `exemptions_id`
+# on the cost profile entirely: declaring the id with an empty list states
+# explicitly that this city was checked for a stackable exemption and none
+# was found, rather than leaving the question unanswered.
+
+exemptions_id: "gb-london"
+city_label: "London, UK"
+provenance_note: >
+  London has no committed exemption entry. The US cost profiles' exemption
+  entries (New York's sales-tax exemption on production equipment,
+  Los Angeles's extended-stay hotel-occupancy tax exemption) are both
+  point-of-sale exemptions from a US-style state or municipal sales/
+  occupancy tax — a tax structure the UK does not have in the same shape.
+  UK production accommodation and equipment purchases are subject to VAT
+  (Value Added Tax) rather than a US-style point-of-sale sales tax or a
+  municipal transient-occupancy tax, and this executor session did not
+  identify or verify (against a primary HMRC or local-authority document)
+  any general or film-specific VAT exemption or extended-stay VAT relief
+  analogous to the US entries' INC-10 shape. Rather than invent a UK
+  analog with no verified basis, this file declares zero entries — an
+  empty list stated explicitly, not an absent file left unexplained.
+  Recorded as an open item in .planning/WINDOWS.md: a genuine UK
+  production VAT relief, if one is later identified and verified against
+  a primary document, would be added here as a real entry, not backfilled
+  from the US shape.
+
+exemptions: []

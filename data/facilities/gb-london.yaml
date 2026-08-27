@@ -1,0 +1,115 @@
+# data/facilities/gb-london.yaml — London's committed facilities
+# reference table (Phase 4 plan 04-05, COST-06). Same shape and rationale
+# as data/facilities/us-ny-new-york.yaml and us-ca-los-angeles.yaml — see
+# those files' headers for the full method. No standardized public rate
+# card exists for any of these five categories in the UK any more than in
+# the US (04-RESEARCH.md Pitfall 4 is a general, not a US-specific,
+# finding) — every entry here is `basis: "modelling_assumption"`, a
+# disclosed planning range in GBP informed by general industry knowledge
+# of the UK production market, never a single named studio's or vendor's
+# published rate card. Recorded as an open sourcing gap in
+# .planning/WINDOWS.md, alongside the identical New York/Los Angeles gap.
+#
+# Every rate is priced at its LOW BOUND uniformly (see
+# engine/facilities.py's module docstring) — the disclosed rate_high upper
+# bound is carried in every Figure's derivation, never silently dropped.
+# `basis: "sourced"` is rejected by engine/facilities.py::FacilitiesEntry
+# at load time — a schema guarantee, not a review convention (T-04-15).
+#
+# Every numeric value below is a quoted YAML string (RD-01).
+
+facilities_id: "gb-london"
+city_label: "London, UK"
+provenance_note: >
+  London's facilities reference table (stages, equipment, permits,
+  locations, trucking), priced in GBP. No standardized public rate card
+  exists for any of these categories anywhere — this is the same finding
+  04-RESEARCH.md Pitfall 4 documents for New York and Los Angeles, not a
+  US-specific gap — and this executor session did not fetch a primary
+  studio, equipment-house or borough film-office rate schedule to anchor
+  any of the five figures. Every entry is therefore
+  `basis: "modelling_assumption"`, a disclosed round planning range
+  informed by general industry knowledge of the UK production market.
+  Recorded as an open sourcing gap in .planning/WINDOWS.md.
+
+entries:
+  stages:
+    category: "stages"
+    rate_low: "2000"
+    rate_high: "5000"
+    rate_unit: "shoot_day"
+    basis: "modelling_assumption"
+    source_url: null
+    date_checked: null
+    anchor_note: null
+    method_note: >
+      A disclosed planning range for a mid-size soundstage day rate in
+      the London/Home Counties studio market (e.g. Pinewood, Shepperton,
+      Elstree, Longcross, Twickenham — all named in Bectu's own TFL-Zone
+      travel-allowance table as standard studio locations), informed by
+      general industry knowledge rather than a single studio's published
+      rate card. No standardized public UK soundstage rate schedule
+      exists.
+  equipment:
+    category: "equipment"
+    rate_low: "1500"
+    rate_high: "4000"
+    rate_unit: "shoot_day"
+    basis: "modelling_assumption"
+    source_url: null
+    date_checked: null
+    anchor_note: null
+    method_note: >
+      A disclosed planning range for a combined camera + grip/electric
+      equipment package per shoot day in London, informed by general
+      industry knowledge rather than a single vendor's published rental
+      listing. No standardized public equipment rate card exists.
+  permits:
+    category: "permits"
+    rate_low: "250"
+    rate_high: "800"
+    rate_unit: "shoot_day"
+    basis: "modelling_assumption"
+    source_url: null
+    date_checked: null
+    anchor_note: null
+    method_note: >
+      A disclosed planning range for location-filming permit
+      administration and fees per shoot day. Film London and individual
+      London borough film offices are commonly understood to administer
+      permits for a fee, but a current, borough-by-borough fee schedule
+      was not independently fetched and verified against a primary
+      filmlondon.org.uk or borough-council document this session — this
+      range is a conservative planning figure rather than an unverified
+      specific fee.
+  locations:
+    category: "locations"
+    rate_low: "1200"
+    rate_high: "4500"
+    rate_unit: "shoot_day"
+    basis: "modelling_assumption"
+    source_url: null
+    date_checked: null
+    anchor_note: null
+    method_note: >
+      A disclosed planning range for a location site fee per shoot day
+      (paid to a private property owner or a public-space location
+      manager) in London, informed by general industry knowledge. No
+      standardized public location-rate schedule exists — every real
+      location fee is individually negotiated, in London as much as in
+      New York or Los Angeles.
+  trucking:
+    category: "trucking"
+    rate_low: "700"
+    rate_high: "1800"
+    rate_unit: "shoot_day"
+    basis: "modelling_assumption"
+    source_url: null
+    date_checked: null
+    anchor_note: null
+    method_note: >
+      A disclosed planning range for production-vehicle trucking (grip
+      trucks, unit bases, generator trucks) per shoot day in London,
+      informed by general industry knowledge rather than a single
+      vendor's published rate card. No standardized public trucking rate
+      card exists.

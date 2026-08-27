@@ -1,0 +1,107 @@
+# data/union_rates/bectu.yaml — BECTU/PACT dated union rate-card rows for
+# London (COST-02, plan 04-05). This is the union-agnosticism proof
+# 04-04-SUMMARY.md's ACTRA scope note names: BECTU lands here as pure
+# data, with ZERO changes to engine/union_rates.py, engine/cost_localizer.py
+# or engine/cost_profile.py — the exact same RateRow/FringeSchedule schema
+# `data/union_rates/iatse.yaml` already uses for New York and Los Angeles.
+#
+# Every numeric value below is a quoted YAML string (RD-01). This file must
+# never declare a `confidence` or `status` key — that vocabulary is
+# reserved for jurisdictions/*.yaml rule files reproducing an actual
+# government disclosure (RD-02).
+#
+# Two crafts are declared, matching data/cost_profiles/gb-london.yaml's
+# `labour.crafts` mapping for the ten crew_tiers.yaml departments — the
+# same department-level (not occupation-level) granularity choice
+# `data/union_rates/iatse.yaml`'s header note already establishes:
+#
+#   - "camera": Bectu's own Camera Branch published rate card
+#     (camerabranch.org.uk / bectu.org.uk/get-involved/ratecards/),
+#     fetched and archived this session under sources/unions/ with a
+#     sources/MANIFEST.yaml entry (D-10). The card's main per-grade table
+#     (DoP, Camera Operator, 1st/2nd Assistant, etc.) is rendered as a
+#     graphic in the archived PDF and did not extract as machine-readable
+#     text; the one row that DID extract as text is the base ("London
+#     Living Wage") camera-crew day rate under the Pact/Bectu TV Drama
+#     Agreement 2023 / Major Motion Picture Agreement 2021 — GBP138.50 for
+#     a 10-hour day (10 hours + 1 hour lunch), effective 2025-01-01.
+#     `basis: sourced` — transcribed verbatim from the union's own
+#     document.
+#
+#   - "general_crew": every other crew_tiers.yaml department (production,
+#     grip_and_electric, art, wardrobe, hair_and_makeup, sound,
+#     transportation, locations, post). Rather than repeat iatse.yaml's
+#     precedent of a single undifferentiated estimate for this bucket,
+#     this session fetched Bectu's own Grips Branch rate card 2024
+#     (also archived under sources/unions/, MANIFEST entry) and
+#     transcribed the "Grip" (non-key, non-specialist) role's TV/SVOD
+#     Band 1 daily rate — GBP424/day — as the single representative
+#     below-the-line day rate standing in for the whole general_crew
+#     bucket. This is a real, dated, sourced union rate, though it prices
+#     one specific grip-branch grade rather than a true cross-department
+#     average; the method choice (which published row stands in for the
+#     whole bucket) is disclosed here, mirroring iatse.yaml's identical
+#     "Camera Operator represents the whole camera department" choice.
+#     `basis: sourced`.
+
+provenance_note: >
+  Bectu Camera Branch and Grips Branch published rate cards, transcribed
+  from archived PDFs (sources/unions/, sources/MANIFEST.yaml entries).
+  Both crafts land `basis: sourced` — a genuine improvement over
+  04-04-SUMMARY.md's precedent (that plan's session had no live
+  document-fetch tool available; this session does, and used it). See
+  this file's header note for exactly which published row was
+  transcribed for each craft and why.
+
+rows:
+  - row_id: "bectu-camera-branch-london-2025"
+    union: "BECTU"
+    local: null
+    region: "gb-london"
+    craft: "camera"
+    rate: "138.50"
+    rate_unit: "day"
+    effective_from: "2025-01-01"
+    effective_to: null
+    basis: "sourced"
+    source_url: "https://union.bectu.org.uk/asset/5A177826-5E39-4A41-AD69DA9A39E97BFA/"
+    date_checked: "2026-08-26"
+    method_note: >
+      Base camera-crew day rate ("London Living Wage" base rate table),
+      Bectu Camera Branch rate card, Film and TV Drama, effective
+      01/01/25 — terms per the Pact/Bectu TV Drama Agreement 2023 and
+      Major Motion Picture Agreement 2021. 10-hour day (10 hours shooting
+      + 1 hour lunch) = GBP138.50. This one row represents the whole
+      camera department at this model's department-level granularity —
+      the card's per-grade table (DoP, Operator, 1st/2nd Assistant) is a
+      graphic in the archived PDF and did not extract as text; see this
+      file's header note.
+
+  - row_id: "bectu-grips-branch-general-crew-london-2024"
+    union: "BECTU"
+    local: null
+    region: "gb-london"
+    craft: "general_crew"
+    rate: "424.00"
+    rate_unit: "day"
+    effective_from: "2024-01-01"
+    effective_to: null
+    basis: "sourced"
+    source_url: "https://union.bectu.org.uk/asset/B8BC82BE-6B47-40F7-AE977C6E905CC1A5/"
+    date_checked: "2026-08-26"
+    method_note: >
+      "Grip" (non-key, non-specialist) role, TV/Streaming Video on Demand
+      Band 1 daily rate, Bectu Grips Branch rate card 2024 — terms per
+      the Pact/Bectu TV Drama Agreement 2023. GBP424/day. Standing in for
+      the nine non-camera crew_tiers.yaml departments (production, grip
+      and electric, art, wardrobe, hair and makeup, sound,
+      transportation, locations, post) as a single representative
+      below-the-line day rate — a disclosed methodological choice of
+      WHICH published grip-branch grade stands in for the whole bucket,
+      not an invented number: the rate itself is the union's own
+      published scale, transcribed verbatim. No single Bectu branch
+      publishes a true cross-department blended rate; this session did
+      not fetch a per-department card for every one of the other eight
+      departments (art, wardrobe, hair and makeup, sound, transportation,
+      locations, post, production) within its time budget — see
+      .planning/WINDOWS.md.

@@ -197,3 +197,44 @@ fringe_schedules:
         Standard general workers'-compensation/liability burden estimate,
         never a union-published figure. Identical across all four unions
         in this file (see this file's header note).
+
+  - union: "BECTU"
+    pension_health_pct:
+      value: "0.03"
+      basis: "estimated"
+      source_url: null
+      date_checked: "2026-08-26"
+      method_note: >
+        UK statutory minimum EMPLOYER pension contribution under the
+        auto-enrolment regime (Pensions Act 2008), commonly cited as 3%
+        of qualifying earnings — this is a UK-wide legal minimum, not a
+        Bectu-negotiated rate, and no Bectu/Pact document stating a
+        higher negotiated employer pension contribution was fetched this
+        session. `basis: estimated`, not `sourced`, because the primary
+        regulation text itself was not fetched and archived this session
+        (unlike the DGA/WGA rows above) — see .planning/WINDOWS.md.
+    payroll_tax_pct:
+      value: "0.15"
+      basis: "estimated"
+      source_url: null
+      date_checked: "2026-08-26"
+      method_note: >
+        UK employer Class 1 National Insurance contributions — a
+        commonly cited post-April-2025 employer NI rate — used here
+        rather than reusing this file's US FICA/FUTA/SUTA estimate
+        (0.0965), which would misrepresent a US-specific payroll tax
+        structure as applicable to a UK production. A UK-specific,
+        disclosed estimate; the primary HMRC rate table was not fetched
+        and archived this session, so `basis: estimated`, not `sourced`
+        — see .planning/WINDOWS.md.
+    other_burden_pct:
+      value: "0.02"
+      basis: "estimated"
+      source_url: null
+      date_checked: "2026-08-26"
+      method_note: >
+        Standard general employers'-liability-insurance burden estimate
+        (mandatory in the UK under the Employers' Liability (Compulsory
+        Insurance) Act 1969), never a union-published figure — the same
+        round estimate this file uses for every other union's equivalent
+        non-collectively-bargained burden line.

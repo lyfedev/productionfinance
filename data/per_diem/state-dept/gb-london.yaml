@@ -1,0 +1,55 @@
+# data/per_diem/state-dept/gb-london.yaml — State Department foreign per
+# diem for London, United Kingdom (COST-04, D-61, D-64, plan 04-05).
+#
+# Fetched directly from allowances.state.gov's own per-diem query tool
+# (POST form submission, CountryCode=1114 for United Kingdom — the site's
+# own dropdown value), archived under sources/state-dept/ with a
+# sources/MANIFEST.yaml entry (D-10), not a WebFetch-summarized page.
+# `basis: sourced`.
+#
+# **Resolves 04-RESEARCH.md Assumption A4.** The fetched London row shows
+# "Season Begin" 01/01 and "Season End" 12/31 — i.e. the SAME single rate
+# covers the entire year, not a genuine month-by-month band the way GSA's
+# New York City table does. This is the D-64 "absent" branch, alongside
+# Los Angeles: London's rate is effective from a single stated date
+# (06/01/2025) and republished monthly without changing, not seasonally
+# banded. This file therefore carries `lodging_flat_rate`, never
+# `lodging_by_month`, and the finding is recorded in .planning/WINDOWS.md
+# because it narrows what COST-07's cross-city seasonality claim can
+# honestly say (both non-New-York floor cities, one US and one foreign,
+# turn out flat).
+#
+# `fiscal_year` here records the calendar year in which the currently
+# published rate became effective (2025), not a GSA-style October-start
+# federal fiscal year — the State Department's foreign per-diem table
+# updates on a rolling monthly cadence per post, not an annual fiscal-year
+# republication the way GSA's domestic table does.
+#
+# Every numeric value below is a quoted YAML string (RD-01).
+
+per_diem_id: "gb-london"
+fiscal_year: "2025"
+county: "London, United Kingdom (DSSR Section 925 foreign per diem, Post: London — defined as Greater London, the City and 32 boroughs including Heathrow Airport, per the source table's Footnote 13)"
+source_url: "https://allowances.state.gov/web920/per_diem_action.asp"
+retrieved_at: "2026-08-26"
+mie_daily: "174"
+basis: "sourced"
+lodging_flat_rate: "424"
+method_note: >
+  Maximum Lodging Rate GBP424, M&IE Rate GBP174, effective 06/01/2025 —
+  queried directly against allowances.state.gov's own per-diem lookup
+  tool for CountryCode=1114 (United Kingdom), Post "London". The row's
+  "Season Begin" (01/01) and "Season End" (12/31) columns cover the full
+  calendar year, confirming this is a flat, not month-banded, rate.
+ceiling_caveat: >
+  Federal reimbursement ceiling, not a market rate; actual cost is likely
+  higher, especially in peak season or a tight-inventory market.
+seasonality_note: >
+  The State Department's foreign per-diem table for London shows "Season
+  Begin" 01/01 and "Season End" 12/31 — the entire calendar year under
+  one rate, not a genuine seasonal band the way GSA's New York City table
+  is. Rates are described generally as updated monthly, but for London
+  specifically this is a single current rate (effective 06/01/2025) that
+  gets republished, not a rate that itself varies by month. This resolves
+  04-RESEARCH.md Assumption A4: London falls into D-64's "absent" branch,
+  never backfilled with an invented monthly multiplier.
