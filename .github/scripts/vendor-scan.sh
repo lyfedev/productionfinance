@@ -13,12 +13,17 @@ set -uo pipefail
 
 ROOT="${1:-.}"
 
-# Bare, case-insensitive tokens. "translate" is deliberately excluded from
-# this bare list — it is too common an English word (UI strings, doc
-# headings) to match bare without a flood of false positives (D-28) — it is
-# handled separately below, matched only as a boto3-qualified client
-# construction.
-BARE_TOKENS='textract|bedrock|comprehend|rekognition|transcribe|polly|kendra|sagemaker'
+# Bare, case-insensitive tokens. "translate" and "transcribe" are both
+# deliberately excluded from this bare list — they are too common as English
+# words to match bare without a flood of false positives (D-28). "translate"
+# collides with UI strings and doc headings; "transcribe" collides with this
+# project's core provenance verb ("transcribed verbatim from the union's own
+# published scale"), which appears throughout data/union_rates/*.yaml and
+# sources/MANIFEST.yaml and is exactly the language the audit trail is
+# supposed to use. Both are handled separately below, matched only as a
+# boto3-qualified client construction — the actual call site, which is what
+# D-28 restricts. The service is still caught; the English word is not.
+BARE_TOKENS='textract|bedrock|comprehend|rekognition|polly|kendra|sagemaker'
 
 MATCH_FILE=$(mktemp)
 trap 'rm -f "$MATCH_FILE"' EXIT
@@ -31,8 +36,8 @@ scan_file() {
   # never by a special-cased path exemption that could mask a real match.
   grep -nEi "$BARE_TOKENS" "$file" 2>/dev/null | sed "s|^|${file}:|" >>"$MATCH_FILE"
 
-  # translate: only a boto3-qualified client construction counts.
-  grep -nE 'boto3[^()]*\.client\([[:space:]]*["'"'"']translate["'"'"']' "$file" 2>/dev/null | sed "s|^|${file}:|" >>"$MATCH_FILE"
+  # translate / transcribe: only a boto3-qualified client construction counts.
+  grep -nE 'boto3[^()]*\.client\([[:space:]]*["'"'"'](translate|transcribe)["'"'"']' "$file" 2>/dev/null | sed "s|^|${file}:|" >>"$MATCH_FILE"
 }
 
 # Two explicit find invocations (rather than a conditionally-built exclude

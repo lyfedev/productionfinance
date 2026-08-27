@@ -297,8 +297,9 @@ documents:
     jurisdiction: null
     document_title: "IATSE Local 600 (International Cinematographers Guild) — Basic Agreement, Amendment Agreement Inside and Outside 'The Corridor', Eastern Region Panel 1 (Features, 1 Hour Network Episodic), effective August 3, 2025 to August 1, 2026"
     note: >
-      Fetched by direct curl (no JS execution, no AWS Textract or any other
-      AWS AI endpoint), text extracted with the local `pdftotext` utility
+      Fetched by direct curl (no JS execution, no third-party OCR or
+      document-AI endpoint of any kind), text extracted with the local
+      `pdftotext` utility
       for manual transcription only — not a runtime dependency (D-57). The
       "Camera Operator" (Occ. Code 1911) daily rate on page 1 (Schedule D-1,
       $947.58/day) is the row transcribed into
@@ -385,8 +386,8 @@ documents:
       not the WebFetch-summarized page 04-RESEARCH.md's Open Questions section
       flagged as needing re-confirmation. Parsed directly from the archived
       .xlsx's underlying XML (stdlib zipfile + xml.etree, no runtime
-      dependency added, no AWS Textract or any other AWS AI endpoint,
-      matching D-57/T-04-14) — 652 rows, header at row 2: ID, STATE,
+      dependency added, no third-party OCR or document-AI endpoint of any
+      kind, matching D-57/T-04-14) — 652 rows, header at row 2: ID, STATE,
       DESTINATION, COUNTY/LOCATION DEFINED, SEASON BEGIN, SEASON END, FY26
       Lodging Rate, FY26 M&IE. Row ID 266 ("New York City", Bronx / Kings /
       New York / Queens / Richmond) carries five seasonal bands (Oct-Dec
