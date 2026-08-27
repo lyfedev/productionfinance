@@ -1,0 +1,128 @@
+# data/sensitivity_steps.yaml — the declared perturbation-step table (D-68)
+# `engine/sensitivity.py::sensitivity_rows` re-runs the ENTIRE pipeline
+# against, one input at a time, never an analytic derivative (D-67).
+#
+# Mirrors tests/mutation_targets.yaml's shape exactly (D-51's precedent):
+# one row is one addition, never a script edit. `engine/sensitivity.py`
+# contains no hardcoded step size and no hardcoded field name list — a new
+# row here is a new row in the output with zero code changes, PROVIDED the
+# named `spec_field` is a plain integer field on `ProductionSpec` (the
+# generic increment path). A field whose perturbation requires a
+# compensating adjustment elsewhere on the spec to stay valid (crew_size,
+# crew_imported_count, principal_cast_imported_count, start_quarter) is a
+# disclosed, narrowly-scoped special case in engine/sensitivity.py — see
+# that module's own docstring for the four names and why each needs one.
+#
+# `step` is every input's own natural unit, quoted (RD-01) — there is
+# DELIBERATELY no shared scale across rows, and none may ever be added:
+# a step of one shoot day and a step of one imported crew member are not
+# comparable magnitudes, and manufacturing a normalisation to declare a
+# single winner would be a fabrication (D-68). Every row's `step_text` is
+# rendered on its own row so the comparison stays visibly step-relative.
+#
+# `status: inactive` removes a row from the output with zero code change —
+# used to retire a row without deleting its provenance trail.
+
+sensitivity_steps:
+  - id: "stage-shoot-day"
+    spec_field: "shoot_days_stage"
+    step: "1"
+    unit_label: "stage shoot day"
+    requirement: "OUT-03"
+    status: "active"
+    why: >
+      Stage shoot days scale every department's labour-days quantity in
+      the canonical budget (engine.budget.build_canonical_budget) and the
+      stages/equipment/trucking facilities lines (COST-06). A one-day step
+      is the smallest unit the physical input contract (INP-02) accepts,
+      so it is the finest-grained honest perturbation of this input.
+
+  - id: "location-shoot-day"
+    spec_field: "shoot_days_location"
+    step: "1"
+    unit_label: "location shoot day"
+    requirement: "OUT-03"
+    status: "active"
+    why: >
+      Location shoot days scale the same department labour-days quantity
+      as stage days, plus the permits/locations facilities lines
+      specifically (which price off shoot_days_location alone, not total
+      shoot days) — a genuinely different cost-line mix from the stage-day
+      row above, which is why the two are declared separately rather than
+      folded into one "shoot day" row.
+
+  - id: "crew-size"
+    spec_field: "crew_size"
+    step: "1"
+    unit_label: "crew member"
+    requirement: "OUT-03"
+    status: "active"
+    why: >
+      Crew size scales every department's headcount in the canonical
+      budget and can cross data/crew_tiers.yaml's tier boundaries
+      (D-69) — a genuine engine-visible cliff on the cost side, distinct
+      from the incentive side's minimum-spend/tiered-band/cap cliffs.
+      This row only applies to a spec that supplied an explicit crew_size
+      rather than a crew_tier (INP-03) — a tier-only spec reports a
+      not-applicable row rather than raising.
+
+  - id: "imported-crew-member"
+    spec_field: "crew_imported_count"
+    step: "1"
+    unit_label: "imported crew member"
+    requirement: "OUT-03"
+    status: "active"
+    why: >
+      Housing, per diem and flights (COST-04/COST-05) price from imported
+      headcount only, never total crew size — moving one crew member from
+      locally-hired to imported changes travel cost alone, with total
+      crew_size (and therefore total labour cost) held fixed. This is the
+      row PROJECT.md's own "+1 imported crew member: +$X" example
+      describes, and it is a genuinely different signal from the
+      crew-size row above, which moves labour cost instead.
+
+  - id: "imported-principal-cast-member"
+    spec_field: "principal_cast_imported_count"
+    step: "1"
+    unit_label: "imported principal cast member"
+    requirement: "OUT-03"
+    status: "active"
+    why: >
+      Imported principal cast (INP-04) enters the same imported-headcount
+      travel pricing as imported crew (COST-04/COST-05), but principal
+      cast headcount is a materially smaller, separately-declared input —
+      a producer choosing how many leads to fly in versus hire/cast
+      locally is a genuinely different decision from the crew-composition
+      one above, and the two must not be conflated into a single
+      "imported person" row.
+
+  - id: "start-quarter-forward"
+    spec_field: "start_quarter"
+    step: "1"
+    unit_label: "quarter forward"
+    requirement: "OUT-03"
+    status: "active"
+    why: >
+      Start quarter moves the shoot calendar (D-65) and therefore any
+      per-diem month band a committed city's snapshot declares (D-64),
+      plus which dated union rate row or per-diem season a city selects —
+      a real, sourced seasonal signal, never a modelled multiplier. This
+      row steps the quarter forward by one (wrapping the year when it
+      crosses Q4), matching INP-06's own quarter-and-year contract.
+
+  - id: "non-imported-principal-cast-member"
+    spec_field: "principal_cast_count"
+    step: "1"
+    unit_label: "principal cast member (non-imported)"
+    requirement: "OUT-03"
+    status: "active"
+    why: >
+      Deliberately included as the disclosed "this model does not price
+      it" case (must_haves: "perturbing an input the model does not price
+      leaves the gap unchanged and the row says so explicitly"). Only
+      principal_cast_imported_count enters any priced line
+      (COST-04/COST-05's imported-headcount travel pricing); the TOTAL
+      principal cast count on its own feeds no cost line anywhere in the
+      engine. Reporting this honestly, rather than omitting the row,
+      is what proves the sensitivity table is not silently curated to
+      only show inputs that move the number.
