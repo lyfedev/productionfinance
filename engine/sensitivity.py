@@ -60,12 +60,12 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
 
 from engine.budget import _infer_department_tier, build_canonical_budget
 from engine.cost_localizer import LocalizedBudget, localize, quarter_start_date
@@ -122,6 +122,37 @@ class SensitivityStep(StrictModel):
     requirement: str
     status: Literal["active", "inactive"]
     why: str
+
+    @model_validator(mode="after")
+    def _step_must_be_a_whole_number(self) -> SensitivityStep:
+        """WR-03 (04-REVIEW.md): `_step_delta` applies every declared row
+        as `int(Decimal(step.step))` — a plain truncating conversion. That
+        is currently a no-op (every committed row's `step` is `"1"`), but
+        this module's own docstring promises "a new row is a table
+        addition ... zero code changes" for any plain-integer
+        `spec_field` — a future row declaring a fractional step (e.g.
+        `"0.5"` for some future fractional-unit field) would otherwise be
+        silently truncated to `0`, a zero-effect step reported as a real
+        perturbation, with no test or schema guard catching it. Raise at
+        load time instead, naming the offending row and step."""
+        try:
+            step_value = Decimal(self.step)
+        except InvalidOperation as exc:
+            raise ValueError(
+                f"sensitivity step {self.id!r} declares step={self.step!r}, which is "
+                "not a valid decimal number"
+            ) from exc
+        if step_value % 1 != 0:
+            raise ValueError(
+                f"sensitivity step {self.id!r} declares a fractional step "
+                f"({self.step!r}) — _step_delta() converts every step with "
+                "int(Decimal(step.step)), which would silently TRUNCATE a "
+                "fractional step to a zero-effect integer perturbation rather than "
+                "raise. Every declared step must be a whole number until "
+                "_apply_generic_numeric_step (and every _apply_*_step special case) "
+                "is widened to perturb a non-integer ProductionSpec field."
+            )
+        return self
 
 
 class StepNotApplicable(Exception):

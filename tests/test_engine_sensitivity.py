@@ -31,6 +31,9 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
+import pytest
+from pydantic import ValidationError
+
 from engine import sensitivity
 from engine.budget import build_canonical_budget
 from engine.cost_localizer import localize, quarter_start_date
@@ -119,6 +122,61 @@ def test_committed_step_table_has_at_least_six_rows_with_required_fields():
 def test_committed_step_table_path_exists_and_is_module_anchored():
     assert SENSITIVITY_STEPS_PATH.exists()
     assert SENSITIVITY_STEPS_PATH.is_absolute()
+
+
+def test_a_fractional_step_raises_at_load_time_rather_than_silently_truncating():
+    """WR-03 (04-REVIEW.md): `_step_delta` converts every step with
+    `int(Decimal(step.step))` — a bare truncating conversion. Without
+    `SensitivityStep`'s load-time guard, a declared `step: "0.5"` would
+    silently become `0` (a zero-effect step reported as a real
+    perturbation) rather than raise. Every currently-committed row uses
+    `step: "1"`, so this can only be proven with a synthetic fixture row."""
+    with pytest.raises(ValidationError, match="fractional step"):
+        SensitivityStep(
+            id="synthetic-fractional-step",
+            spec_field="shoot_days_stage",
+            step="0.5",
+            unit_label="synthetic unit",
+            requirement="OUT-03",
+            status="active",
+            why="synthetic fixture for WR-03's regression test",
+        )
+
+
+def test_a_whole_number_step_does_not_raise():
+    """The mirror-image case: every currently-committed row's shape
+    (a whole-number `step`) must not be rejected by WR-03's guard."""
+    step = SensitivityStep(
+        id="synthetic-whole-step",
+        spec_field="shoot_days_stage",
+        step="2",
+        unit_label="synthetic unit",
+        requirement="OUT-03",
+        status="active",
+        why="synthetic fixture for WR-03's regression test",
+    )
+    assert step.step == "2"
+
+
+def test_load_sensitivity_steps_raises_on_a_fractional_step_row(tmp_path):
+    """The same guard fires through the real load path
+    (`load_sensitivity_steps`), not just direct `SensitivityStep`
+    construction — naming the offending row's id."""
+    steps_path = tmp_path / "sensitivity_steps.yaml"
+    _write_steps_table(
+        steps_path,
+        [
+            {
+                "id": "synthetic-fractional-step",
+                "spec_field": "shoot_days_stage",
+                "step": "0.5",
+                "unit_label": "synthetic unit",
+                "status": "active",
+            },
+        ],
+    )
+    with pytest.raises(ValidationError, match="synthetic-fractional-step"):
+        load_sensitivity_steps(steps_path)
 
 
 def test_adding_an_inactive_row_changes_nothing(tmp_path, monkeypatch):
