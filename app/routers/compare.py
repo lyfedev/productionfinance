@@ -14,7 +14,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from pydantic import ValidationError
 
-from app.services.compare import CompareInputs, Comparison, build_comparison
+from app.services.compare import CompareInputs, Comparison, GapSelection, build_comparison
 from engine.figure_serialize import figure_to_dict
 from engine.ranker import RankedCity
 
@@ -52,6 +52,34 @@ def _ranked_city_to_json(city: RankedCity) -> dict:
     }
 
 
+def _gap_selection_to_json(selection: GapSelection) -> dict:
+    # UI-05: `decomposition` is `None` whenever `refusal` is populated —
+    # never both, and never a computed number alongside a refusal. See
+    # `app.services.compare.resolve_gap_selection`'s own docstring for
+    # the band-honesty gate this mirrors into JSON unchanged.
+    decomposition = selection.decomposition
+    return {
+        "options": [
+            {"city_id": option.city_id, "label": option.label, "band": option.band}
+            for option in selection.options
+        ],
+        "city_a_id": selection.city_a_id,
+        "city_b_id": selection.city_b_id,
+        "refusal": selection.refusal,
+        "decomposition": (
+            None
+            if decomposition is None
+            else {
+                "city_a_id": decomposition.city_a_id,
+                "city_b_id": decomposition.city_b_id,
+                "sign_convention": decomposition.sign_convention,
+                "components": [figure_to_dict(c) for c in decomposition.components],
+                "headline_gap": figure_to_dict(decomposition.headline_gap),
+            }
+        ),
+    }
+
+
 def _comparison_to_json(comparison: Comparison) -> dict:
     return {
         "net_ranked": [_ranked_city_to_json(c) for c in comparison.net_ranked],
@@ -86,6 +114,15 @@ def _comparison_to_json(comparison: Comparison) -> dict:
             }
             for check in comparison.live_programme_checks
         ],
+        # UI-05.
+        "gap": _gap_selection_to_json(comparison.gap_selection),
+        # UI-03: the slider's own fixed tick sequence plus the position
+        # matching this response's own start_quarter/start_year — a date
+        # lookup the client reads to label the slider, never a figure.
+        "slider": {
+            "options": list(comparison.slider_options),
+            "current_index": comparison.slider_current_index,
+        },
     }
 
 
@@ -103,11 +140,20 @@ def get_compare(
     crew_hired_locally_count: int = Query(40),
     start_quarter: str = Query("Q2"),
     start_year: int = Query(2026),
+    # UI-03: the slider's own settled position. Overrides start_quarter/
+    # start_year above when present (CompareInputs' own validator) —
+    # the no-JS path (a plain `<input type="range">` submitting a full
+    # form) reaches this exact query parameter.
+    start_index: int | None = Query(None),
     # B008 fires on this one because of the `list[str]` annotation; the
     # default itself is the immutable `None` (FastAPI's own idiom for an
     # optional repeated query parameter) — resolved below, never mutated.
     candidate_cities: list[str] | None = Query(None),  # noqa: B008
     reporting_currency: str = Query("USD"),
+    # UI-05: the two-city gap picker's own selection — a plain GET form
+    # submit, mirroring every other input on this page.
+    gap_city_a: str | None = Query(None),
+    gap_city_b: str | None = Query(None),
 ) -> HTMLResponse:
     from app.main import PUBLIC_PATH, templates
 
@@ -131,14 +177,24 @@ def get_compare(
             crew_hired_locally_count=crew_hired_locally_count,
             start_quarter=start_quarter,
             start_year=start_year,
+            start_index=start_index,
             candidate_cities=resolved_candidate_cities,
             reporting_currency=reporting_currency,
+            gap_city_a=gap_city_a,
+            gap_city_b=gap_city_b,
         )
         comparison = build_comparison(inputs)
     except ValidationError as exc:
         # Readable 422 naming the field and the reason — never a 500 and
-        # never a bare framework error page.
-        raise HTTPException(status_code=422, detail=exc.errors()) from exc
+        # never a bare framework error page. `include_context=False`:
+        # pydantic-core's default `errors()` embeds the raw `ValueError`
+        # instance itself in `ctx.error` for a validator-raised error
+        # (this plan's `start_index`/candidate-city-count checks both
+        # are) — a value `json.dumps` cannot serialize, which would
+        # otherwise turn a clean 422 into an unhandled 500 at RESPONSE
+        # time. Mirrors `app/routers/methodology.py`'s own fix for the
+        # identical pydantic-core behavior.
+        raise HTTPException(status_code=422, detail=exc.errors(include_context=False)) from exc
 
     return templates.TemplateResponse(
         request=request,
@@ -154,4 +210,17 @@ def post_compare_json(inputs: CompareInputs) -> dict:
     except ValidationError as exc:
         raise HTTPException(status_code=422, detail=exc.errors()) from exc
 
-    return _comparison_to_json(comparison)
+    from app.main import PUBLIC_PATH, templates
+
+    payload = _comparison_to_json(comparison)
+    # UI-03: the SAME `_ranked_list.html` a full page load renders,
+    # rendered here as a standalone fragment so the settled-slider JS
+    # path (`app/static/compare.js`) injects server-rendered markup
+    # verbatim — never a client-side re-implementation of this page's
+    # own formatting/templating logic, which would be a second,
+    # divertible source of truth for what a figure looks like even
+    # though not for what it IS.
+    payload["ranked_list_html"] = templates.get_template("_ranked_list.html").render(
+        comparison=comparison, public_path=PUBLIC_PATH
+    )
+    return payload

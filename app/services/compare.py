@@ -25,6 +25,7 @@ from typing import TYPE_CHECKING, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.services.spec import (
+    REPORTING_CURRENCY,
     LiveProgrammeCheck,
     SpecFormSubmission,
     SpecResult,
@@ -32,6 +33,8 @@ from app.services.spec import (
 )
 from engine.city_geo import geo_for_city_id
 from engine.city_profile_lookup import resolve_city_to_profile_stem
+from engine.cost_localizer import quarter_start_date
+from engine.gap import GapDecomposition, decompose_gap
 from engine.ranker import RankedCity
 from engine.spec import CrewTier
 
@@ -40,10 +43,16 @@ if TYPE_CHECKING:
 
 __all__ = [
     "MAX_CANDIDATE_CITIES",
+    "SLIDER_QUARTERS",
     "CompareInputs",
     "Comparison",
+    "GapOption",
+    "GapSelection",
     "UnpricedCity",
     "build_comparison",
+    "resolve_gap_selection",
+    "resolve_start_index",
+    "slider_options",
     "to_geojson",
 ]
 
@@ -59,6 +68,83 @@ MAX_CANDIDATE_CITIES = 12
 # prices against. A bare `GET /compare` (no query string at all) renders
 # this real default comparison, never an error.
 _DEFAULT_CANDIDATE_CITIES: tuple[str, ...] = ("New York, NY", "Los Angeles, CA", "London, UK")
+
+# UI-03: the fixed sequence of quarters the start-date slider ranges over.
+# Bounded to the exact months `data/per_diem/gsa/us-ny-new-york-county.yaml`
+# `lodging_by_month` actually publishes (2025-10 through 2026-09) — every
+# slider position is therefore priced against a genuinely sourced monthly
+# rate, never a fallback past the published range and never an invented
+# day-level granularity the engine does not have (`engine.cost_localizer
+# .localize` and `engine.seasonality.shoot_calendar` both resolve a shoot's
+# start date from `ProductionSpec.start_quarter`/`start_year` — quarter is
+# the engine's real resolution, and the slider is honest about that rather
+# than pretending a finer one).
+#
+# Three consecutive quarters, not four: `data/union_rates/iatse.yaml`'s
+# `iatse-l600-camera-us-ny-2025` row (the ONLY committed us-ny camera row)
+# carries `effective_to: "2026-08-01"` and states explicitly that no
+# 2026-2027 successor row is committed yet (WINDOWS.md) — "a shoot date
+# after 2026-08-01 in New York correctly raises rather than falling back
+# to this expired row." `engine.sensitivity.sensitivity_rows`' own
+# "start_quarter advanced by one" mutation row re-prices the NEXT quarter
+# forward to measure that step, uncaught — so Q3 2026 (a real, per-diem-
+# covered quarter on its own) would advance to Q4 2026 and crash every
+# request that landed on it. Excluding it here is a scope decision, not a
+# silent workaround: the fix belongs to `data/union_rates/iatse.yaml` (a
+# curated rate table outside this plan's `files_modified`), not to this
+# slider. Three quarters still spans a real, disclosed seasonal swing in
+# New York's own lodging ceiling: Q4 2025 (peak, $342), Q1 2026
+# (off-peak, $179), Q2 2026 (mid, $281 — also `CompareInputs`' own
+# default start date, index 2, and the last quarter whose own
+# "advanced by one" sensitivity row stays inside the covered range).
+SLIDER_QUARTERS: tuple[tuple[str, int], ...] = (
+    ("Q4", 2025),
+    ("Q1", 2026),
+    ("Q2", 2026),
+)
+
+
+def slider_options() -> tuple[dict, ...]:
+    """One entry per slider position — index, quarter, year, and the real
+    calendar date (`quarter_start_date`, the first day of that quarter)
+    the slider's own tick labels read. A date lookup over a fixed,
+    committed sequence, never a computed cost figure — the honesty
+    boundary UI-03 draws around this page's own script."""
+    return tuple(
+        {
+            "index": i,
+            "start_quarter": quarter,
+            "start_year": year,
+            "label": f"{quarter} {year}",
+            "date": quarter_start_date(quarter, year).isoformat(),
+        }
+        for i, (quarter, year) in enumerate(SLIDER_QUARTERS)
+    )
+
+
+def resolve_start_index(index: int) -> tuple[str, int]:
+    """Resolve a slider position to its `(start_quarter, start_year)`
+    pair. Raises `ValueError` for an out-of-range index — surfaced by
+    `CompareInputs`' own validator as a readable 422, never silently
+    clamped to the nearest valid position."""
+    if not 0 <= index < len(SLIDER_QUARTERS):
+        raise ValueError(
+            f"start_index must be between 0 and {len(SLIDER_QUARTERS) - 1} — "
+            f"{index} is out of range"
+        )
+    return SLIDER_QUARTERS[index]
+
+
+def _current_slider_index(start_quarter: str, start_year: int) -> int | None:
+    """The slider position matching `start_quarter`/`start_year`, or
+    `None` when the resolved date falls outside the slider's own fixed
+    range (e.g. a caller of `POST /api/v1/compare` naming a quarter no
+    slider position represents) — the template renders a stated default
+    position in that case rather than guessing one."""
+    try:
+        return SLIDER_QUARTERS.index((start_quarter, start_year))
+    except ValueError:
+        return None
 
 
 class CompareInputs(BaseModel):
@@ -89,10 +175,24 @@ class CompareInputs(BaseModel):
     crew_hired_locally_count: int = Field(default=40, ge=0)
     start_quarter: Literal["Q1", "Q2", "Q3", "Q4"] = "Q2"
     start_year: int = Field(default=2026, ge=2024, le=2036)
+    # UI-03: the start-date slider's own position. When supplied, this
+    # OVERRIDES `start_quarter`/`start_year` above (resolved via
+    # `resolve_start_index`) — a caller MAY still post `start_quarter`/
+    # `start_year` directly instead (the JSON contract this field widens,
+    # never narrows), but the two are never both honoured independently.
+    start_index: int | None = Field(default=None, ge=0)
     candidate_cities: list[str] = Field(
         default_factory=lambda: list(_DEFAULT_CANDIDATE_CITIES)
     )
     reporting_currency: Literal["USD"] = "USD"
+    # UI-05: the two-city gap picker's own selection. `None` (the default)
+    # resolves to the first two selectable cities in rank order — see
+    # `resolve_gap_selection`. An unrecognised id is never a 422 here; it
+    # falls back to that same default rather than adding a new failure
+    # mode to a form field a visitor can only set by picking from a
+    # server-rendered `<select>` in the first place.
+    gap_city_a: str | None = None
+    gap_city_b: str | None = None
 
     @model_validator(mode="after")
     def _candidate_city_count_within_bound(self) -> CompareInputs:
@@ -103,6 +203,18 @@ class CompareInputs(BaseModel):
                 f"at most {MAX_CANDIDATE_CITIES} candidate cities may be compared per "
                 f"request — {len(self.candidate_cities)} were submitted"
             )
+        return self
+
+    @model_validator(mode="after")
+    def _resolve_start_index(self) -> CompareInputs:
+        # UI-03: a settled slider position resolves to the exact same
+        # (start_quarter, start_year) pair a direct query-string request
+        # would use — one code path, never a parallel date-to-quarter
+        # mapping duplicated between this validator and the template.
+        if self.start_index is not None:
+            quarter, year = resolve_start_index(self.start_index)
+            self.start_quarter = quarter
+            self.start_year = year
         return self
 
 
@@ -119,6 +231,142 @@ class UnpricedCity:
 
 
 @dataclass(frozen=True)
+class GapOption:
+    """One selectable city in the UI-05 two-city gap picker. Carried
+    separately from `RankedCity` so a template can render every
+    selectable option's display label and band without reaching back
+    into `engine.city_geo` itself."""
+
+    city_id: str
+    label: str
+    band: Literal["net_ranked", "incentive_not_modelled"]
+
+
+@dataclass(frozen=True)
+class GapSelection:
+    """UI-05's own product-level gate, layered ON TOP of
+    `engine.gap.decompose_gap` — that function has no opinion about D-55
+    bands at all (it only requires a matching `reporting_currency` and an
+    identical cost-line label set); the refusal here is a policy THIS
+    surface imposes, because its city picker lets a visitor choose ANY
+    two cities, including a mismatched pair `decompose_gap` never sees a
+    reason to refuse on its own.
+
+    `decomposition` and `refusal` are mutually exclusive — exactly one is
+    non-`None`. `refusal` is populated (never a computed number) whenever
+    fewer than two cities are selectable at all, OR either selected city
+    sits in the `incentive_not_modelled` band: comparing a net total to a
+    gross one is exactly the misleading arithmetic this product exists to
+    refuse to produce."""
+
+    options: tuple[GapOption, ...]
+    city_a_id: str | None
+    city_b_id: str | None
+    decomposition: GapDecomposition | None
+    refusal: str | None
+
+
+def _gap_option_label(city_id: str) -> str:
+    """The gap picker's own display label for `city_id` — the committed
+    `CityGeo.label` when one exists, or `city_id` itself as a fallback
+    (never reached for a `RankedCity`, whose `city_id` is always a
+    committed `CityCostProfile.city_id` and therefore always resolves —
+    kept only so this function has no partial branch)."""
+    geo = geo_for_city_id(city_id)
+    return geo.label if geo is not None else city_id
+
+
+_FEWER_THAN_TWO_REASON = (
+    "Fewer than two candidate cities produced a total at all — select at "
+    "least two cities with a committed cost profile before a gap can be "
+    "shown."
+)
+
+
+def resolve_gap_selection(
+    ranked_cities: tuple[RankedCity, ...],
+    requested_a: str | None,
+    requested_b: str | None,
+) -> GapSelection:
+    """Resolve the visitor's two-city selection (or the rank-order
+    default when either id is unrecognised) to a `GapSelection`. Every
+    city in `ranked_cities` (both D-55 bands — `unpriced_cities` never
+    reach here, since they carry no `LandedCost` to gap at all) is a
+    selectable option. Delegates the actual arithmetic to
+    `engine.gap.decompose_gap` unchanged — this function's own job is
+    entirely the band-honesty gate and the default-pair resolution."""
+    options = tuple(
+        GapOption(
+            city_id=city.city_id,
+            label=_gap_option_label(city.city_id),
+            band=city.band,
+        )
+        for city in ranked_cities
+    )
+    by_id = {city.city_id: city for city in ranked_cities}
+    selectable_ids = tuple(city.city_id for city in ranked_cities)
+
+    if len(selectable_ids) < 2:
+        return GapSelection(
+            options=options,
+            city_a_id=selectable_ids[0] if selectable_ids else None,
+            city_b_id=None,
+            decomposition=None,
+            refusal=_FEWER_THAN_TWO_REASON,
+        )
+
+    city_a_id = requested_a if requested_a in by_id else selectable_ids[0]
+    city_b_id = (
+        requested_b
+        if (requested_b in by_id and requested_b != city_a_id)
+        else next((cid for cid in selectable_ids if cid != city_a_id), None)
+    )
+    if city_b_id is None:
+        return GapSelection(
+            options=options,
+            city_a_id=city_a_id,
+            city_b_id=None,
+            decomposition=None,
+            refusal=_FEWER_THAN_TWO_REASON,
+        )
+
+    city_a = by_id[city_a_id]
+    city_b = by_id[city_b_id]
+    if city_a.band != "net_ranked" or city_b.band != "net_ranked":
+        unmodelled = [c.city_id for c in (city_a, city_b) if c.band != "net_ranked"]
+        refusal = (
+            f"{' and '.join(unmodelled)} carries no modelled incentive yet — its "
+            "total is cost-only, while a net_ranked city's total is net of a "
+            "modelled incentive. Subtracting one from the other would compare a "
+            "gross total to a net one, exactly the misleading arithmetic this "
+            "product exists to refuse to produce. Both selected cities must be "
+            "ranked on net landed cost before a gap is shown."
+        )
+        return GapSelection(
+            options=options,
+            city_a_id=city_a_id,
+            city_b_id=city_b_id,
+            decomposition=None,
+            refusal=refusal,
+        )
+
+    decomposition = decompose_gap(
+        city_a_id,
+        city_a.landed_cost,
+        city_b_id,
+        city_b.landed_cost,
+        reporting_currency=REPORTING_CURRENCY,
+    )
+    return GapSelection(
+        options=options,
+        city_a_id=city_a_id,
+        city_b_id=city_b_id,
+        decomposition=decomposition,
+        refusal=None,
+    )
+
+
+@dataclass(frozen=True)
 class Comparison:
     """The render-ready view model for `/compare`. `net_ranked` and
     `incentive_not_modelled` are `SpecResult.ranked_cities` split into the
@@ -130,7 +378,13 @@ class Comparison:
     structure a visitor's HTML page already displayed as text.
     `fx_resolutions`/`live_programme_checks` are carried straight through
     from `SpecResult` (AGT-10) — this plan renders them as their own
-    labelled disclosures; a later plan (06-05) reuses them unchanged."""
+    labelled disclosures; a later plan (06-05) reuses them unchanged.
+
+    `gap_selection` (UI-05) is the two-city gap picker's resolved state —
+    see `resolve_gap_selection`. `slider_options`/`slider_current_index`
+    (UI-03) are the start-date slider's own fixed tick sequence and the
+    position matching `inputs.start_quarter`/`start_year`, `None` when
+    that pair falls outside the slider's own range."""
 
     inputs: CompareInputs
     spec_result: SpecResult
@@ -140,6 +394,9 @@ class Comparison:
     geojson: dict
     fx_resolutions: tuple[FxResolution, ...]
     live_programme_checks: tuple[LiveProgrammeCheck, ...]
+    gap_selection: GapSelection
+    slider_options: tuple[dict, ...]
+    slider_current_index: int | None
 
 
 def build_comparison(inputs: CompareInputs) -> Comparison:
@@ -178,6 +435,9 @@ def build_comparison(inputs: CompareInputs) -> Comparison:
         c for c in result.ranked_cities if c.band == "incentive_not_modelled"
     )
     unpriced_cities = _unpriced_cities(result)
+    gap_selection = resolve_gap_selection(
+        result.ranked_cities, inputs.gap_city_a, inputs.gap_city_b
+    )
 
     return Comparison(
         inputs=inputs,
@@ -188,6 +448,9 @@ def build_comparison(inputs: CompareInputs) -> Comparison:
         geojson=to_geojson(result.ranked_cities, unpriced_cities),
         fx_resolutions=result.fx_resolutions,
         live_programme_checks=result.live_programme_checks,
+        gap_selection=gap_selection,
+        slider_options=slider_options(),
+        slider_current_index=_current_slider_index(inputs.start_quarter, inputs.start_year),
     )
 
 
