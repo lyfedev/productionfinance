@@ -79,11 +79,11 @@ details.steps ol { margin: .7rem 0 0; padding-left: 1.2rem; }
 details.steps li { margin: .3rem 0; color: var(--ink-2); font-size: .9rem; }
 details.steps li.applied { color: var(--ink); }
 
-/* ---- footer nav ---- */
-.more { margin-top: 2.5rem; border-top: 1px solid var(--rule); padding-top: 1rem; }
-.more h2 { font-size: .95rem; margin: 0 0 .5rem; }
-.more ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; }
-.more a { color: var(--action); font-size: .92rem; }
+/* ---- footer ---- */
+.more { margin-top: 2.5rem; border-top: 1px solid var(--rule); padding-top: 1rem;
+  color: var(--ink-2); font-size: .9rem; max-width: var(--measure); }
+.more p { margin: 0 0 .5rem; }
+.more .colophon { font-size: .82rem; line-height: 1.7; }
 
 a { color: var(--action); }
 :focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }

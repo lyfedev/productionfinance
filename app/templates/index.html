@@ -74,17 +74,19 @@
     </div>
   </div>
 
-  <nav class="more">
-    <h2>Where these numbers come from</h2>
-    <ul>
-      <li><a href="{{ public_path }}/proof">The state's own published figures</a></li>
-      <li><a href="{{ public_path }}/methodology">How we calculate</a></li>
-      <li><a href="{{ public_path }}/spec">Price a full production</a></li>
-      <li><a href="{{ public_path }}/validate">Check us against a real award</a></li>
-      <li><a href="{{ public_path }}/integrate">Built into your software</a></li>
-      <li><a href="{{ public_path }}/health">Status</a></li>
-    </ul>
-  </nav>
+  <footer class="more">
+    <p>
+      Figures come from each state's published rules and its own disclosure
+      reports. <a href="{{ public_path }}/methodology">How we work them out</a>.
+    </p>
+    <p class="colophon">
+      Comparing several states at once? <a href="{{ public_path }}/spec">Price a full production</a>.
+      Building this into your own system? <a href="{{ public_path }}/integrate">There's an API</a>.
+      <a href="{{ public_path }}/proof">Our workings against real awards</a> ·
+      <a href="{{ public_path }}/validate">reproduce a disclosure</a> ·
+      <a href="{{ public_path }}/health">status</a>
+    </p>
+  </footer>
 
 </div>
 <script src="{{ public_path }}/static/calc.js" defer></script>
