@@ -4,7 +4,13 @@ D-90: this is deliberately NOT `agent/job1.py`'s fixed sequence. The driver
 below is a `while True:` loop whose exit is decided entirely by the model's
 own `decision` value (`SufficiencyVerdict.decision`, D-91) — no integer
 bounds how many rounds it may run, and no round counter is ever compared
-against a constant.
+against a constant. `JOB2_WALL_CLOCK_CEILING_SECONDS` is a monotonic
+wall-clock BACKSTOP checked between rounds (never mid-SDK-call, never by
+comparing a round counter to an integer) — a resource bound on total run
+length, not a bound on how many rounds the agent may take. Its own terminal
+reason (`TerminalReason.budget_exhausted`) stays structurally distinct from
+the agent's own `TerminalReason.agent_gave_up` so a reader can always tell
+which one happened.
 
 Each round: issue a Parallel Search under the run's one `session_id` (the
 07-SDK-FINDINGS spine — this is what makes round N+1 contextually aware of
@@ -12,8 +18,21 @@ rounds 1..N), build the round's evidence text from the results, call
 `google-genai` for a `SufficiencyVerdict` against D-91's five named fields,
 persist the round to disk via `agent.research_runs.append_round` BEFORE the
 next round starts (D-92), then branch on `verdict.decision`: `sufficient`,
-`give_up` and `no_programme_found` each exit with that terminal reason;
-`continue` carries the refined objective/queries/mode into the next round.
+`give_up` and `no_programme_found` each exit with a terminal reason from the
+closed `TerminalReason` taxonomy; `continue` carries the refined
+objective/queries/mode into the next round. Refinement is expressed through
+a restated `objective` (`build_refined_objective`), never by editing the
+previous round's query strings — 07-SDK-FINDINGS is explicit that
+`search_queries` stay short keyword sets and `objective` carries the intent.
+
+Findings accumulate across rounds via `merge_findings`: a field determined
+once stays determined, and a later unsourced value can never overwrite a
+sourced one (D-94's monotonic-merge discipline applied to the sufficiency
+judgment itself). A `\"sufficient\"` claim that the merged findings do not
+actually support is rejected as `TerminalReason.contradictory_verdict`
+rather than believed. `no_programme_found` and every other non-`sufficient`
+terminal state construct nothing and price nothing — `ruleset_path` and
+`priced` are forced to `None` on every terminal write in this module.
 
 `import parallel` and `from google import genai` are INSIDE the functions
 that call them, never at module top level (lazy import — the 472 MB
@@ -26,16 +45,19 @@ takes `search_fn`/`extract_fn` — a test double is never a default.
 
 from __future__ import annotations
 
+import time
 import unicodedata
 import uuid
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from enum import Enum
 from typing import Literal
 
 from agent.research_runs import SCHEMA_VERSION, append_round, boot_id, save_run
 from agent.research_schema import (
     FieldFinding,
+    JurisdictionIdentity,
     SufficiencyField,
     SufficiencyVerdict,
     research_response_schema,
@@ -55,15 +77,50 @@ from app.services.cache_policy import CacheBoundaryViolation, DataClass, assert_
 __all__ = [
     "InvalidCityInputError",
     "ResearchRun",
+    "TerminalReason",
+    "build_refined_objective",
+    "merge_findings",
+    "normalize_mode",
+    "normalize_queries",
     "run_job2",
+    "unmet_fields",
     "validate_city_input",
 ]
 
 _ALL_FIELDS: tuple[SufficiencyField, ...] = tuple(SufficiencyField)
 _MAX_CITY_INPUT_CHARS = 120
+_VALID_MODES: tuple[str, ...] = ("turbo", "fast", "basic", "advanced")
+_IDENTITY_FIELD_NAMES: tuple[str, ...] = (
+    "jurisdiction_name",
+    "country_code",
+    "level",
+    "currency",
+)
 
 SearchFn = Callable[..., Sequence[dict]]
 JudgeFn = Callable[..., SufficiencyVerdict]
+
+
+class TerminalReason(str, Enum):
+    """The closed set of terminal states `run_job2` can reach. Distinct
+    from `SufficiencyVerdict.decision` (D-90's four literals: `continue`,
+    `sufficient`, `give_up`, `no_programme_found`) because a terminal state
+    also has to capture failures the model's own decision cannot express: a
+    self-contradicting claim, a missing jurisdiction identity, an exhausted
+    wall-clock budget, a cache-boundary policy violation, missing
+    configuration, or an SDK-level failure. Exactly nine members — adding a
+    tenth later is cheap; renaming one is not (this vocabulary is rendered
+    by the UI and quoted in the written submission)."""
+
+    sufficient = "sufficient"
+    agent_gave_up = "agent_gave_up"
+    no_programme_found = "no_programme_found"
+    insufficient_identity = "insufficient_identity"
+    budget_exhausted = "budget_exhausted"
+    contradictory_verdict = "contradictory_verdict"
+    cache_boundary_violation = "cache_boundary_violation"
+    not_configured = "not_configured"
+    sdk_error = "sdk_error"
 
 
 class InvalidCityInputError(ValueError):
@@ -96,10 +153,7 @@ def _utc_now_iso() -> str:
 
 @dataclass(frozen=True)
 class ResearchRun:
-    """The in-process return value mirroring the on-disk record. Fields
-    later plans fill (`findings`, `undetermined_disclosures`,
-    `ruleset_path`, `priced`) are declared now with `None` defaults so the
-    record shape does not churn (D-92's costly-reversibility note)."""
+    """The in-process return value mirroring the on-disk record."""
 
     job_id: str
     city_input: str
@@ -120,6 +174,8 @@ class ResearchRun:
 
 
 def _run_from_record(record: dict) -> ResearchRun:
+    findings = record.get("findings")
+    disclosures = record.get("undetermined_disclosures")
     return ResearchRun(
         job_id=record["job_id"],
         city_input=record["city_input"],
@@ -133,6 +189,10 @@ def _run_from_record(record: dict) -> ResearchRun:
         started_at=record.get("started_at", ""),
         updated_at=record.get("updated_at", ""),
         ceiling_seconds=record.get("ceiling_seconds", JOB2_WALL_CLOCK_CEILING_SECONDS),
+        findings=tuple(findings) if findings is not None else None,
+        undetermined_disclosures=tuple(disclosures) if disclosures is not None else None,
+        ruleset_path=record.get("ruleset_path"),
+        priced=record.get("priced"),
     )
 
 
@@ -163,33 +223,155 @@ def _evidence_text(results: Sequence[dict]) -> str:
     return "\n\n".join(blocks)
 
 
-def _unmet_field_names(findings: Sequence[FieldFinding]) -> list[str]:
-    determined = {f.field for f in findings if f.determined}
-    return [f.value for f in _ALL_FIELDS if f not in determined]
+def _empty_findings() -> dict[SufficiencyField, FieldFinding]:
+    return {f: FieldFinding(field=f, determined=False) for f in _ALL_FIELDS}
 
 
-def _judge_prompt(city_input: str, objective: str, evidence_text: str) -> str:
-    return f"""You are judging whether the search results below are enough to build
-a film/TV production incentive cost model for {city_input}. The sufficiency
-contract has exactly five fields: {_field_prose()}.
+# ---------------------------------------------------------------------------
+# Pure functions (Task 1): free of any SDK call, directly unit-testable.
+# ---------------------------------------------------------------------------
 
-Objective this round: {objective}
 
-For each of the five fields, report whether it was determined from the
-evidence below: the value (verbatim where possible), a short evidence
-quote, and the source URL. Then decide:
-- "sufficient" if all five fields are determined.
-- "continue" if not yet determined but more research could plausibly help
-  (supply next_objective as a self-contained restated goal naming what is
-  still missing, and 2-3 next_queries of 3-6 words each).
-- "give_up" if further research is unlikely to help.
-- "no_programme_found" if the evidence indicates no such programme exists
-  for {city_input}.
-Return only the structured JSON described by the response schema.
+def merge_findings(
+    previous: dict[SufficiencyField, FieldFinding],
+    incoming: Sequence[FieldFinding],
+) -> tuple[dict[SufficiencyField, FieldFinding], list[SufficiencyField]]:
+    """Fold `incoming` (one round's raw findings) into `previous` (the
+    accumulated state across all prior rounds). Returns the new merged
+    mapping — always keyed by all five `SufficiencyField` members — and the
+    list of fields where an unsourced later value was discarded rather than
+    applied.
 
-SEARCH RESULTS:
-{evidence_text}
-"""
+    `determined` never flips True -> False (D-90/D-94's monotonic-merge
+    rule). A field already determined only accepts a later overwrite when
+    the later finding is itself `determined` AND carries a non-empty
+    `source_url`; anything else touching an already-determined field is
+    discarded and reported, never silently dropped.
+    """
+    merged: dict[SufficiencyField, FieldFinding] = {
+        f: previous.get(f) or FieldFinding(field=f, determined=False) for f in _ALL_FIELDS
+    }
+
+    discarded: list[SufficiencyField] = []
+    for finding in incoming:
+        current = merged[finding.field]
+        if not current.determined:
+            merged[finding.field] = finding
+            continue
+        if finding.determined and finding.source_url:
+            merged[finding.field] = finding
+        else:
+            discarded.append(finding.field)
+
+    return merged, discarded
+
+
+def unmet_fields(merged: dict[SufficiencyField, FieldFinding]) -> list[SufficiencyField]:
+    """The `SufficiencyField` members still undetermined, in the enum's own
+    declaration order — a stable, readable list."""
+    return [
+        f
+        for f in _ALL_FIELDS
+        if not merged.get(f, FieldFinding(field=f, determined=False)).determined
+    ]
+
+
+def build_refined_objective(city_input: str, merged: dict[SufficiencyField, FieldFinding]) -> str:
+    """A self-contained sentence naming the city and every field still
+    unmet — the fallback used only when the model's own `next_objective`
+    was empty. Takes no query text as input, so it can never reproduce a
+    substring of a previous round's `search_queries` (07-SDK-FINDINGS:
+    refinement is a restated objective, never a mutated query string)."""
+    unmet = unmet_fields(merged)
+    if not unmet:
+        return (
+            f"Confirm the film/TV production incentive programme for {city_input} is "
+            "fully determined; no additional research is required."
+        )
+    names = ", ".join(f.value.replace("_", " ") for f in unmet)
+    return (
+        f"Continue researching the film/TV production incentive programme for "
+        f"{city_input}. Still undetermined: {names}. Find sourced evidence for each "
+        "of these before concluding the research is sufficient."
+    )
+
+
+def normalize_queries(raw: Sequence[str] | None) -> tuple[list[str], bool]:
+    """Keep at most the first three queries, truncate each to its first six
+    words, drop empties, and report whether normalization changed anything.
+    Never adds a word the model did not produce."""
+    raw_list = list(raw or [])
+    changed = len(raw_list) > 3
+    kept: list[str] = []
+    for query in raw_list[:3]:
+        words = query.split()
+        cleaned = " ".join(words[:6]).strip()
+        if not cleaned:
+            changed = True
+            continue
+        if cleaned != query:
+            changed = True
+        kept.append(cleaned)
+    return kept, changed
+
+
+def normalize_mode(raw: str | None) -> tuple[str, bool]:
+    """Return `raw` unchanged when it is one of the four closed literals,
+    else fall back to `\"fast\"` and report the substitution."""
+    if raw in _VALID_MODES:
+        return raw, False
+    return "fast", True
+
+
+def _missing_identity_fields(identity: JurisdictionIdentity | None) -> list[str]:
+    if identity is None:
+        return list(_IDENTITY_FIELD_NAMES)
+    missing = [name for name in _IDENTITY_FIELD_NAMES if not getattr(identity, name)]
+    return missing
+
+
+def _terminal_for_decision(
+    verdict: SufficiencyVerdict,
+    merged: dict[SufficiencyField, FieldFinding],
+    unmet: list[SufficiencyField],
+    identity: JurisdictionIdentity | None,
+) -> tuple[TerminalReason, str] | None:
+    """Decide the terminal reason for a non-`continue` verdict, cross-checking
+    the verdict's own claim against the accumulated findings (D-94's
+    discipline applied to the sufficiency judgment itself). Returns `None`
+    when the loop should keep running."""
+    if verdict.decision == "continue":
+        return None
+
+    if verdict.decision == "sufficient":
+        if unmet:
+            names = ", ".join(f.value.replace("_", " ") for f in unmet)
+            message = (
+                "The agent reported sufficient evidence, but its own findings "
+                f"leave {names} undetermined."
+            )
+            return (TerminalReason.contradictory_verdict, message)
+        missing_identity = _missing_identity_fields(identity)
+        if missing_identity:
+            names = ", ".join(missing_identity)
+            message = (
+                "All five sufficiency fields were determined, but the "
+                f"jurisdiction identity could not be established: {names}."
+            )
+            return (TerminalReason.insufficient_identity, message)
+        return (TerminalReason.sufficient, verdict.summary)
+
+    if verdict.decision == "give_up":
+        names = ", ".join(f.value.replace("_", " ") for f in unmet) or "nothing further"
+        message = (
+            f"The agent decided further research is unlikely to help. Still undetermined: {names}."
+        )
+        return (TerminalReason.agent_gave_up, message)
+
+    if verdict.decision == "no_programme_found":
+        return (TerminalReason.no_programme_found, verdict.summary)
+
+    raise AssertionError(f"unreachable SufficiencyVerdict.decision: {verdict.decision!r}")
 
 
 def _real_search(
@@ -215,6 +397,33 @@ def _real_search(
             timeout=timeout,
         )
     return [{"url": r.url, "title": r.title, "excerpts": list(r.excerpts)} for r in result.results]
+
+
+def _judge_prompt(city_input: str, objective: str, evidence_text: str) -> str:
+    return f"""You are judging whether the search results below are enough to build
+a film/TV production incentive cost model for {city_input}. The sufficiency
+contract has exactly five fields: {_field_prose()}.
+
+Objective this round: {objective}
+
+For each of the five fields, report whether it was determined from the
+evidence below: the value (verbatim where possible), a short evidence
+quote, and the source URL. If you can also determine the jurisdiction's
+identity (name, ISO country code, level — national/state/provincial/city —
+and currency), report that too; it is required in addition to the five
+fields, not instead of any of them. Then decide:
+- "sufficient" if all five fields are determined.
+- "continue" if not yet determined but more research could plausibly help
+  (supply next_objective as a self-contained restated goal naming what is
+  still missing, and 2-3 next_queries of 3-6 words each).
+- "give_up" if further research is unlikely to help.
+- "no_programme_found" if the evidence indicates no such programme exists
+  for {city_input}.
+Return only the structured JSON described by the response schema.
+
+SEARCH RESULTS:
+{evidence_text}
+"""
 
 
 def _real_judge(
@@ -260,7 +469,7 @@ def run_job2(
     started_at = _utc_now_iso()
     using_real_seams = search_fn is None and judge_fn is None
 
-    def _terminal_record(reason: str, message: str) -> dict:
+    def _terminal_record(reason: TerminalReason, message: str) -> dict:
         record = {
             "schema_version": SCHEMA_VERSION,
             "job_id": job_id,
@@ -268,7 +477,7 @@ def run_job2(
             "qualified_spend_input": qualified_spend_input,
             "session_id": None,
             "status": "terminal",
-            "terminal_reason": reason,
+            "terminal_reason": reason.value,
             "message": message,
             "rounds": [],
             "sdk_calls": [],
@@ -277,6 +486,10 @@ def run_job2(
             "ceiling_seconds": JOB2_WALL_CLOCK_CEILING_SECONDS,
             "boot_id": boot_id(),
             "round_count": 0,
+            "findings": None,
+            "undetermined_disclosures": None,
+            "ruleset_path": None,
+            "priced": None,
         }
         save_run(record)
         return record
@@ -285,13 +498,37 @@ def run_job2(
         status = integration_status()
         if not status.parallel_configured or not status.gemini_configured:
             return _run_from_record(
-                _terminal_record("not_configured", status.not_configured_message())
+                _terminal_record(TerminalReason.not_configured, status.not_configured_message())
             )
 
     try:
         clean_city = validate_city_input(city_input)
     except InvalidCityInputError as exc:
-        return _run_from_record(_terminal_record("invalid_input", str(exc)))
+        # Not part of the closed TerminalReason taxonomy (D-90's agent loop
+        # never starts on this path) — a fast, pre-loop input rejection.
+        term_record = {
+            "schema_version": SCHEMA_VERSION,
+            "job_id": job_id,
+            "city_input": city_input,
+            "qualified_spend_input": qualified_spend_input,
+            "session_id": None,
+            "status": "terminal",
+            "terminal_reason": "invalid_input",
+            "message": str(exc),
+            "rounds": [],
+            "sdk_calls": [],
+            "started_at": started_at,
+            "updated_at": _utc_now_iso(),
+            "ceiling_seconds": JOB2_WALL_CLOCK_CEILING_SECONDS,
+            "boot_id": boot_id(),
+            "round_count": 0,
+            "findings": None,
+            "undetermined_disclosures": None,
+            "ruleset_path": None,
+            "priced": None,
+        }
+        save_run(term_record)
+        return _run_from_record(term_record)
 
     # D-89/AGT-10, made structural: the live research path must not read
     # from cache. This is asserted BEFORE the first Search call — a
@@ -299,7 +536,7 @@ def run_job2(
     try:
         assert_live(DataClass.uncurated_city_research)
     except CacheBoundaryViolation as exc:
-        return _run_from_record(_terminal_record("cache_boundary_violation", str(exc)))
+        return _run_from_record(_terminal_record(TerminalReason.cache_boundary_violation, str(exc)))
 
     search = search_fn or _real_search
     judge = judge_fn or _real_judge
@@ -321,47 +558,95 @@ def run_job2(
         "ceiling_seconds": JOB2_WALL_CLOCK_CEILING_SECONDS,
         "boot_id": boot_id(),
         "round_count": 0,
+        "findings": None,
+        "undetermined_disclosures": None,
+        "ruleset_path": None,
+        "priced": None,
     }
     save_run(record)
 
+    def _write_terminal(
+        reason: TerminalReason,
+        message: str,
+        merged: dict[SufficiencyField, FieldFinding],
+        identity: JurisdictionIdentity | None,
+    ) -> ResearchRun:
+        unmet = unmet_fields(merged)
+        record["status"] = "terminal"
+        record["terminal_reason"] = reason.value
+        record["message"] = message
+        record["findings"] = [v.model_dump(mode="json") for v in merged.values()]
+        record["undetermined_disclosures"] = [f.value.replace("_", " ") for f in unmet]
+        record["ruleset_path"] = None
+        record["priced"] = None
+        if identity is not None:
+            record["identity"] = identity.model_dump(mode="json")
+        record["updated_at"] = _utc_now_iso()
+        save_run(record)
+        return _run_from_record(record)
+
     objective = _round1_objective(clean_city)
     queries = _round1_queries(clean_city)
-    mode: Literal["turbo", "fast", "basic", "advanced"] = "fast"
+    queries_normalized = False
+    mode: str = "fast"
+    mode_normalized = False
     round_number = 0
     sdk_calls: list[dict] = []
+    merged = _empty_findings()
+    identity: JurisdictionIdentity | None = None
 
     with collecting(sdk_calls):
+        loop_started_at = time.monotonic()
         while True:
             round_number += 1
 
-            results = search(
-                search_queries=queries,
-                objective=objective,
-                session_id=session_id,
-                mode=mode,
-                max_chars_total=JOB2_MAX_CHARS_PER_SEARCH,
-                timeout=SEARCH_TIMEOUT_SECONDS,
-                round_number=round_number,
-            )
+            try:
+                results = search(
+                    search_queries=queries,
+                    objective=objective,
+                    session_id=session_id,
+                    mode=mode,
+                    max_chars_total=JOB2_MAX_CHARS_PER_SEARCH,
+                    timeout=SEARCH_TIMEOUT_SECONDS,
+                    round_number=round_number,
+                )
+            except Exception as exc:  # noqa: BLE001 — any SDK-level failure is a terminal state
+                return _write_terminal(TerminalReason.sdk_error, str(exc), merged, identity)
+
             evidence_text = _evidence_text(results)
 
-            verdict = judge(
-                city_input=clean_city,
-                objective=objective,
-                evidence_text=evidence_text,
-                round_number=round_number,
-            )
+            try:
+                verdict = judge(
+                    city_input=clean_city,
+                    objective=objective,
+                    evidence_text=evidence_text,
+                    round_number=round_number,
+                )
+            except Exception as exc:  # noqa: BLE001 — any SDK-level failure is a terminal state
+                return _write_terminal(TerminalReason.sdk_error, str(exc), merged, identity)
+
+            before_determined = {f for f, v in merged.items() if v.determined}
+            merged, discarded = merge_findings(merged, verdict.findings)
+            newly_determined = [
+                f.value for f in _ALL_FIELDS if merged[f].determined and f not in before_determined
+            ]
+            unmet = unmet_fields(merged)
+            identity = verdict.identity or identity
 
             round_record = {
                 "round_number": round_number,
                 "objective": objective,
                 "search_queries": list(queries),
+                "queries_normalized": queries_normalized,
                 "mode": mode,
+                "mode_normalized": mode_normalized,
                 "results": [{"url": r.get("url"), "title": r.get("title")} for r in results],
                 "decision": verdict.decision,
                 "findings": [f.model_dump(mode="json") for f in verdict.findings],
                 "summary": verdict.summary,
-                "unmet_fields": _unmet_field_names(verdict.findings),
+                "newly_determined": newly_determined,
+                "unmet_fields": [f.value for f in unmet],
+                "discarded_fields": [f.value for f in discarded],
                 "at": _utc_now_iso(),
             }
             record = append_round(job_id, round_record)
@@ -371,14 +656,30 @@ def run_job2(
             if on_round is not None:
                 on_round(round_record)
 
-            if verdict.decision != "continue":
-                record["status"] = "terminal"
-                record["terminal_reason"] = verdict.decision
-                record["message"] = verdict.summary
-                save_run(record)
-                return _run_from_record(record)
+            terminal = _terminal_for_decision(verdict, merged, unmet, identity)
+            if terminal is not None:
+                reason, message = terminal
+                return _write_terminal(reason, message, merged, identity)
 
             save_run(record)
-            objective = verdict.next_objective or objective
-            queries = verdict.next_queries or queries
-            mode = verdict.next_mode
+
+            # The wall-clock BACKSTOP, checked here — between rounds, never
+            # mid-SDK-call, and never by comparing `round_number` to
+            # anything. This is a resource bound distinct from the agent's
+            # own decision (D-90); it fires only when the agent would
+            # otherwise start another round.
+            elapsed = time.monotonic() - loop_started_at
+            if elapsed > JOB2_WALL_CLOCK_CEILING_SECONDS:
+                return _write_terminal(
+                    TerminalReason.budget_exhausted,
+                    "Research exceeded the "
+                    f"{JOB2_WALL_CLOCK_CEILING_SECONDS}-second wall-clock research "
+                    "ceiling before the agent reached its own decision.",
+                    merged,
+                    identity,
+                )
+
+            next_queries, queries_normalized = normalize_queries(verdict.next_queries)
+            queries = next_queries or list(queries)
+            mode, mode_normalized = normalize_mode(verdict.next_mode)
+            objective = verdict.next_objective or build_refined_objective(clean_city, merged)

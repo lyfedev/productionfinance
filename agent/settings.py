@@ -49,9 +49,12 @@ EXTRACT_TIMEOUT_SECONDS = 60.0
 GEMINI_TIMEOUT_SECONDS = 60.0
 MAX_DOCUMENT_CHARS = 400_000
 
-# Job 2 (agent/job2.py): a wall-clock BACKSTOP only — 07-02 lands the guard
-# that enforces it and the AST gate that keeps it a backstop rather than a
-# round counter (D-90). Never add a maximum round count alongside this.
+# Job 2 (agent/job2.py): a wall-clock BACKSTOP only, checked between rounds
+# (never mid-SDK-call) and never by comparing a round counter to an integer
+# (D-90) — `agent/job2.py::run_job2` reads this name live at call time, and
+# `tests/test_agent_job2_loop.py` is the AST gate that keeps it a backstop
+# rather than a round counter. Never add a maximum round count alongside
+# this.
 JOB2_WALL_CLOCK_CEILING_SECONDS = 240.0
 # Bounds what one round's Search call returns (T-07-01/T-07-02), the same
 # reasoning as MAX_DOCUMENT_CHARS above but for the live research path.
