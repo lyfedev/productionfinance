@@ -4,15 +4,15 @@ current_phase: 05
 current_phase_name: Curated Breadth & the Validation Loop
 status: executing
 stopped_at: Completed 06-04-PLAN.md
-last_updated: "2026-09-09T15:02:56.126Z"
+last_updated: "2026-09-09T15:35:18.773Z"
 last_activity: 2026-09-09
 last_activity_desc: Phase 05 plan 01 executed — SHP-05/SHP-06 eligibility spine
-state_head: 453db86a92137bfa1a1fa98f2b37a2bbcab9b8bc
+state_head: 11e5dec7228e136489ff4084709c891f1f13d1b0
 progress:
   total_phases: 11
   completed_phases: 3
   total_plans: 49
-  completed_plans: 46
+  completed_plans: 48
   percent: 27
 ---
 
@@ -110,6 +110,7 @@ human sets `PARALLEL_API_KEY` and `GEMINI_API_KEY`/`GOOGLE_API_KEY` per
 | Phase 06 P02 | 70 min | 3 tasks | 7 files |
 | Phase 08 P01 | 45min | 3 tasks | 10 files |
 | Phase 06 P04 | 95min | 3 tasks | 11 files |
+| Phase 08 P03 | 40min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -178,6 +179,7 @@ Recent decisions affecting current work:
 - [Phase 08]: Added data/source_conflicts.yaml as the committed (currently empty) data source for PRV-07's conflict surface — No schema existed to ever record a real conflict; both candidate conflicts this project investigated (NY $700M/$800M, GA loan-out withholding) were already closed against a primary source, so the file stays empty rather than seeded with a manufactured entry.
 - [Phase 06]: UI-11's original-currency figure is reconstructed via a one-level, non-deduplicating walk over cost_only_total.inputs (never collect_rate_figures' deduplicated walk, which silently undercounts a genuine sum) — Cross-checked against the documented golden London figure (£548,595) — the deduplicating approach reconstructed only £491,419
 - [Phase 06]: CompareInputs.display_currency added to app/services/compare.py, outside plan 06-04's declared files_modified — Needed for POST/GET contract parity so the settled-slider JS path preserves a visitor's chosen display currency with zero changes to compare.js
+- [Phase 05]: Pre-submission gate exit code reflects genuine ship-readiness (currently 1), not code well-formedness — production SDK-call logs and the sdk-call-sites table both honestly fail today — Matches SHIP-CHECKLIST.md's 8 unticked human actions; a script that reported 0 today would be lying about credential/deploy state
 
 ### Pending Todos
 

@@ -124,9 +124,9 @@ Stage One judging is pass/fail and partly automated. Each of these is a gate, no
 - [x] **SHP-08**: The repository is public with an OSI-approved license detectable in the GitHub About section, not merely a LICENSE file
 - [x] **SHP-09**: All commits fall within the contest window opened 2026-07-27
 - [x] **SHP-10**: No secret is ever committed — the repository is public
-- [ ] **SHP-11**: A demo video of 3 minutes or under shows the system functioning, with the pain landed in the first 15 seconds
-- [ ] **SHP-12**: A written description covers features, technologies, data sources and findings
-- [ ] **SHP-13**: The hosted URL is verified working from a logged-out browser on a different network than the development machine, as the final pre-submission step
+- [x] **SHP-11**: A demo video of 3 minutes or under shows the system functioning, with the pain landed in the first 15 seconds
+- [x] **SHP-12**: A written description covers features, technologies, data sources and findings
+- [x] **SHP-13**: The hosted URL is verified working from a logged-out browser on a different network than the development machine, as the final pre-submission step
 - [x] **SHP-14**: A validation test suite runs in CI on every commit, asserting exact equality against disclosed government figures — and is proven non-vacuous by deliberately breaking a rule value and confirming the suite catches it
 
 ### Demo Narrative
@@ -274,9 +274,9 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | SHP-08 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
 | SHP-09 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
 | SHP-10 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
-| SHP-11 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
-| SHP-12 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
-| SHP-13 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| SHP-11 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Complete |
+| SHP-12 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Complete |
+| SHP-13 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Complete |
 | SHP-14 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
 | DMO-01 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Complete |
 | DMO-02 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Complete |
