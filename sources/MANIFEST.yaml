@@ -598,3 +598,137 @@ documents:
     cited_for:
       - "data/per_diem/state-dept/gb-london.yaml — lodging_flat_rate GBP424, mie_daily GBP174, effective 2025-06-01"
 
+  # --- New Jersey (JUR-03) rate-structure documents, plan 05-05 ---
+  # The two 2026-08-24 New Jersey entries above (the Joker/Trial-of-the-
+  # Chicago-7 .txt/.png row extracts) are the DISCLOSURE only — a Power BI
+  # dashboard row publishing a production's estimated qualified expenses,
+  # its total award, and a yes/no diversity-bonus flag. It states no rate,
+  # no cap, no mechanism. The four documents below supply those.
+
+  - path: sources/nj/2026-09-09-njeda-nj-a-c-19-31t-garden-state-film-digital-media-jobs-program.pdf
+    url: "https://www.njeda.gov/wp-content/uploads/2026/03/GARDEN-STATE-FILM-AND-DIGITAL-MEDIA-JOBS-PROGRAM.pdf"
+    retrieved_at: "2026-09-09T01:44:00-07:00"
+    sha256: "56d505443f0a206d3fda371a316b56ae97ff2bbe894a35e8299a4de053b853da"
+    jurisdiction: us-nj
+    document_title: "N.J.A.C. Title 19, Chapter 31T — Garden State Film and Digital Media Jobs Program (New Jersey Administrative Code, hosted by the New Jersey Economic Development Authority, current through New Jersey Register Vol. 58 No. 6, March 16, 2026, as amended through P.L. 2025, c. 81)"
+    note: >
+      Fetched by direct curl (no JS execution) from njeda.gov's own
+      wp-content upload path, linked directly from the "Legislation and
+      Rules" section of njeda.gov/film/. This is the FULL current
+      administrative code implementing the Garden State Film and Digital
+      Media Jobs Act, all 14 sections (§§ 19:31T-1.1 through -1.14). The
+      rate table at § 19:31T-1.6(a) is tiered by the DATE an application
+      was RECEIVED, not by today's date — both committed New Jersey
+      fixtures (Joker, approved 08/13/2019; The Trial of the Chicago 7,
+      approved 07/14/2020) fall under § 19:31T-1.6(a)(2): "For completed
+      applications received prior to January 7, 2021, 30 percent of the
+      qualified film production expenses not included at (a)1 above" —
+      (a)(1)'s 35% South-Jersey-vendor bonus does not apply to either
+      production (Joker: Newark, Essex County; Chicago 7: Paterson,
+      Passaic County — neither is Atlantic, Burlington, Camden, Cape May,
+      Cumberland, Gloucester, Mercer, or Salem County). The CURRENT
+      (post-July-2021) NYC-metro-zone/studio-partner rate tiers at
+      § 19:31T-1.6(a)(4) do NOT apply to either fixture and are not
+      modeled — see jurisdictions/us-nj.yaml's header comment. § 19:31T-
+      1.6(o)(1) states the diversity-plan bonus: "an amount equal to two
+      percent of the qualified film production expenses" for a completed
+      application accompanied by a qualifying diversity plan (15 percent
+      minority/women hiring goal for applications approved prior to
+      February 26, 2024 — both fixtures' approval dates qualify). §
+      19:31T-1.3(a)(1)(ii) states the $1,000,000-per-production minimum
+      qualified-spend threshold. § 19:31T-1.6(n) states the 7-year
+      carryforward against tax liability (the default, nonrefundable-
+      credit-against-tax path). § 19:31T-1.10(a)-(b) states the credit is
+      separately, electively transferable by sale or assignment via a tax
+      credit transfer certificate, and that "the sale or assignment of any
+      amount of a tax credit transfer certificate ... shall not be
+      exchanged for consideration received by the approved applicant of
+      less than 75 percent of the transferred credit amount" — a sourced
+      FLOOR, not a full range (no ceiling is stated anywhere in this
+      document). § 19:31T-1.11(a)(1) states the current $100,000,000/
+      fiscal-year aggregate cap for non-studio-partner, non-film-lease-
+      production-company applicants (both fixtures' productions). §
+      19:31T-1.3(a)(5) requires an independent CPA-prepared tax credit
+      verification report as a condition of eligibility (audit.mandatory).
+      No dollar audit-fee schedule is stated anywhere in this document.
+    cited_for:
+      - "jurisdictions/us-nj.yaml — rate_structure.base_rate (0.30, the pre-2021-01-07 tier both fixtures need), the disclosed-not-modeled 2% diversity bonus and its statutory citation, minimum_spend ($1,000,000), caps.annual_programme_cap ($100,000,000/fiscal_year, current), timing.payout_lag (7-year carryforward), mechanism (nonrefundable_credit with an elective transfer path), transfer_discount (applies true, typical_rate_low 0.75, typical_rate_high left null — only a floor is stated), audit.mandatory (true)"
+
+  - path: sources/nj/2026-09-09-njleg-pl2018-c56-garden-state-film-digital-media-jobs-act.pdf
+    url: "https://pub.njleg.gov/Bills/2018/PL18/56_.PDF"
+    retrieved_at: "2026-09-09T01:45:30-07:00"
+    sha256: "fb2da1855db19265ff68d2b5cd81c46977b73d98e7aadb33b1bda62bf94ff9bc"
+    jurisdiction: us-nj
+    document_title: "P.L. 2018, c. 56 — the Garden State Film and Digital Media Jobs Act (original enacted text, approved July 3, 2018, effective immediately), New Jersey Legislature's own bill-publication host (pub.njleg.gov)"
+    note: >
+      Fetched by direct curl from the New Jersey Legislature's own
+      bill-PDF endpoint — the enacted statutory text at the moment of
+      original enactment, independently confirming every figure the
+      current N.J.A.C. 19:31T entry above states for the pre-2021 tier
+      both fixtures need (the codified regulation could in principle have
+      drifted from the enacting act; it has not, for this tier): Section 1
+      states the base 30 percent film-credit rate (page 1: "...(C.54:10A-5)
+      in an amount equal to 30 percent of the qualified film production
+      expenses..."), the $1,000,000-per-production minimum spend, and
+      the transfer-certificate mechanism with the identical 75-percent
+      consideration floor ("shall not be exchanged for consideration
+      received by the taxpayer of less than 75 percent of the transferred
+      tax credit amount"). Section 4a states the original 2-percent
+      diversity-plan bonus, for a privilege period commencing on or after
+      July 1, 2018 but before July 1, 2023 (both fixtures' productions
+      fall inside this window), conditioned on an approved diversity plan
+      — the same 2-percent figure the current N.J.A.C. states at
+      § 19:31T-1.6(o)(1), confirmed unchanged since original enactment.
+      The original annual cap in this Act was $75,000,000/fiscal-year for
+      film (FY2019 through FY2023) — since raised to $100,000,000/fiscal-
+      year by a later, unidentified amendment reflected in the current
+      N.J.A.C. entry above; this is a disclosed historical note in
+      jurisdictions/us-nj.yaml's header, not a conflict requiring
+      resolution (the annual cap never affects a per-project gross-credit
+      computation — RD-04 — so which historical figure applied when is
+      immaterial to reproducing either fixture's disclosed credit).
+    cited_for:
+      - "jurisdictions/us-nj.yaml — independent confirmation of rate_structure.base_rate (0.30), the 2% diversity bonus and its date window, minimum_spend ($1,000,000), and transfer_discount.typical_rate_low (0.75), all at time of original enactment; historical note on caps.annual_programme_cap's evolution ($75M -> $100M)"
+
+  - path: sources/nj/2026-09-09-nj-treasury-division-of-taxation-film-credit-faq.html
+    url: "https://www.state.nj.us/treasury/taxation/digitalmediajobs.shtml"
+    retrieved_at: "2026-09-09T01:46:15-07:00"
+    sha256: "511ecee55f56b290e46f09b9f15b213e2eaef5e478c63bff1adc91382a3589a4"
+    jurisdiction: us-nj
+    document_title: "Garden State Film and Digital Media Jobs Act Credit FAQs (New Jersey Division of Taxation, state.nj.us)"
+    note: >
+      Fetched by direct curl (no JS execution) from the Division of
+      Taxation's own FAQ page. Third independent New Jersey government
+      source, corroborating rather than merely restating: explicitly
+      states "there is not an annual limit on an individual project"
+      (no per-project cap, matching this file's null caps.per_project_cap)
+      and that film-credit issuance "begin[s] at $100 million ... in the
+      State's fiscal year" (matching the current N.J.A.C. 19:31T-1.11(a)(1)
+      figure above); confirms the 7-year carryforward against Corporation
+      Business, Insurance Premiums and Gross Income Taxes; confirms the
+      independent-CPA verification-report requirement; confirms the
+      South-Jersey-vendor bonus is framed as an "increased 5% credit"
+      over the base rate (35% South Jersey vs. 30% base — internally
+      consistent with the N.J.A.C. figures above, corroboration not
+      contradiction).
+    cited_for:
+      - "jurisdictions/us-nj.yaml — third independent confirmation of caps.annual_programme_cap ($100,000,000/fiscal_year) and caps.per_project_cap (null, 'not an annual limit on an individual project'); corroboration of timing.payout_lag (7-year carryforward) and audit.mandatory"
+
+  - path: sources/nj/2026-09-09-njeda-film-tax-credit-transfer-app.pdf
+    url: "https://www.njeda.gov/wp-content/uploads/2026/05/Film-Tax-Credit-Transfer-App-REV.3.24.pdf"
+    retrieved_at: "2026-09-09T01:47:00-07:00"
+    sha256: "ef80b95653b6e54538197038a37df91993ca6d85b4fdbde520d0d395b03865df"
+    jurisdiction: us-nj
+    document_title: "Film Tax Credit Transfer Application (New Jersey Economic Development Authority, njeda.gov, rev. 3/24)"
+    note: >
+      Fetched by direct curl from njeda.gov's own wp-content upload path.
+      The Authority's own application FORM for a tax credit transfer
+      certificate states the same floor in plainer, operational terms:
+      "Note: Sales must be for a value of $.75 on the dollar or [above]"
+      — a fourth, independent restatement of the exact 75-cent-per-dollar
+      floor N.J.A.C. 19:31T-1.10(b) and P.L. 2018, c. 56 Section 1(e)
+      both state in statutory language, confirming this is the figure a
+      real applicant actually submits against, not merely codified prose.
+    cited_for:
+      - "jurisdictions/us-nj.yaml — fourth independent confirmation of transfer_discount.typical_rate_low (0.75)"
+
