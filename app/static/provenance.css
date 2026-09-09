@@ -1,0 +1,201 @@
+/* provenance.css — styling for the provenance surfaces this plan owns
+   (the assumptions panel and the methodology page): app/templates/
+   _figure.html, assumptions.html, methodology.html. A sibling plan owns
+   prodfin.css this wave, so this is a SEPARATE stylesheet loaded
+   alongside it, reusing prodfin.css's own custom properties (--pf-ink,
+   --pf-space-*, --pf-font-*, etc.) rather than redefining them.
+
+   Vocabulary discipline: this file is covered by the D-70 gate over
+   app/static/ — no class name or comment here names the product's
+   prescriptive-vocabulary list (see 04-CONTEXT.md § D-70) in any form.
+   Every word choice below is descriptive, never prescriptive.
+
+   The two provenance axes get visually distinct treatment on purpose
+   (basis vs confidence, RD-02) — different background tints, never one
+   merged chip — so the distinction reads at a glance, not only in the
+   markup. */
+
+.pf-figure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--pf-space-2, 0.5rem);
+  padding: var(--pf-space-3, 0.75rem);
+  border: 1px solid var(--pf-line, #d8dbe0);
+  border-radius: var(--pf-radius, 10px);
+  background: var(--pf-paper, #fff);
+  margin: var(--pf-space-2, 0.5rem) 0;
+}
+
+.pf-figure-label {
+  font-weight: 600;
+  color: var(--pf-ink, #1a1d21);
+}
+
+.pf-figure-value {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--pf-font-mono, monospace);
+  font-weight: 600;
+}
+
+.pf-figure-basis,
+.pf-figure-confidence {
+  font-size: 0.85em;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Distinct tint per axis — this is the visual half of "never one merged
+   badge": basis and confidence read as two different kinds of label,
+   not just two different words in the same pill. */
+.pf-figure-basis {
+  background: #eef2ff;
+  color: #303f9f;
+  border: 1px solid #c5cef0;
+}
+
+.pf-figure-confidence {
+  background: #eefaf0;
+  color: #1b6b3a;
+  border: 1px solid #bfe6c9;
+}
+
+.pf-figure-provenance {
+  flex-basis: 100%;
+  font-size: 0.9em;
+  color: var(--pf-ink-soft, #4a5058);
+}
+
+.pf-figure-source {
+  word-break: break-all;
+}
+
+.pf-figure-date-checked {
+  color: var(--pf-ink-soft, #4a5058);
+}
+
+.pf-figure-provenance-unavailable {
+  color: #8a4b00;
+  font-weight: 600;
+}
+
+.pf-figure-caveat {
+  flex-basis: 100%;
+  font-style: italic;
+  color: #8a4b00;
+  border-left: 3px solid #e6a94f;
+  padding-left: var(--pf-space-2, 0.5rem);
+}
+
+.pf-figure-derivation {
+  flex-basis: 100%;
+  font-size: 0.85em;
+  color: var(--pf-ink-soft, #4a5058);
+}
+
+.pf-figure-derivation summary {
+  cursor: pointer;
+}
+
+.pf-rate-list,
+.pf-totals-list,
+.pf-not-priced-list,
+.pf-permanent-exclusions-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.pf-vocabulary-list dt {
+  font-weight: 600;
+  margin-top: var(--pf-space-3, 0.75rem);
+}
+
+.pf-vocabulary-list dd {
+  margin-left: 0;
+  color: var(--pf-ink-soft, #4a5058);
+}
+
+.pf-incentive-unknown-note {
+  color: var(--pf-ink-soft, #4a5058);
+}
+
+/* ---------------------------------------------------------------------
+   Print — a real print stylesheet, not a screenshot substitute. Legible
+   page breaks, visible URLs, nothing clipped at a page edge.
+   --------------------------------------------------------------------- */
+
+@media print {
+  @page {
+    margin: 1.5cm;
+  }
+
+  body {
+    font-size: 11pt;
+    color: #000;
+    background: #fff;
+  }
+
+  /* Navigation and on-screen-only hints add nothing to a printed page. */
+  .pf-noprint {
+    display: none !important;
+  }
+
+  /* A figure, a rate row or a section never splits across a page break
+     mid-way through its own content. */
+  .pf-figure,
+  .pf-rate-list li,
+  .pf-totals-list li,
+  .pf-not-priced-list li,
+  .pf-permanent-exclusions-list li,
+  .pf-rate-sheet {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .pf-rate-sheet {
+    break-before: auto;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  p,
+  li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Visible URLs: a printed page cannot be clicked, so every source and
+     methodology link prints its own destination as plain text right
+     after the link text — the citation survives leaving the screen. */
+  .pf-figure-source::after,
+  .pf-rate-sheet a[href]::after,
+  .pf-gaps a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: #333;
+    word-break: break-all;
+  }
+
+  a {
+    color: #000;
+    text-decoration: underline;
+  }
+
+  .pf-figure-basis,
+  .pf-figure-confidence {
+    border: 1px solid #000;
+    background: none !important;
+    color: #000 !important;
+  }
+
+  .pf-figure-provenance-unavailable {
+    color: #000 !important;
+    text-decoration: underline;
+  }
+}

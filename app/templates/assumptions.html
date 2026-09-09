@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Assumptions and sources — ProductionFinance{% endblock %}
+{% block content %}
+{% from "_figure.html" import render_figure %}
+
+<link rel="stylesheet" href="{{ public_path }}/static/prodfin.css">
+<link rel="stylesheet" href="{{ public_path }}/static/provenance.css">
+
+<p class="pf-noprint">
+  <a href="{{ public_path }}/compare">&larr; Back to the comparison</a>
+  &middot;
+  <a href="{{ public_path }}/methodology">How these figures are computed</a>
+</p>
+
+<h1>Assumptions and sources for this comparison</h1>
+<p class="pf-print-hint pf-noprint">
+  This panel is built to print: every source link's full URL is shown as
+  plain text (not just a hyperlink) so a printed or PDF-exported copy
+  stays auditable off-screen — a producer can hand this upward without
+  needing a browser to follow a link.
+</p>
+
+{% if comparison.spec_result.assumptions %}
+{% set assumptions = comparison.spec_result.assumptions %}
+<section class="pf-model-assumptions" aria-labelledby="pf-model-assumptions-heading">
+  <h2 id="pf-model-assumptions-heading">Model-wide assumptions</h2>
+  <p>
+    Shooting cadence: {{ assumptions.shoot_days_per_week }} days/week.
+    {{ assumptions.shoot_days_per_week_note }}
+  </p>
+  <p>{{ assumptions.department_share_note }}</p>
+</section>
+{% endif %}
+
+{% if rate_sheets %}
+<section class="pf-gaps" aria-labelledby="pf-gaps-heading">
+  <h2 id="pf-gaps-heading">What this model does not price, at all</h2>
+  <p>
+    A named, first-class list — never a zero-dollar line. A $0 amount
+    would assert the cost is zero; the truth is it is not modelled
+    (D-60).
+  </p>
+  <ul class="pf-permanent-exclusions-list">
+    {% for exclusion in rate_sheets[0].permanent_exclusions %}
+    <li>{{ exclusion }}</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% for sheet in rate_sheets %}
+<section class="pf-rate-sheet" aria-labelledby="pf-rate-sheet-heading-{{ loop.index }}">
+  <h2 id="pf-rate-sheet-heading-{{ loop.index }}">{{ sheet.city_id }}</h2>
+
+  <h3>Totals</h3>
+  <ul class="pf-totals-list">
+    <li>{{ render_figure(sheet.total_landed_cost, label="Total landed cost") }}</li>
+    <li>{{ render_figure(sheet.cost_only_total, label="Cost total (pre-incentive)") }}</li>
+    {% if sheet.incentive_figure %}
+    <li>{{ render_figure(sheet.incentive_figure, label="Modelled incentive (net cash)") }}</li>
+    {% else %}
+    <li class="pf-incentive-unknown-note">
+      Modelled incentive: unknown — not modelled for this city. Never
+      treated as $0 (D-56).
+    </li>
+    {% endif %}
+  </ul>
+
+  <h3>Every rate used in this city's total</h3>
+  {% if sheet.rates %}
+  <ul class="pf-rate-list">
+    {% for rate in sheet.rates %}
+    <li>{{ render_figure(rate) }}</li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>No rate-level figures were reachable for this city's total.</p>
+  {% endif %}
+
+  {% if sheet.not_priced %}
+  <h3>Categories this city's own profile does not price</h3>
+  <ul class="pf-not-priced-list">
+    {% for category in sheet.not_priced %}
+    <li>{{ category }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
+{% endfor %}
+
+{% if not rate_sheets %}
+<p>No candidate city in this comparison produced a priced total yet.</p>
+{% endif %}
+
+{% endblock %}
