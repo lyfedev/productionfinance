@@ -6,70 +6,69 @@
   <header class="masthead">
     <h1>AI.ncentives</h1>
     <p>
-      Shooting a film or series in the US? Most states pay you back a share of
-      what you spend there. Tell us where and how much, and we'll show you what
-      you'd get — and exactly how we worked it out.
+      Every state pays you back a share of what you spend shooting there — but
+      not the same share, and not the same way. Tell us where you're thinking
+      of shooting and we'll compare them.
     </p>
   </header>
 
   <div class="tool">
     <form class="tool-form" method="get" action="{{ public_path }}/" id="calc">
+      <fieldset class="places">
+        <legend>Where are you considering?</legend>
+        <div class="place-row">
+          {% for p in places %}
+          <label class="place">
+            <input type="checkbox" name="state" value="{{ p.id }}" {% if p.checked %}checked{% endif %}>
+            <span>{{ p.name }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+
       <div class="field-row">
         <div class="field">
-          <label for="jurisdiction_id">Where is it shooting?</label>
-          <select id="jurisdiction_id" name="jurisdiction_id">
-            {% for j in jurisdictions %}
-            <option value="{{ j.id }}" {% if j.id == selected %}selected{% endif %}>{{ j.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="field">
-          <label for="qualified_spend">What will it spend there?</label>
+          <label for="qualified_spend">What will the production spend in state?</label>
           <input class="amount" id="qualified_spend" name="qualified_spend"
                  value="{{ spend }}" inputmode="decimal" placeholder="e.g. 10,000,000">
         </div>
         <div>
-          <button class="go" type="submit" name="go" value="1">Calculate</button>
+          <button class="go" type="submit" name="go" value="1">Compare</button>
         </div>
       </div>
-
     </form>
 
-    <div class="result{% if not result %} result-empty{% endif %}">
-    {% if not result %}
-      Your result will appear here.
-    {% elif result.status == 'rejected' %}
-      <p class="verdict no">{{ result.reason }}</p>
-    {% elif result.status == 'cannot_be_computed' %}
-      <table class="rows">
-        <tr><td>You spend in the state</td><td class="amt">{{ pretty_spend }}</td></tr>
-        {% if gross %}<tr class="total"><td>Credit you earn</td><td class="amt">{{ gross }}</td></tr>{% endif %}
-        <tr class="settle"><td>What that is worth in cash<span class="why">this state pays in certificates, not cash</span></td>
-            <td class="amt unresolved">we can't say</td></tr>
-      </table>
-      <p class="verdict no">{{ plain_reason }}</p>
-      <details class="steps">
-        <summary>The technical reason</summary>
-        <ol><li class="applied">{{ result.refusal_reason }}</li></ol>
-      </details>
+    <div class="result{% if not rows and not error %} result-empty{% endif %}">
+    {% if error %}
+      <p class="verdict no">{{ error }}</p>
+    {% elif not rows %}
+      Pick two or more places and enter a spend figure.
     {% else %}
-      <table class="rows">
-        <tr><td>You spend in the state</td><td class="amt">{{ pretty_spend }}</td></tr>
-        <tr class="total"><td>You get back</td><td class="amt">{{ gross }}</td></tr>
-        {% if net_note %}
-        <tr class="settle"><td>Cash in hand<span class="why">{{ net_note }}</span></td>
-            <td class="amt{% if net == 'cannot be computed' %} unresolved{% endif %}">{{ net }}</td></tr>
-        {% endif %}
+      <p class="headline">
+        On {{ pretty_spend }} of spend, {{ best }} is worth
+        <strong>{{ spread }}</strong> more than {{ worst }}.
+      </p>
+      <table class="compare">
+        <thead>
+          <tr><th scope="col">Where</th><th scope="col" class="amt">You get back</th><th scope="col">How you're paid</th></tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td class="place-name">{{ r.name }}</td>
+            <td class="amt big">{{ r.credit_fmt }}</td>
+            <td>{{ r.payment }}<span class="why">{{ r.payment_note }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
       </table>
-      {% if match_note %}<p class="verdict">{{ match_note }}</p>{% endif %}
-      {% if steps %}
+
+      {% for r in rows %}
       <details class="steps">
-        <summary>How this was calculated ({{ steps|length }} steps)</summary>
-        <ol>
-          {% for s in steps %}<li class="{{ 'applied' if s.applied else '' }}">{{ s.text }}</li>{% endfor %}
-        </ol>
+        <summary>How we got {{ r.name }}'s figure</summary>
+        <ol>{% for s in r.steps %}<li class="{{ 'applied' if s.applied else '' }}">{{ s.text }}</li>{% endfor %}</ol>
       </details>
-      {% endif %}
+      {% endfor %}
     {% endif %}
     </div>
   </div>
@@ -79,15 +78,7 @@
       Figures come from each state's published rules and its own disclosure
       reports. <a href="{{ public_path }}/methodology">How we work them out</a>.
     </p>
-    <p class="colophon">
-      Comparing several states at once? <a href="{{ public_path }}/spec">Price a full production</a>.
-      Building this into your own system? <a href="{{ public_path }}/integrate">There's an API</a>.
-      <a href="{{ public_path }}/proof">Our workings against real awards</a> ·
-      <a href="{{ public_path }}/validate">reproduce a disclosure</a> ·
-      <a href="{{ public_path }}/health">status</a>
-    </p>
   </footer>
 
 </div>
-<script src="{{ public_path }}/static/calc.js" defer></script>
 {% endblock %}

@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -135,102 +135,96 @@ def health() -> dict:
 @app.get("/", response_class=HTMLResponse)
 def index(
     request: Request,
-    jurisdiction_id: str | None = None,
+    state: list[str] | None = Query(default=None),
     qualified_spend: str | None = None,
     go: str | None = None,
 ) -> HTMLResponse:
-    """The landing page is the tool. Empty until the visitor asks."""
+    """Compare the states a production is actually considering."""
     from app.services._paths import RULESET_PATH_BY_JURISDICTION
     from app.services.integrate import IntegrationRequest, price_from_request
 
-    # A person picks a place, not a programme. The rule files name the
-    # programme ("New York Film Production Tax Credit"), which is the right
-    # label inside the API and the wrong one in a dropdown.
     PLACE = {
         "us-ny": "New York",
         "us-ca": "California",
         "us-nj": "New Jersey",
         "us-ct": "Connecticut",
     }
-    names = [
-        {"id": jid, "name": PLACE.get(jid, jid)}
-        for jid in sorted(RULESET_PATH_BY_JURISDICTION, key=lambda j: PLACE.get(j, j))
-    ]
-
-    ctx: dict = {
-        "public_path": PUBLIC_PATH,
-        "jurisdictions": names,
-        "selected": jurisdiction_id or "us-ny",
-        "spend": qualified_spend or "",
-        "result": None,
+    # How the money actually reaches the production. A producer choosing
+    # between states cares about this as much as the amount, and it is the
+    # honest thing to say about a transferable credit — the credit is known;
+    # only what a buyer will pay for it is not.
+    PAYMENT = {
+        "refundable": ("Paid to you", "The state pays the balance in cash."),
+        "nonrefundable_credit": ("Cuts your tax bill", "Applied against state tax you owe."),
+        "transferable": (
+            "Certificate you sell",
+            "Resale prices are not published, so the buyer sets what it fetches.",
+        ),
     }
 
-    if go and qualified_spend:
-        result = price_from_request(
-            IntegrationRequest(
-                jurisdiction_id=ctx["selected"], qualified_spend=qualified_spend
-            )
-        )
-        ctx["result"] = result
-        # The engine's own refusal names schema fields, which is right for an
-        # integrator reading the API and wrong for someone pricing a shoot.
-        # The plain sentence leads; the exact engine text stays available
-        # underneath, unedited.
-        PLAIN_REFUSAL = {
-            "us-nj": (
-                "New Jersey pays this credit as a certificate you sell on to "
-                "another company. The state does not publish what those "
-                "certificates sell for, so we can't tell you what it turns "
-                "into in cash — and we won't guess at a number your financing "
-                "would rest on."
-            ),
-            "us-ct": (
-                "Connecticut pays this credit as a certificate you sell on to "
-                "another company. The state does not publish what those "
-                "certificates sell for, so we can't tell you what it turns "
-                "into in cash — and we won't guess at a number your financing "
-                "would rest on."
-            ),
-        }
-        ctx["plain_reason"] = PLAIN_REFUSAL.get(
-            ctx["selected"],
-            "We can't produce this figure from the rules the state publishes, "
-            "and we won't estimate one.",
-        )
-        raw = str(result.get("qualified_spend") or qualified_spend).split(".")[0]
-        try:
-            ctx["pretty_spend"] = f"{int(raw.replace(',', '')):,}"
-        except ValueError:
-            ctx["pretty_spend"] = qualified_spend
+    chosen = [s for s in (state or []) if s in RULESET_PATH_BY_JURISDICTION]
+    ctx: dict = {
+        "public_path": PUBLIC_PATH,
+        "places": [
+            {"id": j, "name": PLACE.get(j, j), "checked": j in chosen}
+            for j in sorted(RULESET_PATH_BY_JURISDICTION, key=lambda x: PLACE.get(x, x))
+        ],
+        "spend": qualified_spend or "",
+        "rows": None,
+        "error": None,
+    }
 
-        # A transferable-credit state still earns a credit; only its cash
-        # conversion is unknown. Show the figure the producer asked for.
-        if result["status"] == "cannot_be_computed" and result.get("gross_credit"):
-            ctx["gross"] = f"{int(result['gross_credit']['value']):,}"
-            ctx["steps"] = [
-                {"text": t, "applied": not t.lstrip().lower().startswith("no ")}
-                for t in result["gross_credit"]["derivation_tree"]["derivation"]
-            ]
-
-        if result["status"] == "ok" and result["programmes"]:
-            prog = result["programmes"][0]
-            gross = prog["gross_credit"]
-            ctx["gross"] = f"{int(gross['value']):,}"
-            # A step beginning "no ..." is a rule the programme declares that
-            # did not apply here. Both are shown; only applied steps get
-            # full-strength ink.
-            ctx["steps"] = [
-                {"text": t, "applied": not t.lstrip().lower().startswith("no ")}
-                for t in gross["derivation_tree"]["derivation"]
-            ]
-            net = prog.get("net_cash") or {}
-            point = net.get("point")
-            if point and point != "None":
-                ctx["net"] = f"{int(point):,}"
-                ctx["net_note"] = "after the programme's own timing and tax treatment"
-            if ctx["selected"] == "us-ny" and raw.replace(",", "") == "3964760":
-                ctx["match_note"] = (
-                    "New York State disclosed a credit of 991,190 for Anora against this "
-                    "exact spend. Reproduced from the published rules, not looked up."
+    if go:
+        if len(chosen) < 2:
+            ctx["error"] = "Pick at least two places to compare."
+        elif not qualified_spend:
+            ctx["error"] = "Enter what the production will spend."
+        else:
+            rows = []
+            for jid in chosen:
+                result = price_from_request(
+                    IntegrationRequest(jurisdiction_id=jid, qualified_spend=qualified_spend)
                 )
+                if result["status"] == "rejected":
+                    ctx["error"] = result["reason"]
+                    break
+                gross = result.get("gross_credit") or (
+                    (result.get("programmes") or [{}])[0].get("gross_credit")
+                )
+                if not gross:
+                    continue
+                label, note = PAYMENT.get(_mechanism(jid), ("", ""))
+                rows.append(
+                    {
+                        "name": PLACE.get(jid, jid),
+                        "credit": int(gross["value"]),
+                        "credit_fmt": f"{int(gross['value']):,}",
+                        "payment": label,
+                        "payment_note": note,
+                        "steps": [
+                            {"text": t, "applied": not t.lstrip().lower().startswith("no ")}
+                            for t in gross["derivation_tree"]["derivation"]
+                        ],
+                    }
+                )
+            if rows and not ctx["error"]:
+                rows.sort(key=lambda r: -r["credit"])
+                ctx["rows"] = rows
+                ctx["spread"] = f"{rows[0]['credit'] - rows[-1]['credit']:,}"
+                ctx["best"] = rows[0]["name"]
+                ctx["worst"] = rows[-1]["name"]
+                try:
+                    ctx["pretty_spend"] = f"{int(str(qualified_spend).replace(',', '')):,}"
+                except ValueError:
+                    ctx["pretty_spend"] = qualified_spend
     return templates.TemplateResponse(request=request, name="index.html", context=ctx)
+
+
+def _mechanism(jurisdiction_id: str) -> str:
+    from app.services._paths import RULESET_PATH_BY_JURISDICTION
+    from engine.models import load_ruleset
+
+    try:
+        return load_ruleset(RULESET_PATH_BY_JURISDICTION[jurisdiction_id]).programmes[0].mechanism
+    except Exception:  # noqa: BLE001 - a bad rule file must not blank the page
+        return ""

@@ -292,12 +292,10 @@ def test_selectable_pairs_handles_missing_jurisdiction_id_as_none(monkeypatch):
     assert "no curated rule model" in anora.unselectable_reason
 
 
-def test_landing_page_shows_both_routes_and_health_link():
-    response = client.get("/")
-    assert response.status_code == 200
-    assert "/spec" in response.text
-    assert "/validate" in response.text
-    assert "/health" in response.text
+def test_validate_and_health_serve_directly():
+    """Reached by URL rather than from the landing page (see /spec's twin)."""
+    assert client.get("/validate").status_code == 200
+    assert client.get("/health").status_code == 200
 
 
 # ---------------------------------------------------------------------------

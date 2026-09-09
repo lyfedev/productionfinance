@@ -280,10 +280,9 @@ def test_load_source_conflicts_missing_file_returns_empty_tuple(tmp_path):
 # ---------------------------------------------------------------------------
 
 
-def test_landing_page_links_to_the_proof_panel():
-    response = client.get("/")
-    assert response.status_code == 200
-    assert 'href="/proof"' in response.text or 'href="{}/proof"'.format("") in response.text
+def test_proof_panel_serves_directly():
+    """Reached by URL rather than from the landing page (see /spec's twin)."""
+    assert client.get("/proof").status_code == 200
 
 
 def test_health_contract_unchanged():
