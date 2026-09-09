@@ -118,6 +118,26 @@
 <p>Every candidate city with a committed cost profile also has a modelled incentive.</p>
 {% endif %}
 
+{% if result.fx_resolutions %}
+<h2>Live FX check</h2>
+<p>Attempted live, at request time, for every currency pair a candidate
+  city needed converted (AGT-10/D-89). The totals above always use the
+  committed, dated, cited snapshot regardless of this check's outcome —
+  see the disclosure column for whether this particular check went live
+  or fell back.</p>
+<table>
+  <tr><th>Pair</th><th>Rate</th><th>Origin</th><th>Disclosure</th></tr>
+  {% for fx in result.fx_resolutions %}
+  <tr>
+    <td>{{ fx.base }} &rarr; {{ fx.quote }}</td>
+    <td>{{ fx.rate }}</td>
+    <td>{{ fx.origin }}</td>
+    <td>{{ fx.disclosure }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
 {% if result.gap %}
 <h2>The gap: {{ result.gap.city_a_id }} vs {{ result.gap.city_b_id }}</h2>
 <p>{{ result.gap.sign_convention }}</p>

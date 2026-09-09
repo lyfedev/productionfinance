@@ -22,8 +22,8 @@ from the repo root; only a module-anchored path is correct in both.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
-from typing import Literal
+from datetime import UTC, date, datetime
+from typing import TYPE_CHECKING, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict
@@ -46,6 +46,9 @@ from engine.ranker import RankedCity, rank
 from engine.seasonality import SHOOT_DAYS_PER_WEEK, SHOOT_DAYS_PER_WEEK_NOTE
 from engine.sensitivity import SensitivityRow, most_moving_row, sensitivity_rows
 from engine.spec import CREW_TIERS_PATH, CrewHeadcount, CrewTier, ProductionSpec, resolve_crew_tier
+
+if TYPE_CHECKING:
+    from app.services.live_fx import FxResolution
 
 __all__ = [
     "NO_GAP_SENSITIVITY_REASON",
@@ -207,7 +210,16 @@ class SpecResult:
     Plan 04-07 (OUT-03): `sensitivity` is computed ONLY when `gap` is not
     `None` — an empty tuple, plus `sensitivity_reason` naming why, when it
     is. `assumptions` is populated whenever at least one candidate city
-    produced a total, independent of whether a gap exists."""
+    produced a total, independent of whether a gap exists.
+
+    Plan 07-04 (AGT-10): `fx_resolutions` carries one live-or-fallback FX
+    check per distinct source currency among this submission's localized
+    cities that differs from `REPORTING_CURRENCY` — empty when every
+    candidate city already prices in `REPORTING_CURRENCY`. It never
+    changes `ranked_cities`' own totals (those still come from the
+    committed FX snapshot via `engine.landed_cost.aggregate`, unchanged by
+    this plan) — it is a genuinely live, separately-disclosed FX check,
+    not a second source of truth for the rendered dollar figures."""
 
     spec: ProductionSpec
     crew_headcount: CrewHeadcount
@@ -220,6 +232,7 @@ class SpecResult:
     sensitivity_reason: str
     most_moving_sensitivity_row: SensitivityRow | None
     assumptions: ModelAssumptions | None
+    fx_resolutions: tuple[FxResolution, ...]
 
 
 def handle_spec_submission(raw: SpecFormSubmission) -> SpecResult | RefusalResult:
@@ -276,7 +289,7 @@ def handle_spec_submission(raw: SpecFormSubmission) -> SpecResult | RefusalResul
     if "us-ny" in resolved_jurisdictions:
         rule_terms = tuple(_new_york_rule_terms())
 
-    ranked_cities, profile_by_city_id = _rank_candidate_cities(spec, crew_headcount)
+    ranked_cities, profile_by_city_id, fx_resolutions = _rank_candidate_cities(spec, crew_headcount)
     gap = _gap_for_ranked_cities(ranked_cities)
 
     if gap is None:
@@ -304,12 +317,17 @@ def handle_spec_submission(raw: SpecFormSubmission) -> SpecResult | RefusalResul
         sensitivity_reason=sensitivity_reason,
         most_moving_sensitivity_row=most_moving_sensitivity_row,
         assumptions=assumptions,
+        fx_resolutions=fx_resolutions,
     )
 
 
 def _rank_candidate_cities(
     spec: ProductionSpec, crew_headcount: CrewHeadcount
-) -> tuple[tuple[RankedCity, ...], dict[str, CityCostProfile]]:
+) -> tuple[
+    tuple[RankedCity, ...],
+    dict[str, CityCostProfile],
+    tuple[FxResolution, ...],
+]:
     """D-55/COST-01: build the ONE canonical budget for this submission
     (lazily, and only once — never rebuilt per city), localize it against
     every candidate city that resolves to a committed cost profile, and
@@ -325,7 +343,12 @@ def _rank_candidate_cities(
     `CityCostProfile`, keyed by `city_id` — so plan 04-07's assumptions
     panel (`_compute_assumptions`) never has to re-resolve a candidate
     city string a second time just to reach its `travel`/`facilities_id`
-    declaration."""
+    declaration.
+
+    Plan 07-04 (AGT-10) additionally returns `fx_resolutions` (one live
+    FX check per distinct non-reporting source currency present, via
+    `_resolve_fx_for_localized_cities`), computed from the SAME
+    `localized_by_city` this function already builds."""
     budget = None
     localized_by_city: dict[str, LocalizedBudget] = {}
     ruleset_by_jurisdiction: dict[str, JurisdictionRuleSet] = {}
@@ -365,14 +388,55 @@ def _rank_candidate_cities(
             )
 
     if not localized_by_city:
-        return (), profile_by_city_id
+        return (), profile_by_city_id, ()
+
+    fx_resolutions = _resolve_fx_for_localized_cities(localized_by_city)
 
     ranked = rank(
         localized_by_city,
         ruleset_by_jurisdiction,
         reporting_currency=REPORTING_CURRENCY,
     )
-    return ranked, profile_by_city_id
+    return ranked, profile_by_city_id, fx_resolutions
+
+
+def _resolve_fx_for_localized_cities(
+    localized_by_city: dict[str, LocalizedBudget],
+) -> tuple[FxResolution, ...]:
+    """AGT-10 Task 1 (plan 07-04): for every distinct source currency
+    among this submission's localized cities that differs from
+    `REPORTING_CURRENCY`, attempt one live FX check through the
+    sanctioned `app.services.cache_policy.resolve_fx` entry point — never
+    `engine.fx.load_fx_snapshot` or `httpx` directly from this module,
+    which would put a second cached-versus-live decision outside AGT-10's
+    single point.
+
+    The actual dollar total `engine.ranker.rank` -> `engine.landed_cost
+    .aggregate` produces below is UNAFFECTED by this call's outcome — it
+    always uses the committed, dated, cited snapshot via
+    `engine.fx.convert`, which is what keeps the pinned golden totals
+    (D-78) exact regardless of live network availability. This resolution
+    is rendered as its own, separately-labelled disclosure next to the
+    converted total (T-07-24) — see `app/services/live_fx.py`'s module
+    docstring for the full reasoning."""
+    from app.services.cache_policy import resolve_fx as _resolve_fx
+
+    distinct_source_currencies = sorted(
+        {
+            localized.currency
+            for localized in localized_by_city.values()
+            if localized.currency != REPORTING_CURRENCY
+        }
+    )
+    if not distinct_source_currencies:
+        return ()
+
+    # UTC, not the server's naive local date (DTZ011) — the live check's
+    # "today" must be well-defined independent of host timezone.
+    on_date = datetime.now(UTC).date()
+    return tuple(
+        _resolve_fx(base, REPORTING_CURRENCY, on_date) for base in distinct_source_currencies
+    )
 
 
 _ALL_QUARTERS: tuple[str, ...] = ("Q1", "Q2", "Q3", "Q4")
@@ -538,7 +602,9 @@ def _new_york_rule_terms() -> list[RuleTerm]:
 
     annual_cap = programme.caps.annual_programme_cap
     if annual_cap is not None and annual_cap.amount is not None:
-        annual_text = f"{annual_cap.amount.value} {annual_cap.amount.currency} per {annual_cap.period}"
+        annual_text = (
+            f"{annual_cap.amount.value} {annual_cap.amount.currency} per {annual_cap.period}"
+        )
     else:
         annual_text = "no annual programme cap on file"
 
