@@ -214,6 +214,7 @@ Plans:
 **Goal**: Four jurisdictions are modelled and an agent proves the models against published government disclosures, reporting a real, honest accuracy figure.
 **Depends on**: Phase 2 (engine spine), Phase 1 (locked validation pairs, confirmed CT CSV schema). Runs in parallel with Phase 6.
 **Requirements**: JUR-02, JUR-03, JUR-04, AGT-01, AGT-02, AGT-03, AGT-04, AGT-08, AGT-09, SHP-05
+**Scope compression as planned (05-CONTEXT.md, 2026-09-08)**: with ~14 hours to the deadline and Phases 5-8 all unstarted, this phase was compressed to the eligibility spine plus the New York proof. **Planned**: AGT-01, AGT-02, AGT-03, AGT-04, AGT-09, SHP-05, and SHP-06 pulled forward from Phase 7 (D-80 — Job 1 parses a government PDF, and Parallel Extract is the only permitted way to read one). **Cut from this phase**: JUR-02, JUR-03, JUR-04 and AGT-08's two deferred guardrails (D-79, D-88) — eligibility is a binary Stage One gate and jurisdictional breadth is a quality axis behind it. Success criterion 1 below is therefore not attempted here; criteria 2-5 are, with AGT-08's groundedness re-check and enacted-versus-proposed classification deferred to Phase 7.
 **Success Criteria** (what must be TRUE):
 
   1. California, New Jersey and Connecticut each price correctly against their own government disclosure, with allocation-stage (CA) and estimated (NJ) figures labelled as such rather than presented with the same weight as issued figures
@@ -222,7 +223,13 @@ Plans:
   4. Every Job 1 result is classified as exact match, explained variance, or unexplained — no blended mean-error number that can silently absorb a real bug
   5. Every document and PDF extraction runs through a permitted Google SDK, proven by a timestamped log line at the call site in production logs, with groundedness checks on extracted quotes, preference for primary `.gov` domains, locale-aware number parsing, and proposed-bill versus enacted-law classification all enforced
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Tracer: Parallel Search → Parallel Extract → google-genai → engine, one award end to end, with a timestamped log line at both SDK call sites (SHP-05, SHP-06, AGT-09)
+- [ ] 05-02-PLAN.md — Every award in the document, locale-aware figure parsing, the three-value mismatch taxonomy and the honest accuracy counts (AGT-01, AGT-02, AGT-03, AGT-04)
+- [ ] 05-03-PLAN.md — `/job1` on the hosted URL for an anonymous visitor, run persistence, deploy, and the production-log proof for SHP-05/SHP-06
+
 **Cut line**: **Connecticut (JUR-04) is the first cuttable item in all of Accounts.** Its CSV schema is the least-verified of the four and the three-award Definition of Done is already met by NY/CA/NJ. Demote CT to live-researched-only if the deadline tightens.
 **Absolute constraint**: AWS Textract is the single most likely accidental Stage One disqualification on this project — it is the obvious tool for exactly what Job 1 does. All extraction routes through Parallel Extract plus Gemini. Never Textract, Bedrock, Comprehend or any other AWS AI service.
 **Track note**: This is Track A + Track C of the parallelizable breadth tier. Job 1 can start against New York alone while the CA/NJ/CT rule files finish. Build the mismatch taxonomy in from the start — retrofitting it is what makes an accuracy figure decorative instead of trustworthy.
