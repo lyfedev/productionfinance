@@ -5,7 +5,8 @@ branch that skips a stage: status check -> Search -> primary-domain filter
 -> Extract -> Gemini -> price EVERY extracted award through the existing
 engine with `spend_confidence="researched"` (D-63 / PRV-02 — a figure an
 LLM read out of a document has not been transcribed and checked by a human,
-so it is never `validated`).
+so it is never `validated`) -> classify each disclosed-vs-computed pair
+through the D-86 three-value taxonomy (`agent.taxonomy`).
 
 Nothing in this module invents, defaults, or backfills an award (D-87): if
 Search returns no primary-domain result, Extract returns nothing usable, or
@@ -17,12 +18,13 @@ neither dropped silently nor guessed at.
 
 `search_fn`, `extract_fn` and `extract_awards_fn` are injectable seams
 (each defaulting to `None`, resolved to the real client function) so an
-offline test can drive the whole extract-price loop against a committed
-fixture with zero network access (plan 05-02 Task 3) without ever making a
-test double the default. `run_mode` on the returned `Job1Run` is `"live"`
-only when none of those three seams were overridden AND both integrations
-were configured — a run driven by any injected fake is always `"replay"`
-and must never be rendered as a product accuracy figure (T-05-10).
+offline test can drive the whole extract-price-classify loop against a
+committed fixture with zero network access (plan 05-02 Task 3) without ever
+making a test double the default. `run_mode` on the returned `Job1Run` is
+`"live"` only when none of those three seams were overridden AND both
+integrations were configured — a run driven by any injected fake is always
+`"replay"` and must never be rendered as a product accuracy figure
+(T-05-10).
 """
 
 from __future__ import annotations
@@ -30,25 +32,34 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from enum import Enum
 from typing import Literal
+
+import yaml
 
 from agent.gemini_client import ExtractionResult, extract_awards
 from agent.numbers import UnparseableFigureError, parse_money
 from agent.parallel_client import DisclosureDocument, extract_document, search_for_disclosure
 from agent.schema import ExtractedAward
 from agent.settings import integration_status
+from agent.taxonomy import (
+    AccuracySummary,
+    AwardResult,
+    VarianceRule,
+    classify,
+    load_variance_rules,
+    summarize,
+)
 from app.services._paths import REPO_ROOT
-from engine.models import load_ruleset
+from engine.models import JurisdictionRuleSet, load_ruleset
 from engine.pipeline import price_jurisdiction
 
 __all__ = [
     "ExtractionFailure",
     "Job1Run",
-    "PricedAward",
     "TerminalReason",
     "run_job1",
 ]
@@ -56,9 +67,15 @@ __all__ = [
 _JURISDICTION_ID = "us-ny"
 _RULESET_PATH = REPO_ROOT / "jurisdictions" / f"{_JURISDICTION_ID}.yaml"
 _PROGRAMME_ID = "ny-film-production-tax-credit"
+_VARIANCE_RULES_PATH = REPO_ROOT / "agent" / "variance_rules.yaml"
+_VALIDATION_PAIRS_DIR = REPO_ROOT / "tests" / "fixtures" / "validation_pairs"
 
-SearchFn = Callable[[], "str | None"]
-ExtractFn = Callable[[str], "DisclosureDocument | None"]
+_EMPTY_ACCURACY = AccuracySummary(
+    awards_extracted=0, exact_match=0, explained_variance=0, unexplained=0, extraction_failures=0
+)
+
+SearchFn = Callable[[], str | None]
+ExtractFn = Callable[[str], DisclosureDocument | None]
 ExtractAwardsFn = Callable[[str], ExtractionResult]
 
 
@@ -80,24 +97,13 @@ class TerminalReason(str, Enum):
 
 @dataclass(frozen=True)
 class ExtractionFailure:
-    """One extracted award whose money fields did not parse (D-88). Carries
-    the raw string(s) and the exception text — never dropped silently,
-    never guessed at."""
+    """One extracted award whose money fields did not parse, or that the
+    engine could not price (D-88). Carries the raw string(s) and the
+    exception text — never dropped silently, never guessed at."""
 
     production_title: str
     raw_value: str
     error: str
-
-
-@dataclass(frozen=True)
-class PricedAward:
-    production_title: str
-    disclosed_qualified_spend: Decimal
-    disclosed_credit: Decimal
-    computed_credit: Decimal
-    source_row_text: str
-    diversity_credit_amount: Decimal | None = None
-    derivation: tuple[str, ...] = field(default_factory=tuple)
 
 
 @dataclass(frozen=True)
@@ -113,8 +119,9 @@ class Job1Run:
     report_title: str | None = None
     report_period: str | None = None
     raw_award_count: int = 0
-    priced_awards: tuple[PricedAward, ...] = field(default_factory=tuple)
+    awards: tuple[AwardResult, ...] = field(default_factory=tuple)
     extraction_failures: tuple[ExtractionFailure, ...] = field(default_factory=tuple)
+    accuracy: AccuracySummary = _EMPTY_ACCURACY
 
     @property
     def ran_live(self) -> bool:
@@ -158,15 +165,53 @@ def _parse_award_figures(
     return qualified_spend, disclosed_credit, diversity_credit
 
 
-def _price_award(award: ExtractedAward) -> PricedAward | ExtractionFailure:
+def _load_committed_fixtures() -> tuple[dict, ...]:
+    """Every committed `tests/fixtures/validation_pairs/*.yaml` fixture, for
+    the `corroborates_committed_fixture` bonus check below. Not a gate — an
+    extracted pair remains `spend_confidence="researched"` regardless of
+    whether it happens to agree with a human-transcribed fixture (PRV-02)."""
+    fixtures: list[dict] = []
+    for path in sorted(_VALIDATION_PAIRS_DIR.glob("*.yaml")):
+        with open(path, encoding="utf-8") as handle:
+            data = yaml.safe_load(handle)
+        if isinstance(data, dict):
+            fixtures.append(data)
+    return tuple(fixtures)
+
+
+def _corroborates_committed_fixture(
+    production_title: str, qualified_spend: Decimal, disclosed_credit: Decimal
+) -> bool:
+    """True only when the extracted title and BOTH extracted figures match
+    a committed validation-pair fixture exactly — a bonus proof for the
+    demo, never a gate, and never a promotion to `validated`."""
+    for fixture in _load_committed_fixtures():
+        if fixture.get("production_title") != production_title:
+            continue
+        try:
+            fixture_spend = Decimal(str(fixture.get("qualified_spend")))
+            fixture_credit = Decimal(str(fixture.get("credit_amount")))
+        except (InvalidOperation, TypeError):
+            continue
+        if fixture_spend == qualified_spend and fixture_credit == disclosed_credit:
+            return True
+    return False
+
+
+def _price_and_classify_award(
+    award: ExtractedAward,
+    ruleset: JurisdictionRuleSet,
+    rules: Sequence[VarianceRule],
+) -> AwardResult | ExtractionFailure:
     """Parse and price one extracted award through the existing engine
     (D-85: the same `price_jurisdiction` entry point
-    `app/services/validate.py` already uses for a committed fixture).
-    Returns an `ExtractionFailure` — never a fabricated figure (D-87) —
-    when the award's money fields do not parse or the engine cannot price
-    it."""
+    `app/services/validate.py` already uses for a committed fixture), then
+    classify the disclosed-vs-computed comparison through the D-86
+    taxonomy. Returns an `ExtractionFailure` — never a fabricated figure
+    (D-87) — when the award's money fields do not parse or the engine
+    cannot price it."""
     try:
-        qualified_spend, disclosed_credit, diversity_credit = _parse_award_figures(award)
+        qualified_spend, disclosed_credit, _diversity_credit = _parse_award_figures(award)
     except UnparseableFigureError as exc:
         return ExtractionFailure(
             production_title=award.production_title,
@@ -177,9 +222,7 @@ def _price_award(award: ExtractedAward) -> PricedAward | ExtractionFailure:
             error=str(exc),
         )
 
-    ruleset = load_ruleset(_RULESET_PATH)
     priced = price_jurisdiction(ruleset, qualified_spend, spend_confidence="researched")
-
     programme = next(
         (p for p in priced.programmes if p.programme_id == _PROGRAMME_ID),
         None,
@@ -191,14 +234,20 @@ def _price_award(award: ExtractedAward) -> PricedAward | ExtractionFailure:
             error=f"no priced programme {_PROGRAMME_ID!r} in ruleset {_RULESET_PATH}",
         )
 
-    return PricedAward(
-        production_title=award.production_title,
-        disclosed_qualified_spend=qualified_spend,
-        disclosed_credit=disclosed_credit,
-        computed_credit=programme.gross_credit.value,
-        source_row_text=award.source_row_text,
-        diversity_credit_amount=diversity_credit,
+    computed = programme.gross_credit.value
+    match_class, explanation = classify(disclosed_credit, computed, award, rules)
+    corroborates = _corroborates_committed_fixture(
+        award.production_title, qualified_spend, disclosed_credit
+    )
+
+    return AwardResult(
+        award=award,
+        disclosed=disclosed_credit,
+        computed=computed,
+        match_class=match_class,
+        explanation=explanation,
         derivation=programme.gross_credit.derivation,
+        corroborates_committed_fixture=corroborates,
     )
 
 
@@ -268,14 +317,19 @@ def run_job1(
         )
 
     selected = awards[:limit] if limit is not None else awards
-    priced_awards: list[PricedAward] = []
+    ruleset = load_ruleset(_RULESET_PATH)
+    rules = load_variance_rules(_VARIANCE_RULES_PATH)
+
+    results: list[AwardResult] = []
     extraction_failures: list[ExtractionFailure] = []
     for award in selected:
-        result = _price_award(award)
-        if isinstance(result, ExtractionFailure):
-            extraction_failures.append(result)
+        outcome = _price_and_classify_award(award, ruleset, rules)
+        if isinstance(outcome, ExtractionFailure):
+            extraction_failures.append(outcome)
         else:
-            priced_awards.append(result)
+            results.append(outcome)
+
+    accuracy = summarize(results, extraction_failures=len(extraction_failures))
 
     return Job1Run(
         run_mode=run_mode,
@@ -288,8 +342,9 @@ def run_job1(
         report_title=extraction.award_set.report_title,
         report_period=extraction.award_set.report_period,
         raw_award_count=len(awards),
-        priced_awards=tuple(priced_awards),
+        awards=tuple(results),
         extraction_failures=tuple(extraction_failures),
+        accuracy=accuracy,
     )
 
 
@@ -306,20 +361,34 @@ def _run_to_dict(run: Job1Run) -> dict:
         "report_title": run.report_title,
         "report_period": run.report_period,
         "raw_award_count": run.raw_award_count,
-        "priced_awards": [
+        "accuracy": {
+            "awards_extracted": run.accuracy.awards_extracted,
+            "exact_match": run.accuracy.exact_match,
+            "explained_variance": run.accuracy.explained_variance,
+            "unexplained": run.accuracy.unexplained,
+            "extraction_failures": run.accuracy.extraction_failures,
+        },
+        "awards": [
             {
-                "production_title": pa.production_title,
-                "disclosed_qualified_spend": str(pa.disclosed_qualified_spend),
-                "disclosed_credit": str(pa.disclosed_credit),
-                "computed_credit": str(pa.computed_credit),
-                "source_row_text": pa.source_row_text,
-                "diversity_credit_amount": (
-                    str(pa.diversity_credit_amount)
-                    if pa.diversity_credit_amount is not None
+                "production_title": r.award.production_title,
+                "disclosed": str(r.disclosed),
+                "computed": str(r.computed) if r.computed is not None else None,
+                "match_class": r.match_class.value,
+                "explanation": (
+                    {
+                        "rule_id": r.explanation.rule_id,
+                        "reason": r.explanation.reason,
+                        "source_url": r.explanation.source_url,
+                        "date_checked": r.explanation.date_checked,
+                    }
+                    if r.explanation is not None
                     else None
                 ),
+                "derivation": list(r.derivation),
+                "corroborates_committed_fixture": r.corroborates_committed_fixture,
+                "source_row_text": r.award.source_row_text,
             }
-            for pa in run.priced_awards
+            for r in run.awards
         ],
         "extraction_failures": [
             {
@@ -365,7 +434,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(_run_to_dict(run), indent=2))
         return 0
 
-    if run.terminal_reason != TerminalReason.ok and not run.priced_awards:
+    if run.terminal_reason != TerminalReason.ok and not run.awards:
         print(f"Job 1: {run.message or run.terminal_reason.value}")
         return 0
 
@@ -375,13 +444,18 @@ def main(argv: list[str] | None = None) -> int:
         f"truncated={run.truncated}"
     )
     print(f"Gemini model: {run.gemini_model}")
-    print(f"Rows read: {run.raw_award_count}, priced: {len(run.priced_awards)}, "
-          f"parse failures: {len(run.extraction_failures)}")
-    for pa in run.priced_awards:
-        print(f"\nProduction: {pa.production_title}")
-        print(f"  Disclosed qualified spend: {pa.disclosed_qualified_spend}")
-        print(f"  Disclosed credit:          {pa.disclosed_credit}")
-        print(f"  Engine-computed credit:    {pa.computed_credit}")
+    print(
+        f"Rows read: {run.raw_award_count} | exact_match={run.accuracy.exact_match} "
+        f"explained_variance={run.accuracy.explained_variance} "
+        f"unexplained={run.accuracy.unexplained} "
+        f"extraction_failures={run.accuracy.extraction_failures}"
+    )
+    for r in run.awards:
+        print(f"\nProduction: {r.award.production_title} [{r.match_class.value}]")
+        print(f"  Disclosed credit:       {r.disclosed}")
+        print(f"  Engine-computed credit: {r.computed}")
+        if r.explanation is not None:
+            print(f"  Explained by rule:      {r.explanation.rule_id} — {r.explanation.reason}")
     for ef in run.extraction_failures:
         print(f"\nParse failure: {ef.production_title}: {ef.error}")
     return 0

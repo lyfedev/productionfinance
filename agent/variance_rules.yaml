@@ -1,0 +1,45 @@
+# D-86: this file is the ONLY source of an `explained_variance` verdict
+# anywhere in this codebase. Each entry's `predicate` must name a member of
+# the closed set implemented in `agent/taxonomy.py::_PREDICATES` —
+# `agent.taxonomy.load_variance_rules` raises `UnknownPredicateError` at
+# load time for any other name. There is no `eval` and no expression
+# string ever executed from this file (T-05-07): a predicate is Python
+# code, resolved by name; this file supplies only its declared parameters.
+#
+# Every rule is grounded in real committed data, not invented:
+#   - diversity-credit-column cites the ESD "Credits Issued" chart's own
+#     Diversity Credit Amount column, already present in
+#     tests/fixtures/validation_pairs/ny_anora.yaml
+#     (diversity_credit_amount: "4956").
+#   - alternate-programme-declared-rate cites
+#     jurisdictions/us-ny.yaml's own committed 25% base_rate for
+#     ny-film-production-tax-credit (rate_structure.base_rate: "0.25").
+
+rules:
+  - id: diversity-credit-column
+    predicate: diversity_credit_equals_delta
+    reason: >
+      The ESD "Credits Issued" quarterly chart lists a separate Diversity
+      Credit Amount column alongside the film production credit. A row
+      whose disclosed total exceeds the modelled production-credit
+      programme's gross credit by exactly that column's value is not a
+      modelling error — it is New York's diversity credit, priced and
+      disclosed separately, landing inside the same reported total.
+    source_url: "https://esd.ny.gov/sites/default/files/media/document/Q3-Film-Report-2025.pdf"
+    date_checked: "2026-08-24"
+
+  - id: alternate-programme-declared-rate
+    predicate: implied_rate_matches_declared_alternate_programme
+    programme_id: ny-film-production-tax-credit
+    declared_rate: "0.25"
+    reason: >
+      jurisdictions/us-ny.yaml models exactly one New York film programme
+      (ny-film-production-tax-credit, a flat 25% base rate). If a
+      disclosure row's own label attributes the same credit line to a
+      different named programme, yet the row's implied rate (disclosed
+      credit / qualified spend) equals this programme's own declared 25%
+      exactly, the label difference is a categorisation artifact of the
+      source document, not evidence that the engine mis-modelled the
+      rate.
+    source_url: "https://esd.ny.gov/sites/default/files/media/document/Q3-Film-Report-2025.pdf"
+    date_checked: "2026-08-24"
