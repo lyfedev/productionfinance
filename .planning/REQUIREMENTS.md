@@ -105,7 +105,7 @@ The four where per-production government disclosure exists, so every model is pr
 - [x] **UI-06**: Every number on screen is clickable through to its rule, source and date checked
 - [x] **UI-07**: A proof panel shows a reproduced government figure alongside the government document
 - [x] **UI-08**: A comparison can be shared as a permalink URL encoding its inputs — the only persistence mechanism, since there is no login
-- [ ] **UI-09**: A comparison can be exported as a document a producer can hand upward
+- [x] **UI-09**: A comparison can be exported as a document a producer can hand upward
 - [ ] **UI-10**: Live research shows informative progress and terminal error states, never a silent spinner that can time out
 - [x] **UI-11**: Costs can be displayed in a chosen currency, with dual display where a government figure is in another currency
 - [x] **UI-12**: A shared link shows what changed since it was created
@@ -134,9 +134,9 @@ Stage One judging is pass/fail and partly automated. Each of these is a gate, no
 Four beats the brief requires the system to be able to show.
 
 - [x] **DMO-01**: Open on validation — reproduce a published government award figure exactly, with the government document alongside it
-- [ ] **DMO-02**: Show a case where naive percentage arithmetic is badly wrong (the £18M UK example overstates by 44%)
-- [ ] **DMO-03**: Show a ranking that inverts once net cash and timing replace headline rate
-- [ ] **DMO-04**: Show a city with no curated model being researched live and priced, labelled unvalidated
+- [x] **DMO-02**: Show a case where naive percentage arithmetic is badly wrong (the £18M UK example overstates by 44%)
+- [x] **DMO-03**: Show a ranking that inverts once net cash and timing replace headline rate
+- [x] **DMO-04**: Show a city with no curated model being researched live and priced, labelled unvalidated
 
 ---
 
@@ -260,7 +260,7 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | UI-06 | Phase 6 — The Interface | 1 — Accounts | Complete |
 | UI-07 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Complete |
 | UI-08 | Phase 6 — The Interface | 1 — Accounts | Complete |
-| UI-09 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| UI-09 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Complete |
 | UI-10 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |
 | UI-11 | Phase 6 — The Interface | 1 — Accounts | Complete |
 | UI-12 | Phase 6 — The Interface | 1 — Accounts | Complete |
@@ -279,9 +279,9 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | SHP-13 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
 | SHP-14 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
 | DMO-01 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Complete |
-| DMO-02 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
-| DMO-03 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
-| DMO-04 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| DMO-02 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Complete |
+| DMO-03 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Complete |
+| DMO-04 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Complete |
 | IDX-01 | Phase 9 — Reference Production & Scheduled Index Runs | 2 — Balances | Pending |
 | IDX-02 | Phase 9 — Reference Production & Scheduled Index Runs | 2 — Balances | Pending |
 | IDX-03 | Phase 10 — The Published Index | 2 — Balances | Pending |
