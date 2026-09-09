@@ -267,7 +267,27 @@ Plans:
   4. The visitor sees informative progress and reaches a legible terminal state within the documented ceiling — never a silent spinner that can time out
   5. Curated rules are served from cache while cap consumption, programme open/closed status, FX and uncurated-city research go live, enforced at a single point; a restarted process resumes or reclassifies in-flight research jobs instead of hanging
 
-**Plans**: TBD
+**Plans**: 6 plans in 4 waves
+
+Plans:
+**Wave 1**
+
+- [ ] 07-01-PLAN.md — Tracer: an anonymous `POST /research` runs a real Parallel Search and a real google-genai sufficiency judgment inside the request, persists the round, and renders it (AGT-05, SHP-06, UI-10, AGT-10) (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 07-02-PLAN.md — The self-terminating loop: findings that accumulate, an objective that restates the gap, and the closed terminal set including "no programme found" (AGT-05, AGT-06) (wave 2)
+- [ ] 07-03-PLAN.md — Durable jobs: boot-id restart reclassification proven by a SIGKILL two-process test, and the round-by-round reasoning trail as a product surface (AGT-11, UI-10) (wave 2)
+- [ ] 07-04-PLAN.md — The caching boundary made real: one policy module, live FX with a visible fallback, live cap consumption and live programme status (AGT-10) (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 07-05-PLAN.md — Same schema, identical engine: researched findings coerced to a rule file, loaded by `load_ruleset`, priced by `price_jurisdiction`, labelled researched (AGT-07, AGT-05) (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 07-06-PLAN.md — D-96: the generated call-site audit proving every `parallel-web` call site sits on a request handler, plus the phase's own verification record (SHP-06, all phase requirements) (wave 4)
+
 **UI hint**: yes
 **Sequencing rationale**: Job 2 is deliberately after Job 1 so that ADK and Parallel integration problems surface on the cheaper, known-answer case first. Job 2 carries materially higher risk — unknown jurisdiction, unknown correct answer — and the live-research demo hanging in front of judges is the #5 project-sinking risk. Verify by triggering Job 2 against a deliberately obscure or nonexistent city and confirming a legible terminal state.
 **Partner requirement**: SHP-06 is unconditional — the track is confirmed as Parallel. Job 2 must genuinely call Parallel's Search API at runtime via `parallel-web`, with a timestamped log line at the call site as the evidence.
