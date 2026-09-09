@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 34
+open_count: 35
 waived_count: 0
 fixed_count: 0
-total_count: 34
-last_updated: 2026-09-09T14:04:46.395Z
+total_count: 35
+last_updated: 2026-09-09T15:31:20.219Z
 ---
 
 # Broken Windows Ledger
@@ -49,6 +49,7 @@ last_updated: 2026-09-09T14:04:46.395Z
 | 32 | 07 | stub | runs/job2/README.md |  | runs/job2/ holds only the README; no human-verified live Job 2 run artifact has been copied in yet — PARALLEL_API_KEY/GEMINI_API_KEY are unset in this environment (07-03) | open |  | 2026-09-09T08:57:57.190Z |  |
 | 33 | 07 | lint-warning | agent/rule_coercion.py |  | Plan 07-05 adds 8 new FURB157 (verbose Decimal("N") constructor, RD-01 quoted-Decimal convention) findings in _SCALE_MULTIPLIERS -- same established pattern already present hundreds of times pre-existing across engine/tests (see WINDOWS entries 2,4,5,11,14,17,23,24,25,27,29,30 for the identical accepted pattern in every prior phase). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-09-09T09:49:07.809Z |  |
 | 34 | 06 | deviation | engine/sensitivity.py |  | sensitivity_rows()'s _price_pair does not catch ValueError the way app/services/spec.py::_quarter_invariance_for_city does — WINDOWS #9's documented us-ny camera-craft successor-row gap (no 2026-2027 rate row past 2026-08-01) is therefore an UNCAUGHT crash, not a graceful refusal, for any /spec or /compare request whose start_quarter+1 perturbation crosses that boundary (start_quarter=Q3, start_year=2026 specifically). Reproduced on plain main before 06-02's changes via SpecFormSubmission(start_quarter='Q3', start_year=2026). 06-02's own start-date slider works around it by excluding Q3 2026 from SLIDER_QUARTERS (documented inline) rather than fixing engine/sensitivity.py, which is out of this plan's files_modified. The underlying fix belongs in _price_pair: catch ValueError and exclude that mutation row the same way _quarter_invariance_for_city already does. | open |  | 2026-09-09T14:04:46.395Z |  |
+| 35 | 08 | unmet-truth | docs/sdk-call-sites.md |  | Re-running scripts/audit_sdk_call_sites.py --check (D-96) at 08-03's pre-submission sweep found genuine drift: 08-02's new GET /export route also reaches agent/live_checks.py:119's _search_excerpts (via the same CompareInputs/search path /compare and /spec already use), so the committed table's endpoint list for call site #2 is stale by one endpoint. Verdict for every call site remains PASS (still reachable, still 0 failing) -- this is a missing endpoint in the reachability list, not a new unreachable call site. Regenerating is a mechanical 'uv run --frozen python scripts/audit_sdk_call_sites.py --write' + commit, out of 08-03's files_modified (owns docs/SUBMISSION.md, docs/DEMO-SCRIPT.md, .planning/SHIP-CHECKLIST.md, scripts/pre_submission_check.sh only), left for whoever next touches app/routers/export.py or runs a repo-wide gate sweep. | open |  | 2026-09-09T15:31:20.219Z |  |
 
 ````json
 [
@@ -458,6 +459,18 @@ last_updated: 2026-09-09T14:04:46.395Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-09T14:04:46.395Z",
+    "resolved_at": null
+  },
+  {
+    "id": 35,
+    "kind": "unmet-truth",
+    "phase": "08",
+    "file": "docs/sdk-call-sites.md",
+    "line": null,
+    "description": "Re-running scripts/audit_sdk_call_sites.py --check (D-96) at 08-03's pre-submission sweep found genuine drift: 08-02's new GET /export route also reaches agent/live_checks.py:119's _search_excerpts (via the same CompareInputs/search path /compare and /spec already use), so the committed table's endpoint list for call site #2 is stale by one endpoint. Verdict for every call site remains PASS (still reachable, still 0 failing) -- this is a missing endpoint in the reachability list, not a new unreachable call site. Regenerating is a mechanical 'uv run --frozen python scripts/audit_sdk_call_sites.py --write' + commit, out of 08-03's files_modified (owns docs/SUBMISSION.md, docs/DEMO-SCRIPT.md, .planning/SHIP-CHECKLIST.md, scripts/pre_submission_check.sh only), left for whoever next touches app/routers/export.py or runs a repo-wide gate sweep.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-09T15:31:20.219Z",
     "resolved_at": null
   }
 ]
