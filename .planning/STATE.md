@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Curated Breadth & the Validation Loop
 status: executing
-stopped_at: Completed 07-05-PLAN.md
-last_updated: "2026-09-09T13:55:42.728Z"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-09-09T14:07:28.222Z"
 last_activity: 2026-09-09
 last_activity_desc: Phase 05 plan 01 executed — SHP-05/SHP-06 eligibility spine
-state_head: afd0eb808d73d7a7b599a7697708a1a402671ca7
+state_head: d96db11528e3954a568ee999b3f9f724cb94d46d
 progress:
   total_phases: 11
   completed_phases: 3
   total_plans: 49
-  completed_plans: 43
+  completed_plans: 44
   percent: 27
 ---
 
@@ -107,6 +107,7 @@ human sets `PARALLEL_API_KEY` and `GEMINI_API_KEY`/`GOOGLE_API_KEY` per
 | Phase 05 P08 | 20min | 3 tasks | 7 files |
 | Phase 07 P05 | 65min | 3 tasks | 6 files |
 | Phase 06 P03 | 70min | 3 tasks | 9 files |
+| Phase 06 P02 | 70 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -167,6 +168,8 @@ Recent decisions affecting current work:
 - [Phase 07]: AGT-11 restart recovery is a boot_id comparison centralized in save_run/append_round, never a timeout — A heuristic staleness timer would either declare a slow live job dead or leave a genuinely dead job spinning — proven with a real two-process SIGKILL test plus a live uvicorn kill/restart
 - [Phase 05]: us-nj.yaml declares mechanism: transferable (not nonrefundable_credit) — NJ's transfer right applies broadly to the modeled programme, unlike CA's track-restricted sale right — N.J.A.C. 19:31T-1.10(a) mirrors CT's statutory phrasing more closely than CA's track-restricted sale right; produces the correct engine.net_cash.transferable honesty-gate refusal
 - [Phase 05]: Widened RULESET_PATH_BY_JURISDICTION to all four curated jurisdictions (NY, CA, NJ, CT) in app/services/_paths.py, the single dict app.services.spec and app.services.validate both import. — JUR-02/JUR-03/JUR-04 require a validated model reachable from the hosted /validate surface, not just a rule file in the repo; the honest-refusal path (WINDOWS.md #3) proved to fire for real committed NJ/CT pairs rather than staying hypothetical.
+- [Phase 06]: SLIDER_QUARTERS scoped to 3 real, sourced quarters (Q4 2025/Q1 2026/Q2 2026), excluding Q3 2026 after discovering it triggers a pre-existing, uncaught ValueError in engine.sensitivity.sensitivity_rows (WINDOWS #34) rather than routing around it silently. — The bug is out of this plan's files_modified (engine/sensitivity.py); recorded to WINDOWS instead of fixed.
+- [Phase 06]: UI-05's band-honesty refusal is a new policy layer in app/services/compare.py (resolve_gap_selection), not a change to engine.gap.decompose_gap, which stays band-agnostic to preserve app/services/spec.py's existing golden NY-vs-LA gap. — The new two-city picker is a different UX (visitor-selectable pair) than /spec's fixed first-two-cities gap, so it gets its own gate rather than widening decompose_gap's contract.
 
 ### Pending Todos
 
@@ -193,6 +196,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-09T09:51:22.883Z
-Stopped at: Completed 07-05-PLAN.md
+Last session: 2026-09-09T14:07:28.008Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None

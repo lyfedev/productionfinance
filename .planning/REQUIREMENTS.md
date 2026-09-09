@@ -99,9 +99,9 @@ The four where per-production government disclosure exists, so every model is pr
 
 - [ ] **UI-01**: A hosted URL prices a described production across named cities for an anonymous, unauthenticated visitor
 - [ ] **UI-02**: A map displays candidate cities coloured by total landed cost
-- [ ] **UI-03**: A start-date slider reorders the ranking live as it moves
+- [x] **UI-03**: A start-date slider reorders the ranking live as it moves
 - [ ] **UI-04**: A ranked list shows net cost, incentive value, and when the cash arrives
-- [ ] **UI-05**: Selecting any two cities shows the decomposed gap between them
+- [x] **UI-05**: Selecting any two cities shows the decomposed gap between them
 - [x] **UI-06**: Every number on screen is clickable through to its rule, source and date checked
 - [ ] **UI-07**: A proof panel shows a reproduced government figure alongside the government document
 - [ ] **UI-08**: A comparison can be shared as a permalink URL encoding its inputs — the only persistence mechanism, since there is no login
@@ -254,9 +254,9 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | AGT-11 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |
 | UI-01 | Phase 6 — The Interface | 1 — Accounts | Pending |
 | UI-02 | Phase 6 — The Interface | 1 — Accounts | Pending |
-| UI-03 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| UI-03 | Phase 6 — The Interface | 1 — Accounts | Complete |
 | UI-04 | Phase 6 — The Interface | 1 — Accounts | Pending |
-| UI-05 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| UI-05 | Phase 6 — The Interface | 1 — Accounts | Complete |
 | UI-06 | Phase 6 — The Interface | 1 — Accounts | Complete |
 | UI-07 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
 | UI-08 | Phase 6 — The Interface | 1 — Accounts | Pending |

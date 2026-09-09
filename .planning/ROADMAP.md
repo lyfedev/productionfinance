@@ -255,6 +255,12 @@ Plans:
   5. A consolidated printable assumptions panel lists every rate used with its own source and date, a persistent linkable methodology page explains how figures are computed, and costs display in a chosen currency with dual display where a government figure is in another currency
 
 **Plans**: TBD
+
+- [x] 06-01-PLAN.md
+- [x] 06-02-PLAN.md
+- [x] 06-03-PLAN.md
+- [ ] 06-04-PLAN.md
+
 **UI hint**: yes
 **Why this is not incidental**: Design is one of four equally weighted judging criteria, and the hackathon scorecard ranks "build a real interface" as the single biggest needle-mover because it scores Design and Potential Impact simultaneously. This is the real map/slider/ranked-list treatment, not a form. It must not drift into Milestone 2.
 
@@ -389,7 +395,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 3. New York End-to-End — The Anora Proof | 1 — Accounts | 3/3 | Complete    | 2026-08-25 |
 | 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 7/7 | In Progress|  |
 | 5. Curated Breadth & the Validation Loop | 1 — Accounts | 8/8 | In Progress|  |
-| 6. The Interface | 1 — Accounts | 0/TBD | Not started | - |
+| 6. The Interface | 1 — Accounts | 3/4 | In Progress|  |
 | 7. Live Research, Caching & Durable Jobs | 1 — Accounts | 5/6 | In Progress|  |
 | 8. Demo Proof, Export & Submission | 1 — Accounts | 0/TBD | Not started | - |
 | 9. Reference Production & Scheduled Index Runs | 2 — Balances | 0/TBD | Not started | - |
