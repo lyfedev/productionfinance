@@ -1,8 +1,7 @@
 """AGT-10's caching boundary made real across all five data classes
-(plan 07-04) — Task 1 (live FX) and Task 2 (live cap consumption /
-programme status) land here; Task 3 (the single-point-of-truth AST gate,
-plus the uncurated-city -> /research entry path, AGT-05) extends this
-same file.
+(plan 07-04) — Task 1 (live FX), Task 2 (live cap consumption / programme
+status), and Task 3 (the single-point-of-truth AST gate, plus the
+uncurated-city -> /research entry path, AGT-05) all land here.
 
 Every SDK-touching test in this file either exercises the "no keys
 present" undetermined path (deterministic, no network, matches this
@@ -13,12 +12,18 @@ plan genuinely proves (Frankfurter, no key required) is exercised
 directly against `httpx.Client.get`, which this file's own tests
 monkeypatch to control success/failure deterministically; the confirmed
 real transcript lives in 07-04-SUMMARY.md, not in this file's assertions.
+
+Follows `tests/test_agent_job1_offline.py`'s AST-inspection discipline
+(D-87) for the structural gates — a text grep counts a docstring and is
+self-invalidating.
 """
 
 from __future__ import annotations
 
+import ast
 import dataclasses
 import os
+import re
 import subprocess
 import sys
 from datetime import date
@@ -64,6 +69,26 @@ def _base_form_kwargs(**overrides: object) -> dict:
     }
     kwargs.update(overrides)
     return kwargs
+
+
+def _valid_spec_form_data(**overrides: str) -> dict[str, str]:
+    data = {
+        "production_type": "feature",
+        "shoot_days_stage": "10",
+        "shoot_days_location": "5",
+        "crew_size": "50",
+        "crew_tier": "",
+        "principal_cast_count": "3",
+        "principal_cast_imported_count": "1",
+        "crew_imported_count": "10",
+        "crew_hired_locally_count": "40",
+        "start_quarter": "Q2",
+        "start_year": "2026",
+        "candidate_cities": "New York, NY",
+        "total_budget": "",
+    }
+    data.update(overrides)
+    return data
 
 
 # ---------------------------------------------------------------------------
@@ -480,3 +505,150 @@ def test_resolve_cap_consumption_and_resolve_programme_status_never_fabricate_av
     assert check.jurisdiction_id == "us-ny"
     assert check.availability is None
     assert check.programme_status_state == "unknown"
+
+
+# ---------------------------------------------------------------------------
+# Task 3 — the AGT-10 single-point-of-truth gate
+# ---------------------------------------------------------------------------
+
+_SCAN_ROOTS = (REPO_ROOT / "app", REPO_ROOT / "agent", REPO_ROOT / "engine")
+_POLICY_NAMES = {"DataClass", "POLICY", "may_use_cache", "assert_live"}
+_POLICY_MODULE = REPO_ROOT / "app" / "services" / "cache_policy.py"
+
+
+def _scanned_py_files() -> list[Path]:
+    files: list[Path] = []
+    for root in _SCAN_ROOTS:
+        files.extend(sorted(root.rglob("*.py")))
+    return files
+
+
+def test_policy_names_defined_in_exactly_one_module() -> None:
+    definitions: dict[str, list[Path]] = {name: [] for name in _POLICY_NAMES}
+    for path in _scanned_py_files():
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.iter_child_nodes(tree):
+            if isinstance(node, (ast.ClassDef, ast.FunctionDef)) and node.name in _POLICY_NAMES:
+                definitions[node.name].append(path)
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name) and target.id in _POLICY_NAMES:
+                        definitions[target.id].append(path)
+            if (
+                isinstance(node, ast.AnnAssign)
+                and isinstance(node.target, ast.Name)
+                and node.target.id in _POLICY_NAMES
+            ):
+                definitions[node.target.id].append(path)
+
+    for name, files in definitions.items():
+        assert files == [_POLICY_MODULE], (
+            f"{name!r} must be defined in exactly app/services/cache_policy.py, found in: "
+            f"{[str(f) for f in files]}"
+        )
+
+
+_CONSUMER_MODULES = (
+    REPO_ROOT / "agent" / "job2.py",
+    REPO_ROOT / "agent" / "live_checks.py",
+    REPO_ROOT / "app" / "services" / "live_fx.py",
+    REPO_ROOT / "app" / "services" / "spec.py",
+)
+
+
+def test_every_consumer_module_imports_from_cache_policy() -> None:
+    violations: list[str] = []
+    for path in _CONSUMER_MODULES:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        found = any(
+            isinstance(node, ast.ImportFrom) and node.module == "app.services.cache_policy"
+            for node in ast.walk(tree)
+        )
+        if not found:
+            violations.append(str(path))
+
+    assert not violations, (
+        f"consumer module(s) missing an ImportFrom of app.services.cache_policy: {violations}"
+    )
+
+
+def test_policy_table_has_exactly_one_cached_and_four_live_entries_with_rationale() -> None:
+    cached = [dc for dc, entry in POLICY.items() if entry.verdict == "cached"]
+    live = [dc for dc, entry in POLICY.items() if entry.verdict == "live"]
+    assert len(cached) == 1
+    assert len(live) == 4
+    for data_class, entry in POLICY.items():
+        assert entry.rationale.strip() != "", data_class
+
+
+# Non-vacuity proof for `test_policy_names_defined_in_exactly_one_module`
+# (performed once, by hand, and reverted — mirrors
+# tests/test_route_a_basis_walk.py's own documented proof shape):
+#
+# A scratch file `app/services/_scratch_second_dataclass.py` was created
+# containing a second top-level `class DataClass(str, Enum): ...`
+# definition, and this test module was re-run in isolation. Observed
+# result: RED —
+#
+#   AssertionError: 'DataClass' must be defined in exactly
+#   app/services/cache_policy.py, found in:
+#   ['.../app/services/_scratch_second_dataclass.py',
+#    '.../app/services/cache_policy.py']
+#
+# The scratch file was deleted immediately afterward (confirmed green
+# again, full tests/test_cache_policy_live.py re-run). See
+# 07-04-SUMMARY.md for the full transcript.
+
+
+# ---------------------------------------------------------------------------
+# Task 3 — the uncurated-city entry path into /research (AGT-05)
+# ---------------------------------------------------------------------------
+
+
+def test_uncurated_city_renders_a_urlencoded_research_link(monkeypatch) -> None:
+    from fastapi.testclient import TestClient
+
+    import app.routers.research as research_router_module
+    from agent.settings import IntegrationStatus
+    from app.main import app
+
+    client = TestClient(app)
+    response = client.post(
+        "/spec",
+        data=_valid_spec_form_data(candidate_cities="Reykjavik"),
+    )
+    assert response.status_code == 200
+
+    match = re.search(r'href="([^"]*?/research\?city=[^"]+)"', response.text)
+    assert match, response.text
+    href = match.group(1)
+    assert "Reykjavik" in href
+
+    # The prefilled form itself only renders once both integrations are
+    # configured (app/routers/research.py, plan 07-01's own "not
+    # configured" gate — unrelated to this plan). This environment has no
+    # keys (api_keys_reality), so force the configured branch here purely
+    # to prove the LINK lands on a form carrying the decoded prefill —
+    # this task adds no router code, per its own <action> text.
+    monkeypatch.setattr(
+        research_router_module,
+        "integration_status",
+        lambda: IntegrationStatus(parallel_configured=True, gemini_configured=True, missing=()),
+    )
+    follow = client.get(href)
+    assert follow.status_code == 200
+    assert 'value="Reykjavik"' in follow.text
+
+
+def test_curated_city_renders_no_research_link() -> None:
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    client = TestClient(app)
+    response = client.post(
+        "/spec",
+        data=_valid_spec_form_data(candidate_cities="New York, NY"),
+    )
+    assert response.status_code == 200
+    assert "research this city live" not in response.text

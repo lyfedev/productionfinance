@@ -41,6 +41,8 @@
         {{ city.status }} ({{ city.jurisdiction_id }})
       {% else %}
         {{ city.status }}
+        &mdash;
+        <a href="{{ public_path }}/research?city={{ city.name | urlencode }}">research this city live</a>
       {% endif %}
     </td>
   </tr>
