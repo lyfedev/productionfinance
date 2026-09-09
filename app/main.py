@@ -8,6 +8,7 @@ exact dishonesty PROJECT.md forbids.
 
 import os
 import subprocess
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -64,7 +65,24 @@ GIT_SHA: str = _resolve_git_sha()
 # app has no router mounted under the prefix, so no ASGI root_path is set.
 PUBLIC_PATH: str = os.environ.get("PRODFIN_PUBLIC_PATH", "").rstrip("/")
 
-app = FastAPI(title="ProductionFinance", version=__version__)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """AGT-11's restart-recovery sweep, run once before this process serves
+    its first request. A `systemctl restart prodfin` (or an OOM kill
+    followed by systemd's own restart) performs this with no operator
+    action — every Job 2 record still `status: "running"` from a process
+    that is now gone is reclassified `interrupted` here, before any visitor
+    can hit a stale record. `agent.research_runs` imports neither SDK, so
+    this import does not disturb the lazy-import contract this module's own
+    docstring describes (D-20)."""
+    from agent.research_runs import reclassify_interrupted_jobs
+
+    reclassify_interrupted_jobs()
+    yield
+
+
+app = FastAPI(title="ProductionFinance", version=__version__, lifespan=lifespan)
 
 # Anchored to this module's own directory, not the process CWD, for the
 # same WorkingDirectory reason PUBLIC_PATH is documented above (D-46).
