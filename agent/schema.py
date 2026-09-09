@@ -31,6 +31,7 @@ class ExtractedAward(BaseModel):
     qualified_spend: str
     credit_amount: str
     diversity_credit_amount: str | None = None
+    programme_hint: str | None = None
     source_row_text: str
 
 
