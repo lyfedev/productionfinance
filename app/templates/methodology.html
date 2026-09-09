@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Methodology — ProductionFinance{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ public_path }}/static/prodfin.css">
+<link rel="stylesheet" href="{{ public_path }}/static/provenance.css">
+
+<p class="pf-noprint">
+  <a href="{{ public_path }}/compare">&larr; Back to the comparison</a>
+</p>
+
+<h1>Methodology</h1>
+<p>
+  This page explains how every figure on this site is computed. It does
+  not depend on any particular comparison, and its address stays the
+  same — a link to it can be sent on its own.
+</p>
+
+<h2>The pipeline, stage by stage</h2>
+<p>
+  Every candidate city is priced through the same fixed sequence, applied
+  identically regardless of which jurisdiction a city sits in:
+</p>
+<ol class="pf-pipeline-stages">
+  <li><strong>Canonical budget.</strong> One production budget is built
+    from the description a visitor typed in, before any city enters the
+    calculation — the same budget is then priced against every candidate
+    city, so no city gets a differently-shaped production to compare
+    against.</li>
+  <li><strong>Localization.</strong> That one budget is priced against
+    one city's committed cost profile: labour, fringe, housing, per
+    diem, flights, stages, equipment, permits, locations and trucking,
+    each read from that city's own dated rate data.</li>
+  <li><strong>Qualifying base.</strong> For a city whose jurisdiction has
+    a committed incentive rule file, the spend that programme's rules
+    actually count is computed from the rule file's own declared
+    definition — never a flat percentage assumed the same everywhere.</li>
+  <li><strong>Credit calculation.</strong> A fixed, ordered sequence of
+    adjustments — per-person ceiling, uplift stacking, the tier or blend
+    rate, the per-project cap, the annual programme cap — applied in
+    exactly that order, every time, with every step disclosed even when
+    it changes nothing.</li>
+  <li><strong>Net cash conversion.</strong> The gross credit is converted
+    to what actually arrives as cash: the audit fee is deducted, the
+    programme's own mechanism (rebate, transferable credit, refundable
+    credit) is applied, and the estimated timing of arrival is recorded
+    alongside the amount.</li>
+  <li><strong>Landed cost aggregation.</strong> The city's cost lines are
+    summed into a cost total; when a net-cash incentive was priced, it is
+    subtracted to produce the total landed cost. When no incentive is
+    modelled, the total landed cost equals the cost total exactly — it is
+    never treated as though the missing incentive were worth $0.</li>
+  <li><strong>Ranking.</strong> Every city that produced a real net-cash
+    total is placed in one ranked band, sorted by total landed cost.
+    Every other city — a real cost total, but no modelled incentive — sits
+    in a separate band and is never sorted alongside the first, since the
+    two totals are not the same kind of number.</li>
+  <li><strong>Gap decomposition.</strong> For the two leading cities, the
+    difference between their totals is broken into the same components
+    the totals were built from, so a headline gap is never a single
+    unexplained number.</li>
+</ol>
+
+<h2>Where a number came from: the <code>basis</code> axis</h2>
+<p>
+  Every cost-side figure carries a <code>basis</code> naming where its
+  value came from. It is shown on every figure on the assumptions panel,
+  next to — never merged with — that figure's confidence tier.
+</p>
+<dl class="pf-vocabulary-list">
+  <dt>sourced</dt>
+  <dd>A published rate-card row: a union scale, a per-diem table, a
+    stage rate card — read directly from a dated, cited document.</dd>
+  <dt>estimated</dt>
+  <dd>Computed from a sourced input by a disclosed method — for example,
+    a fringe multiplier applied to a published wage scale, or a regional
+    index. The method is stated in the figure's own derivation.</dd>
+  <dt>modelling_assumption</dt>
+  <dd>No public source exists for this number anywhere — crew
+    composition and department spend ratios are the primary example.
+    Disclosed as exactly that, never dressed up as a sourced figure.</dd>
+</dl>
+<p>
+  A total inherits the WEAKEST basis among everything that fed into it.
+  A total built from one <code>modelling_assumption</code> line is itself
+  labelled <code>modelling_assumption</code> — it never reports a
+  stronger tier than its weakest input actually earned.
+</p>
+
+<h2>Two different questions, never one badge</h2>
+<p>
+  Two separate labels appear on every figure, answering two separate
+  questions:
+</p>
+<dl class="pf-vocabulary-list">
+  <dt>basis (sourced / estimated / modelling_assumption)</dt>
+  <dd>Where did this number come from?</dd>
+  <dt>confidence (validated / researched)</dt>
+  <dd>Has this specific computed figure been checked against a real
+    government disclosure, or is it only research-backed?</dd>
+</dl>
+<p>
+  A third, unrelated vocabulary exists elsewhere on this site for a
+  different subject entirely: a cited source DOCUMENT's own reliability
+  tier (a four-level scale from low to high). That tier describes how
+  reliable a document is; it is never the same field as a figure's own
+  confidence, and the two are never combined into a single label.
+</p>
+
+<h2>The honest-refusal states</h2>
+<p>
+  Three situations get an explicit, worded state rather than a
+  guessed number:
+</p>
+<ul>
+  <li><strong>A named but unpriced city.</strong> A candidate city typed
+    in that resolves to no committed cost profile at all is named on the
+    page exactly as typed — never silently dropped from the list.</li>
+  <li><strong>An unmodelled incentive.</strong> A city with a real cost
+    total but no committed, modelled incentive shows "unknown — not
+    modelled," never a $0 incentive. A missing number and a genuinely
+    zero number are different facts, and this site does not conflate
+    them.</li>
+  <li><strong>A fixed total budget.</strong> This site does not accept a
+    single fixed dollar amount as an input, because cost is only ever an
+    output here — a fixed dollar figure buys a different production in
+    every city, which makes a same-budget comparison circular rather than
+    informative.</li>
+</ul>
+
+<h2>What this model does not price, at all</h2>
+<p>
+  Some real costs have no public, general-purpose source anywhere and
+  are declared out of scope rather than estimated with an invented
+  number:
+</p>
+<ul class="pf-permanent-exclusions-list">
+  {% for exclusion in permanent_exclusions %}
+  <li>{{ exclusion }}</li>
+  {% endfor %}
+</ul>
+<p>
+  Separately, an individual city's own cost profile may not yet price
+  every category in this model's full set —
+  {{ cost_categories | join(", ") }} — and that per-city gap is named on
+  the assumptions panel for that specific city, never filled with a $0
+  line either.
+</p>
+
+<h2>Every figure, traced to its own rule</h2>
+<p>
+  Every money figure on the assumptions panel expands to show how it was
+  derived, step by step, down to the rates that fed into it — each
+  carrying its own source link and the date that source was checked, or
+  an explicit statement naming why no source is available for that
+  particular number. See the
+  <a href="{{ public_path }}/assumptions">assumptions panel</a> for the
+  current comparison's own full list.
+</p>
+
+{% endblock %}
