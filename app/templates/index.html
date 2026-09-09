@@ -1,78 +1,112 @@
 {% extends "base.html" %}
-{% block title %}ProductionFinance{% endblock %}
+{% block title %}AI.ncentives{% endblock %}
 {% block content %}
+<div class="wrap">
 
-<h1>ProductionFinance</h1>
-<p>
-  ProductionFinance prices the same film production in every city a
-  producer is considering, and reports the true landed cost of each —
-  every figure sourced, dated, and provably matching what a government
-  actually paid.
-</p>
+  <header class="masthead">
+    <h1>AI.ncentives</h1>
+    <p>
+      Film incentive programmes priced from the government's own rules. Every
+      figure carries the rule that produced it, the document it came from, and
+      the date that document was read.
+    </p>
+  </header>
 
-<h2>Demo</h2>
-<p>
-  <li><a href="{{ public_path }}/integrate">Integration contract</a> — the JSON a host production system sends us and the JSON we return, including the full derivation of every figure.</li>
-  <a href="{{ public_path }}/demo">All four demo beats, in one place</a>
-  &mdash; open on validation, a case where naive percentage arithmetic is
-  badly wrong, a ranking that inverts once net cash replaces headline
-  rate, and a city with no curated model researched live and priced,
-  labelled unvalidated.
-</p>
+  <!-- The hero is a reconciliation, not a claim. Real values from the
+       committed ny_anora validation pair, rendered by the same engine the
+       API uses. -->
+  <section class="ledger" aria-labelledby="rec-anora">
+    <div class="ledger-head">
+      <span class="ledger-title" id="rec-anora">Anora</span>
+      <span class="ledger-sub">New York State Film Production Tax Credit &middot; disclosed in the ESD quarterly report</span>
+    </div>
+    <table class="rows">
+      <tbody>
+        <tr><td>Qualified spend, as disclosed</td><td class="amt">{{ anora.spend }}</td></tr>
+        <tr><td>Rate applied by the programme</td><td class="amt">25%</td></tr>
+        <tr class="total"><td>Credit we compute</td><td class="amt">{{ anora.computed }}</td></tr>
+        <tr><td>Credit New York State disclosed</td><td class="amt">{{ anora.disclosed }}</td></tr>
+        <tr class="settle"><td>Difference</td><td class="amt">{{ anora.difference }}</td></tr>
+      </tbody>
+    </table>
+    <p class="verdict match"><strong>Exact match.</strong> Reproduced from the rule file, not stored and replayed.</p>
+    <div class="ledger-actions">
+      <a class="act primary" href="{{ public_path }}/proof">Show the government document</a>
+      <a class="act" href="{{ public_path }}/validate/ny_anora">Show every step</a>
+    </div>
+  </section>
 
-<h2>Price a production</h2>
-<p>
-  <a href="{{ public_path }}/spec">Price a production</a>
-  &mdash; describe a production's physical inputs and see it echoed back,
-  each named candidate city marked with its curated status, New York's
-  cited rule terms, and an explicit statement of what is not yet derived.
-  A budget figure is never accepted as an input.
-</p>
+  <!-- The second panel is the refusal. A product that declines to answer is
+       the point, so it gets equal weight, not a footnote. -->
+  <section class="ledger" aria-labelledby="rec-nj">
+    <div class="ledger-head">
+      <span class="ledger-title" id="rec-nj">A $10m production in New Jersey</span>
+      <span class="ledger-sub">Garden State Film and Digital Media Jobs Program</span>
+    </div>
+    <table class="rows">
+      <tbody>
+        <tr><td>Qualified spend</td><td class="amt">10,000,000</td></tr>
+        <tr><td>Rate applied by the programme</td><td class="amt">30%</td></tr>
+        <tr class="total"><td>Gross credit</td><td class="amt">3,000,000</td></tr>
+        <tr><td>Transfer discount<span class="note"> — the credit is transferable, so its cash value depends on the discount at which it sells</span></td><td class="amt">not published</td></tr>
+        <tr class="settle"><td>Net cash to the production</td><td class="amt">cannot be computed</td></tr>
+      </tbody>
+    </table>
+    <p class="verdict refuse">
+      <strong>No New Jersey government document states a transfer discount.</strong>
+      The answer is returned as unknown, never as zero — a zero would say the
+      credit is worthless, and that is a different claim.
+    </p>
+    <div class="ledger-actions">
+      <a class="act" href="{{ public_path }}/integrate?jurisdiction_id=us-nj&amp;qualified_spend=10000000&amp;submitted=1">See what the API returns here</a>
+    </div>
+  </section>
 
-<h2>Reproduce a disclosure</h2>
-<p>
-  <a href="{{ public_path }}/validate">Reproduce a disclosure</a>
-  &mdash; read a committed government disclosure, price it through the
-  engine, and see the disclosed figure and the computed figure side by
-  side with an explicit match verdict.
-</p>
+  <section class="entries">
+    <h2>Try it</h2>
+    <p>Nothing below needs an account.</p>
+    <table class="entry-table">
+      <thead><tr><th scope="col">Page</th><th scope="col">What happens</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><a href="{{ public_path }}/integrate">Integration contract</a></td>
+          <td class="what">Fill in a jurisdiction and a spend figure, and watch the JSON a host accounting system would send us, and the JSON we return, including every step of the derivation.</td>
+        </tr>
+        <tr>
+          <td><a href="{{ public_path }}/proof">Proof</a></td>
+          <td class="what">A reproduced government figure beside the archived document it came from, with that document's checksum.</td>
+        </tr>
+        <tr>
+          <td><a href="{{ public_path }}/job1">Read a disclosure live</a></td>
+          <td class="what">Parallel Search finds a New York government report, Parallel Extract reads it, Gemini turns it into production and award pairs. The SDK calls are shown as they happen.</td>
+        </tr>
+        <tr>
+          <td><a href="{{ public_path }}/research">Research a city we have not modelled</a></td>
+          <td class="what">Name a city with no rule file. The agent searches, decides for itself whether it has enough to build a model, and either prices it or says what it could not determine.</td>
+        </tr>
+        <tr>
+          <td><a href="{{ public_path }}/spec">Price a production</a></td>
+          <td class="what">Describe a production's physical inputs — shoot days, crew size, cast — and see it priced across candidate cities, each marked with whether its incentive is modelled.</td>
+        </tr>
+        <tr>
+          <td><a href="{{ public_path }}/validate">Reproduce a disclosure</a></td>
+          <td class="what">Pick any committed government disclosure and see the disclosed figure against ours.</td>
+        </tr>
+        <tr>
+          <td><a href="{{ public_path }}/demo">All four demo beats</a></td>
+          <td class="what">The reconciliation, a case where percentage arithmetic is badly wrong, a ranking that inverts once cash timing is included, and live research.</td>
+        </tr>
+        <tr>
+          <td><a href="{{ public_path }}/methodology">Methodology</a></td>
+          <td class="what">How a figure is computed, and what each provenance label means.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
 
-<h2>Job 1 — reproduce a disclosure live</h2>
-<p>
-  <a href="{{ public_path }}/job1">Job 1</a>
-  &mdash; watch Parallel Search find a real New York government disclosure,
-  Parallel Extract read it, and <code>google-genai</code> turn it into
-  priced production/award pairs, live, with the SDK call evidence shown
-  right on the page.
-</p>
+  <p class="entries" style="margin-top:2rem;color:var(--ink-soft);font-size:.9rem">
+    Service status: <a href="{{ public_path }}/health">/health</a>
+  </p>
 
-<h2>Proof panel</h2>
-<p>
-  <a href="{{ public_path }}/proof">Proof panel</a>
-  &mdash; a reproduced government award figure shown next to the archived
-  government document itself, its sha256 hash, the honest bucket-count
-  accuracy figure across every validation pair, and any unresolved
-  disagreement between authoritative sources, stated as unresolved.
-</p>
-
-<h2>Job 2 — research an unknown jurisdiction live</h2>
-<p>
-  <a href="{{ public_path }}/research">Research a jurisdiction</a>
-  &mdash; name a city with no curated rule model and watch a genuine agent
-  loop research it: Parallel Search, then <code>google-genai</code> judging
-  whether it has enough to build a cost model, refining its own search
-  until it decides it has enough or gives up, live, with every round shown.
-</p>
-
-<h2>Export a comparison</h2>
-<p>
-  <a href="{{ public_path }}/export">Export document</a>
-  &mdash; a self-contained, server-rendered document for a comparison:
-  the two-band ranked list, the decomposed gap, every figure's source
-  and date, the model-wide assumptions, and the list of what this model
-  does not price. Complete without JavaScript.
-</p>
-
-<p><a href="{{ public_path }}/health">{{ public_path }}/health</a></p>
-
+</div>
 {% endblock %}

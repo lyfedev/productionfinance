@@ -54,4 +54,4 @@ def test_health_git_sha_is_nonempty_string():
 def test_index_returns_200_with_project_name():
     response = client.get("/")
     assert response.status_code == 200
-    assert "ProductionFinance" in response.text
+    assert "AI.ncentives" in response.text

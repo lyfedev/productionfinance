@@ -1,374 +1,114 @@
-/* prodfin.css — ProductionFinance's design system, established here for
-   /compare and every later Phase 6 surface that extends it.
-
-   Vocabulary discipline: this file is covered by the D-70 gate over
-   app/static/ — no class name, token name or comment here names the
-   product's prescriptive-vocabulary list (see 04-CONTEXT.md § D-70) in
-   any form. Every word choice below is descriptive, never prescriptive. */
+/* ProductionFinance — the visual language of a production cost report.
+   Greenbar accounting paper, tabular figures right-aligned, a rule above
+   every total. Figures are monospace because columns must align, not as
+   decoration. */
 
 :root {
-  /* Spacing scale — a single ratio, used everywhere layout needs a gap. */
-  --pf-space-1: 0.25rem;
-  --pf-space-2: 0.5rem;
-  --pf-space-3: 0.75rem;
-  --pf-space-4: 1rem;
-  --pf-space-5: 1.5rem;
-  --pf-space-6: 2rem;
-  --pf-space-7: 3rem;
-
-  /* Type — a display face for headings, a plain reading face for body
-     copy, and a genuinely tabular numeric face for every money value. */
-  --pf-font-display: "Iowan Old Style", "Georgia", "Times New Roman", serif;
-  --pf-font-body: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --pf-font-mono: "SF Mono", "Menlo", "Consolas", monospace;
-
-  /* Neutral scale. */
-  --pf-ink: #1a1d21;
-  --pf-ink-soft: #4a5058;
-  --pf-line: #d8dbe0;
-  --pf-line-soft: #e9ebee;
-  --pf-paper: #ffffff;
-  --pf-paper-sunk: #f6f7f9;
-
-  /* The net-cost sequential ramp — the ranked band's own colour identity.
-     Two stops; the map's interpolate expression walks the same range. */
-  --pf-ramp-low: #2a6f97;
-  --pf-ramp-high: #a4133c;
-
-  /* The unranked band's deliberately non-scale neutral treatment — never
-     drawn from the ramp above, so it can never be mistaken for a point
-     on the net-cost colour scale. */
-  --pf-unranked-bg: #f1f0ec;
-  --pf-unranked-line: #c9c4b8;
-  --pf-unranked-ink: #6b6558;
-
-  --pf-radius: 10px;
-  --pf-shadow: 0 1px 2px rgba(20, 20, 30, 0.06), 0 6px 20px rgba(20, 20, 30, 0.05);
+  --paper:    #f4f6f1;
+  --band:     #e4ebdf;
+  --ink:      #16211b;
+  --ink-soft: #4a5a50;
+  --rule:     #a8bbae;
+  --rule-firm:#5d7365;
+  --verified: #1f6f43;
+  --refused:  #8a4b1f;
+  --measure:  64ch;
 }
 
-.pf-inputs,
-.pf-map-section,
-.pf-band {
-  font-family: var(--pf-font-body);
-  color: var(--pf-ink);
-}
+* { box-sizing: border-box; }
 
-.pf-inputs h2,
-.pf-map-section h2,
-.pf-band h2,
-.pf-band h3 {
-  font-family: var(--pf-font-display);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-/* Every money value in this project reads through this class — tabular
-   figures keep a column of dollar amounts visually aligned, digit for
-   digit, the way a spreadsheet does. */
-.pf-money,
-.pf-money-table td.pf-money {
-  font-family: var(--pf-font-mono);
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1;
-}
-
-.pf-basis {
-  color: var(--pf-ink-soft);
-  font-size: 0.85em;
-  font-family: var(--pf-font-body);
-}
-
-.pf-money-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--pf-paper);
-  border-radius: var(--pf-radius);
-  overflow: hidden;
-  box-shadow: var(--pf-shadow);
-  margin: var(--pf-space-3) 0 var(--pf-space-5);
-}
-
-.pf-money-table th,
-.pf-money-table td {
-  padding: var(--pf-space-3) var(--pf-space-4);
-  border-bottom: 1px solid var(--pf-line-soft);
-  text-align: left;
-  vertical-align: top;
-}
-
-.pf-money-table thead th {
-  background: var(--pf-paper-sunk);
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--pf-ink-soft);
-}
-
-.pf-money-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-/* --- Map + ranked list layout ------------------------------------- */
-
-.pf-map-section {
-  margin: var(--pf-space-5) 0;
-}
-
-.pf-map {
-  width: 100%;
-  height: 26rem;
-  border-radius: var(--pf-radius);
-  overflow: hidden;
-  box-shadow: var(--pf-shadow);
-  background: var(--pf-paper-sunk);
-  border: 1px solid var(--pf-line);
-}
-
-.pf-map-legend {
-  color: var(--pf-ink-soft);
-  font-size: 0.9rem;
-  margin-top: var(--pf-space-2);
-}
-
-.pf-noscript {
-  padding: var(--pf-space-4);
-  color: var(--pf-ink-soft);
-}
-
-@media (min-width: 60rem) {
-  .pf-layout {
-    display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
-    gap: var(--pf-space-6);
-    align-items: start;
-  }
-}
-
-/* --- Band identity --------------------------------------------------- */
-
-.pf-band--ranked {
-  border-left: 4px solid var(--pf-ramp-low);
-  padding-left: var(--pf-space-4);
-  margin-bottom: var(--pf-space-6);
-}
-
-.pf-band--unranked {
-  background: var(--pf-unranked-bg);
-  border: 1px dashed var(--pf-unranked-line);
-  border-radius: var(--pf-radius);
-  padding: var(--pf-space-4) var(--pf-space-5);
-  color: var(--pf-unranked-ink);
-  margin-bottom: var(--pf-space-6);
-}
-
-.pf-band--unranked h2 {
-  color: var(--pf-unranked-ink);
-}
-
-.pf-band--unpriced {
-  padding: var(--pf-space-3) var(--pf-space-5);
-  color: var(--pf-ink-soft);
-  font-size: 0.95rem;
-  border-top: 1px solid var(--pf-line-soft);
-  margin-bottom: var(--pf-space-6);
-}
-
-.pf-band--unpriced h2 {
-  font-size: 1rem;
-  color: var(--pf-ink-soft);
-}
-
-.pf-unpriced-list {
-  list-style: none;
-  margin: var(--pf-space-2) 0 0;
-  padding: 0;
-}
-
-.pf-unpriced-list li {
-  padding: var(--pf-space-2) 0;
-  border-bottom: 1px solid var(--pf-line-soft);
-}
-
-.pf-unpriced-list li:last-child {
-  border-bottom: none;
-}
-
-.pf-unpriced-list a {
-  margin-left: var(--pf-space-2);
-}
-
-.pf-incentive-unknown {
-  color: var(--pf-unranked-ink);
-  font-style: italic;
-}
-
-.pf-live-checks {
-  margin: var(--pf-space-5) 0;
-}
-
-/* --- Start-date slider (UI-03) ---------------------------------------- */
-
-.pf-slider-section {
-  margin: var(--pf-space-5) 0;
-  padding: var(--pf-space-4) var(--pf-space-5);
-  background: var(--pf-paper);
-  border: 1px solid var(--pf-line);
-  border-radius: var(--pf-radius);
-}
-
-.pf-slider-section label {
-  font-family: var(--pf-font-display);
-  font-weight: 600;
-}
-
-.pf-slider-section input[type="range"] {
-  width: 100%;
-  max-width: 30rem;
-  margin: var(--pf-space-3) 0;
-  display: block;
-}
-
-.pf-slider-submit {
-  font-family: var(--pf-font-body);
-}
-
-.pf-slider-note {
-  color: var(--pf-ink-soft);
-  font-size: 0.85rem;
-  margin-top: var(--pf-space-2);
-  max-width: 40rem;
-}
-
-/* --- Two-city gap picker (UI-05) --------------------------------------- */
-
-.pf-gap-section {
-  margin: var(--pf-space-6) 0;
-  padding: var(--pf-space-4) var(--pf-space-5);
-  background: var(--pf-paper);
-  border: 1px solid var(--pf-line);
-  border-radius: var(--pf-radius);
-}
-
-.pf-gap-section label {
-  font-family: var(--pf-font-display);
-  font-weight: 600;
-  margin-right: var(--pf-space-2);
-}
-
-.pf-gap-section select {
-  margin: 0 var(--pf-space-4) var(--pf-space-3) 0;
-}
-
-.pf-gap-note {
-  color: var(--pf-ink-soft);
-  font-size: 0.9rem;
-}
-
-.pf-gap-refusal {
-  padding: var(--pf-space-3) var(--pf-space-4);
-  background: var(--pf-unranked-bg);
-  border: 1px dashed var(--pf-unranked-line);
-  border-radius: var(--pf-radius);
-  color: var(--pf-unranked-ink);
-}
-
-/* --- Display currency (UI-11) ------------------------------------------ */
-
-.pf-currency-section {
-  margin: var(--pf-space-5) 0;
-  padding: var(--pf-space-4) var(--pf-space-5);
-  background: var(--pf-paper);
-  border: 1px solid var(--pf-line);
-  border-radius: var(--pf-radius);
-}
-
-.pf-currency-section label {
-  font-family: var(--pf-font-display);
-  font-weight: 600;
-  margin-right: var(--pf-space-2);
-}
-
-.pf-currency-note {
-  color: var(--pf-ink-soft);
-  font-size: 0.85rem;
-  margin-top: var(--pf-space-2);
-  max-width: 40rem;
-}
-
-.pf-currency-converted {
-  display: block;
-  font-family: var(--pf-font-body);
-  font-size: 0.8rem;
-  color: var(--pf-ink-soft);
-  margin-top: var(--pf-space-1);
-}
-
-.pf-currency-converted-badge {
-  font-weight: 600;
-  color: var(--pf-ramp-low);
-}
-
-.pf-currency-refusal {
-  display: block;
-  font-family: var(--pf-font-body);
-  font-size: 0.8rem;
-  color: var(--pf-unranked-ink);
-  margin-top: var(--pf-space-1);
-}
-
-.pf-currency-original {
-  display: block;
-  font-family: var(--pf-font-body);
-  font-size: 0.8rem;
-  color: var(--pf-ink-soft);
-  margin-top: var(--pf-space-1);
-}
-
-.pf-currency-original-badge {
-  font-weight: 600;
-  color: var(--pf-ink);
-}
-
-/* --- The permalink (UI-08) and its change diff (UI-12) ----------------- */
-
-.pf-share-section {
-  margin: var(--pf-space-6) 0;
-  padding: var(--pf-space-4) var(--pf-space-5);
-  background: var(--pf-paper);
-  border: 1px solid var(--pf-line);
-  border-radius: var(--pf-radius);
-}
-
-.pf-share-link input[type="text"] {
-  width: 100%;
-  max-width: 40rem;
-  font-family: var(--pf-font-mono);
-  padding: var(--pf-space-2) var(--pf-space-3);
-  border: 1px solid var(--pf-line);
-  border-radius: var(--pf-radius);
-  background: var(--pf-paper-sunk);
-}
-
-.pf-diff-section {
-  margin: var(--pf-space-5) 0 var(--pf-space-6);
-  padding: var(--pf-space-4) var(--pf-space-5);
-  background: var(--pf-paper);
-  border: 1px solid var(--pf-line);
-  border-radius: var(--pf-radius);
-}
-
-.pf-diff-unchanged {
-  padding: var(--pf-space-3) var(--pf-space-4);
-  background: var(--pf-paper-sunk);
-  border-radius: var(--pf-radius);
-  color: var(--pf-ink-soft);
-}
-
-.pf-diff-note {
-  color: var(--pf-ink-soft);
-}
-
-.pf-diff-changes {
+body {
   margin: 0;
-  padding-left: var(--pf-space-4);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Libre Franklin", system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
 }
+
+.wrap { max-width: 68rem; margin: 0 auto; padding: 0 1.25rem 5rem; }
+
+/* ---- masthead ------------------------------------------------------- */
+.masthead { padding: 2.75rem 0 1.25rem; }
+.masthead h1 {
+  font-size: clamp(1.9rem, 4.5vw, 2.9rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  margin: 0 0 .6rem;
+}
+.masthead p { max-width: var(--measure); margin: 0; color: var(--ink-soft); font-size: 1.02rem; }
+
+/* ---- the ledger ----------------------------------------------------- */
+.ledger {
+  margin: 2rem 0 0;
+  background: #fff;
+  border: 1px solid var(--rule);
+}
+.ledger-head {
+  display: flex; flex-wrap: wrap; gap: .35rem 1rem; align-items: baseline;
+  padding: .85rem 1.1rem;
+  border-bottom: 1px solid var(--rule);
+  background: var(--band);
+}
+.ledger-title { font-weight: 700; font-size: 1.05rem; }
+.ledger-sub { color: var(--ink-soft); font-size: .9rem; }
+
+.rows { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.rows tr:nth-child(even) td { background: #f7f9f5; }
+.rows td { padding: .5rem 1.1rem; border: 0; }
+.rows td.amt {
+  text-align: right;
+  font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  font-size: .95rem;
+  white-space: nowrap;
+}
+.rows tr.total td { border-top: 1px solid var(--rule-firm); font-weight: 600; }
+.rows tr.settle td {
+  border-top: 3px double var(--rule-firm);
+  font-weight: 700;
+}
+.rows td.note { color: var(--ink-soft); font-size: .88rem; }
+
+.verdict { padding: .8rem 1.1rem; border-top: 1px solid var(--rule); font-size: .95rem; }
+.verdict.match   { color: var(--verified); }
+.verdict.refuse  { color: var(--refused); }
+.verdict strong { font-weight: 700; }
+
+.ledger-actions { display: flex; flex-wrap: wrap; gap: .6rem; padding: .9rem 1.1rem; border-top: 1px solid var(--rule); }
+.act {
+  display: inline-block; padding: .5rem .9rem; text-decoration: none;
+  border: 1px solid var(--rule-firm); color: var(--ink); background: #fff;
+  font-size: .92rem;
+}
+.act:hover, .act:focus-visible { background: var(--band); }
+.act.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.act.primary:hover, .act.primary:focus-visible { background: #24352b; }
+
+/* ---- entry points --------------------------------------------------- */
+.entries { margin-top: 3rem; }
+.entries h2 { font-size: 1.1rem; margin: 0 0 .2rem; }
+.entries > p { margin: 0 0 1rem; color: var(--ink-soft); max-width: var(--measure); }
+.entry-table { width: 100%; border-collapse: collapse; }
+.entry-table th { text-align: left; font-size: .82rem; color: var(--ink-soft); font-weight: 500;
+  padding: .4rem .6rem; border-bottom: 1px solid var(--rule); }
+.entry-table td { padding: .6rem; border-bottom: 1px solid var(--band); vertical-align: top; }
+.entry-table td:first-child { white-space: nowrap; }
+.entry-table a { color: var(--ink); font-weight: 600; }
+.entry-table .what { color: var(--ink-soft); font-size: .93rem; }
+
+a { color: var(--ink); }
+:focus-visible { outline: 2px solid var(--verified); outline-offset: 2px; }
+
+/* ---- generic content pages ------------------------------------------ */
+.wrap table { border-collapse: collapse; margin: .5rem 0; }
+.wrap table td, .wrap table th { border: 1px solid var(--rule); padding: .35rem .6rem; text-align: left; }
+.figure-node { margin-left: 1.25rem; border-left: 2px solid var(--band); padding-left: .75rem; }
+.unselectable { color: var(--ink-soft); }
+
+@media (max-width: 640px) {
+  .rows td { padding: .45rem .7rem; }
+  .ledger-head { padding: .7rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

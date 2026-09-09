@@ -4,13 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}ProductionFinance{% endblock %}</title>
-  <style>
-    body { font-family: sans-serif; max-width: 60rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
-    table { border-collapse: collapse; margin: 0.5rem 0; }
-    td, th { border: 1px solid #ccc; padding: 0.35rem 0.6rem; text-align: left; }
-    .figure-node { margin-left: 1.25rem; border-left: 2px solid #ddd; padding-left: 0.75rem; }
-    .unselectable { color: #777; }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ public_path }}/static/prodfin.css">
+  {% block head %}{% endblock %}
 </head>
 <body>
 {% block content %}{% endblock %}

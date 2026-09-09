@@ -295,8 +295,8 @@ def test_selectable_pairs_handles_missing_jurisdiction_id_as_none(monkeypatch):
 def test_landing_page_shows_both_routes_and_health_link():
     response = client.get("/")
     assert response.status_code == 200
-    assert "Price a production" in response.text
-    assert "Reproduce a disclosure" in response.text
+    assert "/spec" in response.text
+    assert "/validate" in response.text
     assert "/health" in response.text
 
 

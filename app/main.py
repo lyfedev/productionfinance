@@ -137,8 +137,22 @@ def index(request: Request) -> HTMLResponse:
     """Landing page — the two routes D-32 names (Route A: "Price a
     production", Route B: "Reproduce a disclosure"). Both are live links as
     of plan 03-02."""
+    # The hero is a live reconciliation, not copy. If the engine ever stops
+    # reproducing this figure the landing page shows the real difference
+    # rather than a stale claim of an exact match.
+    from app.services.validate import reproduce_disclosure
+
+    result = reproduce_disclosure("ny_anora")
+    disclosed = int(result.disclosed_credit)
+    computed = int(result.computed_credit) if result.computed_credit is not None else None
+    anora = {
+        "spend": f"{int(result.disclosed_qualified_spend):,}",
+        "disclosed": f"{disclosed:,}",
+        "computed": f"{computed:,}" if computed is not None else "cannot be computed",
+        "difference": f"{computed - disclosed:,}" if computed is not None else "—",
+    }
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={"public_path": PUBLIC_PATH},
+        context={"public_path": PUBLIC_PATH, "anora": anora},
     )
