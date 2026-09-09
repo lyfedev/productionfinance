@@ -104,11 +104,11 @@ The four where per-production government disclosure exists, so every model is pr
 - [x] **UI-05**: Selecting any two cities shows the decomposed gap between them
 - [x] **UI-06**: Every number on screen is clickable through to its rule, source and date checked
 - [x] **UI-07**: A proof panel shows a reproduced government figure alongside the government document
-- [ ] **UI-08**: A comparison can be shared as a permalink URL encoding its inputs — the only persistence mechanism, since there is no login
+- [x] **UI-08**: A comparison can be shared as a permalink URL encoding its inputs — the only persistence mechanism, since there is no login
 - [ ] **UI-09**: A comparison can be exported as a document a producer can hand upward
 - [ ] **UI-10**: Live research shows informative progress and terminal error states, never a silent spinner that can time out
-- [ ] **UI-11**: Costs can be displayed in a chosen currency, with dual display where a government figure is in another currency
-- [ ] **UI-12**: A shared link shows what changed since it was created
+- [x] **UI-11**: Costs can be displayed in a chosen currency, with dual display where a government figure is in another currency
+- [x] **UI-12**: A shared link shows what changed since it was created
 
 ### Delivery and Compliance
 
@@ -259,11 +259,11 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | UI-05 | Phase 6 — The Interface | 1 — Accounts | Complete |
 | UI-06 | Phase 6 — The Interface | 1 — Accounts | Complete |
 | UI-07 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Complete |
-| UI-08 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| UI-08 | Phase 6 — The Interface | 1 — Accounts | Complete |
 | UI-09 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
 | UI-10 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |
-| UI-11 | Phase 6 — The Interface | 1 — Accounts | Pending |
-| UI-12 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| UI-11 | Phase 6 — The Interface | 1 — Accounts | Complete |
+| UI-12 | Phase 6 — The Interface | 1 — Accounts | Complete |
 | SHP-01 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Pending |
 | SHP-02 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |
 | SHP-03 | Phase 1 — Foundations: Source Truth & Deploy Path | 1 — Accounts | Complete |

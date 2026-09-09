@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Curated Breadth & the Validation Loop
 status: executing
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-09-09T14:49:49.291Z"
+stopped_at: Completed 06-04-PLAN.md
+last_updated: "2026-09-09T15:02:56.126Z"
 last_activity: 2026-09-09
 last_activity_desc: Phase 05 plan 01 executed — SHP-05/SHP-06 eligibility spine
-state_head: 8fd4ebd52f8543e99358ce27f042821219e2d069
+state_head: 453db86a92137bfa1a1fa98f2b37a2bbcab9b8bc
 progress:
   total_phases: 11
   completed_phases: 3
   total_plans: 49
-  completed_plans: 45
+  completed_plans: 46
   percent: 27
 ---
 
@@ -109,6 +109,7 @@ human sets `PARALLEL_API_KEY` and `GEMINI_API_KEY`/`GOOGLE_API_KEY` per
 | Phase 06 P03 | 70min | 3 tasks | 9 files |
 | Phase 06 P02 | 70 min | 3 tasks | 7 files |
 | Phase 08 P01 | 45min | 3 tasks | 10 files |
+| Phase 06 P04 | 95min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -175,6 +176,8 @@ Recent decisions affecting current work:
 - [Phase 08]: PRV-06's accuracy figure is computed by running agent.taxonomy.classify() over every selectable validation pair against agent/variance_rules.yaml, not by replaying a live Job 1 extraction run — No runs/job1/ evidence is committed (Parallel/Gemini credentials absent, D-101); this measurement is a distinct, always-available, 100% real computation, honestly labelled as such.
 - [Phase 08]: Real bucket counts today: 5 exact_match / 0 explained_variance / 5 unexplained of 10 selectable pairs — nj_joker's fully-prose-explained $122,665 residue is not covered by either named predicate in agent/variance_rules.yaml (both NY-specific) and is shown honestly as unexplained rather than silently upgraded
 - [Phase 08]: Added data/source_conflicts.yaml as the committed (currently empty) data source for PRV-07's conflict surface — No schema existed to ever record a real conflict; both candidate conflicts this project investigated (NY $700M/$800M, GA loan-out withholding) were already closed against a primary source, so the file stays empty rather than seeded with a manufactured entry.
+- [Phase 06]: UI-11's original-currency figure is reconstructed via a one-level, non-deduplicating walk over cost_only_total.inputs (never collect_rate_figures' deduplicated walk, which silently undercounts a genuine sum) — Cross-checked against the documented golden London figure (£548,595) — the deduplicating approach reconstructed only £491,419
+- [Phase 06]: CompareInputs.display_currency added to app/services/compare.py, outside plan 06-04's declared files_modified — Needed for POST/GET contract parity so the settled-slider JS path preserves a visitor's chosen display currency with zero changes to compare.js
 
 ### Pending Todos
 
@@ -201,6 +204,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-09T14:07:28.008Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-09-09T15:02:55.890Z
+Stopped at: Completed 06-04-PLAN.md
 Resume file: None
