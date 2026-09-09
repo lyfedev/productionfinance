@@ -26,6 +26,7 @@ from agent.job2 import InvalidCityInputError, run_job2, validate_city_input
 from agent.research_runs import InvalidJobIdError, load_run
 from agent.research_schema import (
     FieldFinding,
+    JurisdictionIdentity,
     SufficiencyField,
     SufficiencyVerdict,
     research_response_schema,
@@ -90,14 +91,30 @@ def _scripted_seams(job_id: str, decisions: list[str]):
         decision = remaining.pop(0)
         round_number = kwargs["round_number"]
         findings = []
+        identity = None
         if decision == "sufficient":
             findings = [
-                FieldFinding(field=f, determined=True, value_text=f"value-{f.value}")
+                FieldFinding(
+                    field=f,
+                    determined=True,
+                    value_text=f"value-{f.value}",
+                    source_url="https://example.org/incentive-programme",
+                )
                 for f in SufficiencyField
             ]
+            # A "sufficient" claim also requires the jurisdiction identity
+            # (agent.job2's insufficient_identity check) — supplied here so
+            # this fixture's "sufficient" verdicts are genuinely sufficient.
+            identity = JurisdictionIdentity(
+                jurisdiction_name="Nowhereville",
+                country_code="XX",
+                level="city",
+                currency="USD",
+            )
         return SufficiencyVerdict(
             decision=decision,
             findings=findings,
+            identity=identity,
             summary=f"round {round_number}: {decision}",
             next_objective=f"refined objective after round {round_number}",
             next_queries=[f"refined query {round_number}a", f"refined query {round_number}b"],
@@ -142,7 +159,9 @@ def test_scripted_four_continues_then_give_up_produces_exactly_five_rounds():
 
     run = run_job2("Nowhereville", None, job_id=job_id, search_fn=search_fn, judge_fn=judge_fn)
 
-    assert run.terminal_reason == "give_up"
+    # TerminalReason.agent_gave_up — distinct from the decision literal
+    # "give_up" the model returned (agent.job2.TerminalReason).
+    assert run.terminal_reason == "agent_gave_up"
     assert len(run.rounds) == 5
     assert len(search_calls) == 5
 

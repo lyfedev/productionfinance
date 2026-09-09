@@ -55,10 +55,10 @@ _RUN_LOCK = threading.Lock()
 _STATE_LOCK = threading.Lock()
 _LAST_RUN_STARTED_MONO: float | None = None
 # job_id -> error message. Populated ONLY when the background thread dies
-# unexpectedly — every MODELED terminal state (not_configured,
-# invalid_input, cache_boundary_violation, sufficient/give_up/
-# no_programme_found) is written straight to the durable record by
-# `run_job2` itself and never needs this registry.
+# unexpectedly — every MODELED terminal state (the closed
+# `agent.job2.TerminalReason` set, plus the pre-loop `invalid_input`
+# rejection) is written straight to the durable record by `run_job2`
+# itself and never needs this registry.
 _ERROR_REGISTRY: dict[str, str] = {}
 
 
