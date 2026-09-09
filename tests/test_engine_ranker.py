@@ -212,6 +212,118 @@ def test_net_ranked_city_carries_a_populated_incentive_figure():
 
 
 # ---------------------------------------------------------------------------
+# Plan 06-01 Task 2 (UI-04) — arrival timing carried onto the ranked row
+# ---------------------------------------------------------------------------
+
+
+def test_net_ranked_city_carries_one_arrival_entry_per_priced_programme():
+    """`synthetic-mechanisms.yaml` declares four programmes with no
+    mutual-exclusivity edges, so `price_jurisdiction` prices — and
+    `PricedJurisdiction.programmes` carries — all four. `RankedCity.arrival`
+    must carry exactly one entry per programme, each named by its own
+    `programme_id` — never a single blended or earliest date."""
+    ruleset_by_jurisdiction = {"zz-synthetic-mechanisms": _mechanisms_ruleset()}
+    result = rank(
+        {"ranked-small": _localized(RANKED_PROFILE, 50)},
+        ruleset_by_jurisdiction,
+        reporting_currency="USD",
+    )
+
+    assert len(result) == 1
+    city = result[0]
+    assert city.band == "net_ranked"
+    assert len(city.arrival) == 4
+    programme_ids = {entry.programme_id for entry in city.arrival}
+    assert programme_ids == {
+        "mechanisms-refundable",
+        "mechanisms-rebate-grant",
+        "mechanisms-transferable",
+        "mechanisms-nonrefundable-credit",
+    }
+
+
+def test_net_ranked_arrival_is_the_same_arrivaltiming_object_net_cash_produced():
+    """A carry, not a re-derivation: each entry's `.arrival` is the exact
+    `ArrivalTiming` object `PricedProgramme.net_cash.arrival` already
+    carries — asserted by identity, not just equality."""
+    ruleset_by_jurisdiction = {"zz-synthetic-mechanisms": _mechanisms_ruleset()}
+    ruleset = ruleset_by_jurisdiction["zz-synthetic-mechanisms"]
+    localized = _localized(RANKED_PROFILE, 50)
+
+    from engine.pipeline import price_jurisdiction
+
+    expected = price_jurisdiction(
+        ruleset,
+        localized.spend_breakdown.total_spend,
+        spend_breakdown=localized.spend_breakdown,
+        spend_confidence="researched",
+    )
+    expected_by_id = {pp.programme_id: pp.net_cash.arrival for pp in expected.programmes}
+
+    result = rank(
+        {"ranked-small": localized}, ruleset_by_jurisdiction, reporting_currency="USD"
+    )
+    city = result[0]
+    for entry in city.arrival:
+        assert entry.arrival is expected_by_id[entry.programme_id]
+
+
+def test_net_ranked_arrival_distinguishes_dated_and_undated_programmes():
+    """`mechanisms-transferable` (typical_days=45) and
+    `mechanisms-nonrefundable-credit` (typical_days=60) resolve to a real
+    estimated date; `mechanisms-refundable` and `mechanisms-rebate-grant`
+    (both `typical_days=None`) resolve to `estimated_date=None` plus a
+    non-empty reason — the rendered row shows that reason as words and
+    shows no date, never a fabricated one."""
+    ruleset_by_jurisdiction = {"zz-synthetic-mechanisms": _mechanisms_ruleset()}
+    result = rank(
+        {"ranked-small": _localized(RANKED_PROFILE, 50)},
+        ruleset_by_jurisdiction,
+        reporting_currency="USD",
+    )
+    city = result[0]
+    by_id = {entry.programme_id: entry.arrival for entry in city.arrival}
+
+    for dated_id, expected_days in (
+        ("mechanisms-transferable", 45),
+        ("mechanisms-nonrefundable-credit", 60),
+    ):
+        assert by_id[dated_id].estimated_date is not None
+        assert by_id[dated_id].typical_days == expected_days
+        assert by_id[dated_id].reason
+
+    for undated_id in ("mechanisms-refundable", "mechanisms-rebate-grant"):
+        assert by_id[undated_id].estimated_date is None
+        assert by_id[undated_id].typical_days is None
+        assert by_id[undated_id].reason
+
+
+def test_unranked_city_carries_no_arrival_entries():
+    localized_by_city = {"unranked-cheap": _localized(UNRANKED_PROFILE, 50)}
+    result = rank(localized_by_city, ruleset_by_jurisdiction={}, reporting_currency="USD")
+
+    assert len(result) == 1
+    assert result[0].arrival == ()
+
+
+def test_broken_transferable_unranked_city_carries_no_arrival_entries():
+    """A rule file exists but net cash refuses to compute (WINDOWS.md
+    entry 3's shape) — the city falls into the unranked band with no
+    arrival timing at all, since none was ever priced."""
+    broken = load_cost_profile(RANKED_PROFILE).model_copy(
+        update={"city_id": "synthetic-broken", "jurisdiction_id": "zz-synthetic-broken"}
+    )
+    budget = build_canonical_budget(_spec(50), _headcount(50))
+    localized = localize(budget, broken)
+
+    ruleset_by_jurisdiction = {"zz-synthetic-broken": _broken_transferable_ruleset()}
+    result = rank({"broken-city": localized}, ruleset_by_jurisdiction, reporting_currency="USD")
+
+    assert len(result) == 1
+    assert result[0].arrival == ()
+
+
+# ---------------------------------------------------------------------------
 # The real committed profiles — the expected Phase 4 state (04-CONTEXT.md
 # phase boundary): only New York has a committed rule file.
 # ---------------------------------------------------------------------------
