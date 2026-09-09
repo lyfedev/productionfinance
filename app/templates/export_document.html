@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Export document — ProductionFinance{% endblock %}
+{% block content %}
+{% from "_figure.html" import render_figure %}
+
+<link rel="stylesheet" href="{{ public_path }}/static/prodfin.css">
+<link rel="stylesheet" href="{{ public_path }}/static/provenance.css">
+<link rel="stylesheet" href="{{ public_path }}/static/export.css">
+
+{# UI-09: this whole page is generated server-side and reads correctly
+   with JavaScript disabled — nothing below depends on a client script.
+   The print hint mirrors assumptions.html's own established wording. #}
+<p class="pf-noprint">
+  <a href="{{ public_path }}/compare">&larr; Back to the comparison</a>
+  &middot;
+  <a href="{{ public_path }}/methodology">How these figures are computed</a>
+</p>
+
+<article class="pf-export-document">
+<header class="pf-export-header">
+  <h1>Landed-cost comparison — export</h1>
+  <p class="pf-export-generated">
+    Generated {{ document.generated_at }}. This document is self-contained:
+    every figure below carries its own source and date, or an explicit
+    statement naming why one is not available. It does not require
+    JavaScript to read, print, or save.
+  </p>
+</header>
+
+<section class="pf-export-ranked" aria-labelledby="pf-export-ranked-heading">
+  <h2 id="pf-export-ranked-heading">Ranked cities</h2>
+
+  {% if document.comparison.net_ranked %}
+  <h3>Ranked on net landed cost</h3>
+  <p>
+    Every city below produced a real net-cash total: a committed cost
+    profile AND a committed incentive rule model that fully converted to
+    cash. Sorted by total landed cost, lowest first.
+  </p>
+  <ol class="pf-export-city-list">
+    {% for city in document.comparison.net_ranked %}
+    <li class="pf-export-city">
+      <h4>{{ city.city_id }}</h4>
+      <ul class="pf-totals-list">
+        <li>{{ render_figure(city.total_landed_cost, label="Total landed cost") }}</li>
+        <li>{{ render_figure(city.cost_only_total, label="Cost total (pre-incentive)") }}</li>
+        {% if city.incentive_figure %}
+        <li>{{ render_figure(city.incentive_figure, label="Modelled incentive (net cash)") }}</li>
+        {% endif %}
+      </ul>
+    </li>
+    {% endfor %}
+  </ol>
+  {% endif %}
+
+  {% if document.comparison.incentive_not_modelled %}
+  <h3>Cost-only — no incentive modelled for this city yet</h3>
+  <p>
+    A real cost total, but no committed incentive rule model. This total
+    is NOT comparable to a net-ranked city's total above — it excludes an
+    incentive that, if modelled, would reduce it. Never shown as though
+    the missing incentive were worth $0 (D-56).
+  </p>
+  <ol class="pf-export-city-list">
+    {% for city in document.comparison.incentive_not_modelled %}
+    <li class="pf-export-city">
+      <h4>{{ city.city_id }}</h4>
+      <ul class="pf-totals-list">
+        <li>{{ render_figure(city.cost_only_total, label="Cost total (no incentive modelled)") }}</li>
+      </ul>
+      <p class="pf-incentive-unknown-note">{{ city.reason }}</p>
+    </li>
+    {% endfor %}
+  </ol>
+  {% endif %}
+
+  {% if document.comparison.unpriced_cities %}
+  <h3>Named but not priced</h3>
+  <p>
+    A candidate city typed into this comparison that resolved to no
+    committed cost profile at all — named here exactly as typed, never
+    silently dropped.
+  </p>
+  <ul>
+    {% for city in document.comparison.unpriced_cities %}
+    <li>{{ city.name }} &mdash; {{ city.reason }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
+
+<section class="pf-export-gap" aria-labelledby="pf-export-gap-heading">
+  <h2 id="pf-export-gap-heading">Gap decomposition</h2>
+  {% set gap = document.comparison.gap_selection %}
+  {% if gap.decomposition %}
+  <p>{{ gap.decomposition.sign_convention }}.</p>
+  <p>{{ render_figure(gap.decomposition.headline_gap, label="Headline gap") }}</p>
+  <h3>By component</h3>
+  <ul class="pf-export-gap-components">
+    {% for component in gap.decomposition.components %}
+    <li>{{ render_figure(component) }}</li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="pf-export-gap-refusal">
+    {{ gap.refusal or "No gap is shown — fewer than two cities in this comparison produced a comparable total." }}
+  </p>
+  {% endif %}
+</section>
+
+{% if document.comparison.spec_result.assumptions %}
+{% set assumptions = document.comparison.spec_result.assumptions %}
+<section class="pf-model-assumptions" aria-labelledby="pf-export-assumptions-heading">
+  <h2 id="pf-export-assumptions-heading">Model-wide assumptions</h2>
+  <p>
+    Shooting cadence: {{ assumptions.shoot_days_per_week }} days/week.
+    {{ assumptions.shoot_days_per_week_note }}
+  </p>
+  <p>{{ assumptions.department_share_note }}</p>
+</section>
+{% endif %}
+
+<section class="pf-export-rate-sheets" aria-labelledby="pf-export-rate-sheets-heading">
+  <h2 id="pf-export-rate-sheets-heading">Every rate this comparison used, by city</h2>
+  {% for sheet in document.rate_sheets %}
+  <section class="pf-rate-sheet" aria-labelledby="pf-export-rate-sheet-heading-{{ loop.index }}">
+    <h3 id="pf-export-rate-sheet-heading-{{ loop.index }}">{{ sheet.city_id }}</h3>
+    {% if sheet.rates %}
+    <ul class="pf-rate-list">
+      {% for rate in sheet.rates %}
+      <li>{{ render_figure(rate) }}</li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>No rate-level figures were reachable for this city's total.</p>
+    {% endif %}
+    {% if sheet.not_priced %}
+    <h4>Categories this city's own profile does not price</h4>
+    <ul class="pf-not-priced-list">
+      {% for category in sheet.not_priced %}
+      <li>{{ category }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+  {% endfor %}
+</section>
+
+<section class="pf-gaps" aria-labelledby="pf-export-gaps-heading">
+  <h2 id="pf-export-gaps-heading">What this model does not price, at all</h2>
+  <p>
+    A named, first-class list — never a $0 line. A $0 amount would assert
+    the cost is zero; the truth is it is not modelled (D-60). This list
+    travels with this document exactly as it appears on the
+    <a href="{{ public_path }}/methodology">methodology page</a>.
+  </p>
+  <ul class="pf-permanent-exclusions-list">
+    {% for exclusion in document.permanent_exclusions %}
+    <li>{{ exclusion }}</li>
+    {% endfor %}
+  </ul>
+</section>
+
+<footer class="pf-export-footer">
+  <p>Generated {{ document.generated_at }} by ProductionFinance.</p>
+</footer>
+</article>
+
+{% endblock %}

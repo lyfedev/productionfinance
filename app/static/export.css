@@ -1,0 +1,85 @@
+/* export.css — styling for the export document this plan owns
+   (app/templates/export_document.html, UI-09). A sibling plan owns
+   prodfin.css this wave, so this is a SEPARATE stylesheet loaded
+   alongside it and alongside provenance.css, reusing both files' own
+   custom properties and established classes (--pf-ink, --pf-space-*,
+   .pf-figure, .pf-rate-sheet, .pf-totals-list, .pf-gaps, .pf-noprint,
+   etc.) rather than redefining them.
+
+   Vocabulary discipline: this file is covered by the D-70 gate over
+   app/static/ — no class name or comment here names the product's
+   prescriptive-vocabulary list. Every word choice below is descriptive,
+   never prescriptive. */
+
+.pf-export-document {
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.pf-export-header {
+  margin-bottom: var(--pf-space-6, 2rem);
+  padding-bottom: var(--pf-space-4, 1rem);
+  border-bottom: 1px solid var(--pf-line, #d8dbe0);
+}
+
+.pf-export-generated {
+  color: var(--pf-ink-soft, #4a5058);
+}
+
+.pf-export-ranked,
+.pf-export-gap,
+.pf-model-assumptions,
+.pf-export-rate-sheets {
+  margin: var(--pf-space-6, 2rem) 0;
+  padding: var(--pf-space-4, 1rem);
+  border: 1px solid var(--pf-line, #d8dbe0);
+  border-radius: var(--pf-radius, 10px);
+  background: var(--pf-paper, #fff);
+}
+
+.pf-export-city-list {
+  list-style: none;
+  margin: var(--pf-space-3, 0.75rem) 0;
+  padding: 0;
+}
+
+.pf-export-city {
+  margin: var(--pf-space-3, 0.75rem) 0;
+  padding: var(--pf-space-3, 0.75rem);
+  border: 1px solid var(--pf-line-soft, #e9ebee);
+  border-radius: var(--pf-radius, 10px);
+  background: var(--pf-paper-sunk, #f6f7f9);
+}
+
+.pf-export-city h4 {
+  margin-top: 0;
+}
+
+.pf-export-gap-components {
+  list-style: none;
+  margin: var(--pf-space-3, 0.75rem) 0;
+  padding: 0;
+}
+
+.pf-export-gap-refusal {
+  padding: var(--pf-space-3, 0.75rem);
+  border: 1px solid var(--pf-line, #d8dbe0);
+  border-radius: var(--pf-radius, 10px);
+  background: var(--pf-paper-sunk, #f6f7f9);
+}
+
+.pf-export-footer {
+  margin-top: var(--pf-space-6, 2rem);
+  padding-top: var(--pf-space-4, 1rem);
+  border-top: 1px solid var(--pf-line, #d8dbe0);
+  color: var(--pf-ink-soft, #4a5058);
+  font-size: 0.9em;
+}
+
+@media print {
+  .pf-export-city,
+  .pf-export-gap-refusal {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
