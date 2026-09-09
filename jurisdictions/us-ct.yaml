@@ -161,7 +161,30 @@ programmes:
       applies: true
       typical_rate_low: null
       typical_rate_high: null
-      source_note: "CGS 12-217jj(e)(1): the credit 'may be sold, assigned or otherwise transferred, in whole or in part, to one or more taxpayers,' after issuance no more than three times. No typical market discount rate is stated in the statute — left as an explicit null rather than an invented figure."
+      source_note: >
+        CGS 12-217jj(e)(1) confirms the credit "may be sold, assigned or
+        otherwise transferred, in whole or in part, to one or more
+        taxpayers," after issuance no more than three times — so the
+        mechanism genuinely IS transferable, not a modelling guess. But the
+        statute states no market discount rate, and no Connecticut
+        government publication was located that does either: this session
+        (plan 05-06) checked the statute text itself (cga.ct.gov/current/pub/
+        chap_208.htm, no "discount" or "broker" language anywhere near
+        12-217jj), the DECD film-tax-credit-programme page (404 — the portal
+        has been restructured since this rule file's original 2026-08-25
+        fetch), and DRS's Informational Publications index (200, but no
+        film, transfer or discount content on that listing page) — none
+        publish a rate. The cash value of a Connecticut credit therefore
+        cannot be computed from any sourced input, which is why both bounds
+        stay null rather than an invented figure or an industry-commentary
+        estimate. `engine.net_cash.transferable` correctly refuses to
+        convert at an unsourced rate — this is a deliberate honesty gate,
+        not a bug, and it is asserted by name for every active Connecticut
+        pair in
+        `tests/test_jurisdiction_us_ct.py::test_price_jurisdiction_refuses_unsourced_transfer_discount`.
+        See WINDOWS.md entry #3, left open by design: it records this exact
+        unmet truth and resolves automatically only if a future session
+        sources a real discount range.
 
     residency_rules: null
 
@@ -169,4 +192,4 @@ programmes:
       validated: true
       validation_pair_fixture_glob: "tests/fixtures/validation_pairs/ct_*.yaml"
       mean_error_pct: null
-      last_checked_against_disclosure: "2026-08-24"
+      last_checked_against_disclosure: "2026-09-09"

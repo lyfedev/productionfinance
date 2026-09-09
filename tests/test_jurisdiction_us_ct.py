@@ -19,6 +19,16 @@ pairs by the permitted-testing line in `.claude/CLAUDE.md` — every literal
 below was read from a real run of this project's own engine and is checked
 by hand-computable arithmetic in a comment beside it, never captured
 automatically from whatever the code currently returns.
+
+WINDOWS.md entry #3 (broken-windows ledger) records that
+`jurisdictions/us-ct.yaml`'s real `transfer_discount.typical_rate_low`/
+`typical_rate_high` are both null (CGS 12-217jj(e)(1) confirms the credit is
+transferable but states no market discount rate), so
+`engine.pipeline.price_jurisdiction` cannot complete for any Connecticut
+pair. That entry stays open by design — the gap is genuine and unmet, not
+resolved here — and `test_price_jurisdiction_refuses_unsourced_transfer_discount`
+below makes the refusal a permanent, asserted, per-pair behaviour rather
+than leaving it proven for one pair only (as it was before this plan).
 """
 
 from decimal import Decimal
@@ -29,6 +39,7 @@ import yaml
 
 from engine.credit import compute_gross_credit
 from engine.models import load_ruleset
+from engine.pipeline import price_jurisdiction
 from engine.qualifying_base import SpendBreakdown, compute_qualifying_base
 
 FIXTURE_DIR = "tests/fixtures/validation_pairs"
@@ -190,3 +201,54 @@ def test_every_declared_tier_has_a_covering_pair(tier):
         "disclosed qualified_spend falls inside it — a declared band nobody ever "
         "validated is a claim the repo has not earned"
     )
+
+
+def _pipeline_can_complete(pair: dict) -> bool:
+    """True unless `pair`'s declared programme is `transferable` without a
+    fully-sourced `transfer_discount` range — determined structurally by
+    reading the loaded programme's mechanism and its two discount bounds,
+    never by matching on jurisdiction id, so a future `us-ct.yaml` update
+    that sources a real discount rate is picked up automatically rather
+    than staying silently excluded. Mirrors
+    tests/test_engine_against_validation_pairs.py::_pipeline_can_complete."""
+    programme = next(p for p in CT_RULESET.programmes if p.id == pair["program_id"])
+    if programme.mechanism != "transferable":
+        return True
+    discount = programme.transfer_discount
+    return (
+        discount.applies
+        and discount.typical_rate_low is not None
+        and discount.typical_rate_high is not None
+    )
+
+
+@pytest.mark.parametrize(
+    "pair", CT_ACTIVE_PAIRS, ids=[p["production_title"] for p in CT_ACTIVE_PAIRS]
+)
+def test_price_jurisdiction_refuses_unsourced_transfer_discount(pair):
+    """WINDOWS.md entry #3: jurisdictions/us-ct.yaml declares the programme
+    as transferable with both transfer_discount bounds null (CGS
+    12-217jj(e)(1) confirms transferability but states no market discount
+    rate), so engine.net_cash.transferable correctly refuses to convert
+    rather than invent a rate. This was previously asserted for exactly one
+    pair
+    (test_christmas_always_reproduces_exactly_through_price_jurisdiction in
+    tests/test_engine_against_validation_pairs.py); this test makes the
+    refusal uniform across EVERY active Connecticut pair, determined
+    structurally from the loaded programme (never from a hard-coded
+    jurisdiction id) so a future us-ct.yaml update that sources a real
+    discount range makes this test fail loudly and demand rewriting, rather
+    than silently passing. engine/net_cash.py is not modified by this test
+    or by this plan — the refusal is the correct, deliberate honesty gate
+    documented in jurisdictions/us-ct.yaml's transfer_discount.source_note,
+    not a bug. This is a deliberate honesty gate, not a bug — do not weaken,
+    bypass, or special-case it to make a pair pass."""
+    assert not _pipeline_can_complete(pair), (
+        f"{pair['production_title']}: expected price_jurisdiction to currently "
+        f"raise (unsourced transfer_discount on {CT_RULESET_PATH}) — if this now "
+        f"fails, {CT_RULESET_PATH} has been sourced with a real discount rate and "
+        "this test should be rewritten to assert the low/high conversion instead"
+    )
+    qualified_spend = Decimal(pair["qualified_spend"])
+    with pytest.raises(ValueError, match="transfer_discount"):
+        price_jurisdiction(CT_RULESET, qualified_spend)
