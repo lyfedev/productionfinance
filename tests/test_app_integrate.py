@@ -93,3 +93,42 @@ def test_the_page_shows_the_endpoint_response_verbatim() -> None:
         "&qualified_spend={qualified_spend}&submitted=1".format(**preset)
     ).text
     assert json.dumps(api, indent=2)[:400] in html.unescape(page)
+
+
+# ---------------------------------------------------------------------------
+# The middle pane assembles as fields are filled (a stated UX requirement),
+# and the page still works without JavaScript.
+# ---------------------------------------------------------------------------
+
+
+def test_the_request_pane_is_wired_for_live_assembly() -> None:
+    """The form and request pane carry the ids the script binds to.
+
+    Guards the wiring, not the browser behaviour: if a template edit drops
+    either id the pane silently stops updating as fields are filled.
+    """
+    t = client.get("/integrate").text
+    assert 'id="pf-int-form"' in t
+    assert 'id="pf-int-request"' in t
+    assert "integrate.js" in t
+
+
+def test_presets_populate_the_inputs_rather_than_submitting() -> None:
+    """Presets fill the fields so the request can be watched assembling.
+
+    A preset that submits immediately skips the middle pane entirely, which
+    is the thing the page exists to show.
+    """
+    t = client.get("/integrate").text
+    assert t.count("data-preset") == 2, "one fill-button per preset"
+    assert 'type="button"' in t, "a preset must not submit the form"
+
+
+def test_the_page_works_without_javascript() -> None:
+    """Progressive enhancement: the server renders the same JSON.
+
+    The script reveals the payload earlier; it must not gate access to it.
+    """
+    t = client.get("/integrate?jurisdiction_id=us-ny&qualified_spend=3964760&submitted=1").text
+    assert "991190" in t, "the response must be server-rendered"
+    assert "<noscript>" in t, "presets need a no-JS path"

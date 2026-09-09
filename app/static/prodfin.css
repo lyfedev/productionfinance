@@ -1,114 +1,98 @@
-/* ProductionFinance — the visual language of a production cost report.
-   Greenbar accounting paper, tabular figures right-aligned, a rule above
-   every total. Figures are monospace because columns must align, not as
-   decoration. */
+/* AI.ncentives — an accountant's ledger.
+   Black ink on white. Red is reserved, absolutely, for a figure that cannot
+   be produced: it is never used for emphasis or decoration, so its presence
+   always means the same thing. Blue marks an action. Figures are monospace
+   because columns must align. */
 
 :root {
-  --paper:    #f4f6f1;
-  --band:     #e4ebdf;
-  --ink:      #16211b;
-  --ink-soft: #4a5a50;
-  --rule:     #a8bbae;
-  --rule-firm:#5d7365;
-  --verified: #1f6f43;
-  --refused:  #8a4b1f;
-  --measure:  64ch;
+  --paper:   #ffffff;
+  --shade:   #f2f2f0;
+  --ink:     #000000;
+  --ink-2:   #55554f;
+  --rule:    #c9c9c4;
+  --rule-firm:#000000;
+  --unresolved:#c8102e;
+  --action:  #12307a;
+  --measure: 66ch;
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  background: var(--paper);
+  background: var(--shade);
   color: var(--ink);
   font-family: "Libre Franklin", system-ui, -apple-system, sans-serif;
-  font-size: 16px;
-  line-height: 1.55;
+  font-size: 16px; line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
+.wrap { max-width: 60rem; margin: 0 auto; padding: 0 1.25rem 4rem; }
 
-.wrap { max-width: 68rem; margin: 0 auto; padding: 0 1.25rem 5rem; }
+/* ---- masthead ---- */
+.masthead { padding: 2.5rem 0 1rem; }
+.masthead h1 { font-size: clamp(1.7rem, 4vw, 2.4rem); letter-spacing: -.02em; margin: 0 0 .4rem; font-weight: 700; }
+.masthead p { max-width: var(--measure); margin: 0; color: var(--ink-2); }
 
-/* ---- masthead ------------------------------------------------------- */
-.masthead { padding: 2.75rem 0 1.25rem; }
-.masthead h1 {
-  font-size: clamp(1.9rem, 4.5vw, 2.9rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  font-weight: 700;
-  margin: 0 0 .6rem;
+/* ---- the working panel ---- */
+.tool { background: var(--paper); border: 1px solid var(--rule); margin-top: 1.5rem; }
+.tool-form { padding: 1.25rem; border-bottom: 1px solid var(--rule); }
+.field-row { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
+.field { flex: 1 1 13rem; }
+.field label { display: block; font-weight: 600; font-size: .85rem; margin-bottom: .3rem; }
+.field select, .field input {
+  width: 100%; padding: .55rem .6rem; font-size: 1rem; font-family: inherit;
+  border: 1px solid var(--ink); border-radius: 0; background: var(--paper); color: var(--ink);
 }
-.masthead p { max-width: var(--measure); margin: 0; color: var(--ink-soft); font-size: 1.02rem; }
-
-/* ---- the ledger ----------------------------------------------------- */
-.ledger {
-  margin: 2rem 0 0;
-  background: #fff;
-  border: 1px solid var(--rule);
+.field input.amount { font-family: "IBM Plex Mono", ui-monospace, monospace; text-align: right; }
+.go {
+  padding: .6rem 1.4rem; font-size: 1rem; font-weight: 600; font-family: inherit;
+  background: var(--action); color: #fff; border: 1px solid var(--action); cursor: pointer;
 }
-.ledger-head {
-  display: flex; flex-wrap: wrap; gap: .35rem 1rem; align-items: baseline;
-  padding: .85rem 1.1rem;
-  border-bottom: 1px solid var(--rule);
-  background: var(--band);
+.go:hover, .go:focus-visible { background: #0d2560; }
+.examples { margin: .9rem 0 0; font-size: .88rem; color: var(--ink-2); }
+.examples button {
+  font: inherit; font-size: .88rem; background: none; border: 0; padding: 0 .1rem;
+  color: var(--action); text-decoration: underline; cursor: pointer;
 }
-.ledger-title { font-weight: 700; font-size: 1.05rem; }
-.ledger-sub { color: var(--ink-soft); font-size: .9rem; }
+.examples button:hover { color: #0d2560; }
 
+/* ---- result ---- */
+.result { padding: 1.25rem; }
+.result-empty { color: var(--ink-2); padding: 2rem 1.25rem; text-align: center; }
 .rows { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-.rows tr:nth-child(even) td { background: #f7f9f5; }
-.rows td { padding: .5rem 1.1rem; border: 0; }
+.rows td { padding: .45rem 0; border: 0; vertical-align: baseline; }
 .rows td.amt {
-  text-align: right;
-  font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
-  font-size: .95rem;
-  white-space: nowrap;
+  text-align: right; white-space: nowrap;
+  font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 1rem;
 }
-.rows tr.total td { border-top: 1px solid var(--rule-firm); font-weight: 600; }
-.rows tr.settle td {
-  border-top: 3px double var(--rule-firm);
-  font-weight: 700;
-}
-.rows td.note { color: var(--ink-soft); font-size: .88rem; }
+.rows tr.total td { border-top: 1px solid var(--rule-firm); font-weight: 600; padding-top: .5rem; }
+.rows tr.settle td { border-top: 3px double var(--rule-firm); font-weight: 700; font-size: 1.05rem; }
+.rows td.unresolved { color: var(--unresolved); }
+.rows td .why { display: block; color: var(--ink-2); font-size: .85rem; font-weight: 400; }
 
-.verdict { padding: .8rem 1.1rem; border-top: 1px solid var(--rule); font-size: .95rem; }
-.verdict.match   { color: var(--verified); }
-.verdict.refuse  { color: var(--refused); }
-.verdict strong { font-weight: 700; }
+.verdict { margin: 1rem 0 0; padding-top: .8rem; border-top: 1px solid var(--rule); font-size: .95rem; }
+.verdict.no { color: var(--unresolved); }
 
-.ledger-actions { display: flex; flex-wrap: wrap; gap: .6rem; padding: .9rem 1.1rem; border-top: 1px solid var(--rule); }
-.act {
-  display: inline-block; padding: .5rem .9rem; text-decoration: none;
-  border: 1px solid var(--rule-firm); color: var(--ink); background: #fff;
-  font-size: .92rem;
-}
-.act:hover, .act:focus-visible { background: var(--band); }
-.act.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-.act.primary:hover, .act.primary:focus-visible { background: #24352b; }
+details.steps { margin-top: 1rem; }
+details.steps summary { cursor: pointer; font-weight: 600; font-size: .92rem; }
+details.steps ol { margin: .7rem 0 0; padding-left: 1.2rem; }
+details.steps li { margin: .3rem 0; color: var(--ink-2); font-size: .9rem; }
+details.steps li.applied { color: var(--ink); }
 
-/* ---- entry points --------------------------------------------------- */
-.entries { margin-top: 3rem; }
-.entries h2 { font-size: 1.1rem; margin: 0 0 .2rem; }
-.entries > p { margin: 0 0 1rem; color: var(--ink-soft); max-width: var(--measure); }
-.entry-table { width: 100%; border-collapse: collapse; }
-.entry-table th { text-align: left; font-size: .82rem; color: var(--ink-soft); font-weight: 500;
-  padding: .4rem .6rem; border-bottom: 1px solid var(--rule); }
-.entry-table td { padding: .6rem; border-bottom: 1px solid var(--band); vertical-align: top; }
-.entry-table td:first-child { white-space: nowrap; }
-.entry-table a { color: var(--ink); font-weight: 600; }
-.entry-table .what { color: var(--ink-soft); font-size: .93rem; }
+/* ---- footer nav ---- */
+.more { margin-top: 2.5rem; border-top: 1px solid var(--rule); padding-top: 1rem; }
+.more h2 { font-size: .95rem; margin: 0 0 .5rem; }
+.more ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; }
+.more a { color: var(--action); font-size: .92rem; }
 
-a { color: var(--ink); }
-:focus-visible { outline: 2px solid var(--verified); outline-offset: 2px; }
+a { color: var(--action); }
+:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
 
-/* ---- generic content pages ------------------------------------------ */
+/* ---- generic content pages ---- */
 .wrap table { border-collapse: collapse; margin: .5rem 0; }
 .wrap table td, .wrap table th { border: 1px solid var(--rule); padding: .35rem .6rem; text-align: left; }
-.figure-node { margin-left: 1.25rem; border-left: 2px solid var(--band); padding-left: .75rem; }
-.unselectable { color: var(--ink-soft); }
+.figure-node { margin-left: 1.25rem; border-left: 2px solid var(--rule); padding-left: .75rem; }
+.unselectable { color: var(--ink-2); }
 
-@media (max-width: 640px) {
-  .rows td { padding: .45rem .7rem; }
-  .ledger-head { padding: .7rem; }
-}
+@media (max-width: 620px) { .field-row { flex-direction: column; align-items: stretch; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

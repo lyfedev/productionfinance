@@ -23,13 +23,13 @@
     <h2>Start from a worked case</h2>
     <div class="pf-int-preset-row">
       {% for key, preset in presets.items() %}
-      <form method="get" action="{{ public_path }}/integrate" class="pf-int-preset">
-        <input type="hidden" name="jurisdiction_id" value="{{ preset.request.jurisdiction_id }}">
-        <input type="hidden" name="qualified_spend" value="{{ preset.request.qualified_spend }}">
-        <input type="hidden" name="submitted" value="1">
-        <button type="submit" class="pf-int-preset-btn">{{ preset.label }}</button>
+      <div class="pf-int-preset">
+        <button type="button" class="pf-int-preset-btn"
+                data-preset='{{ preset.request | tojson }}'>{{ preset.label }}</button>
         <p class="pf-int-preset-note">{{ preset.note }}</p>
-      </form>
+        <noscript><a class="pf-int-preset-fallback"
+          href="{{ public_path }}/integrate?jurisdiction_id={{ preset.request.jurisdiction_id }}&amp;qualified_spend={{ preset.request.qualified_spend }}&amp;submitted=1">Load and send this case</a></noscript>
+      </div>
       {% endfor %}
     </div>
   </section>
@@ -38,7 +38,7 @@
     <section class="pf-int-pane">
       <h2><span class="pf-int-num">1</span> Inputs</h2>
       <p class="pf-int-hint">What the host system knows about the production.</p>
-      <form method="get" action="{{ public_path }}/integrate">
+      <form method="get" action="{{ public_path }}/integrate" id="pf-int-form">
         <label for="jurisdiction_id">Jurisdiction</label>
         <select id="jurisdiction_id" name="jurisdiction_id">
           {% for j in jurisdictions %}
@@ -65,8 +65,8 @@
 
     <section class="pf-int-pane">
       <h2><span class="pf-int-num">2</span> Request we receive</h2>
-      <p class="pf-int-hint">Body of <code>POST /api/v1/integrate</code>.</p>
-      <pre class="pf-int-json pf-int-json-in">{{ inbound_json }}</pre>
+      <p class="pf-int-hint">Body of <code>POST /api/v1/integrate</code>. Updates as you type.</p>
+      <pre class="pf-int-json pf-int-json-in" id="pf-int-request">{{ inbound_json }}</pre>
     </section>
 
     <section class="pf-int-pane">
@@ -92,4 +92,5 @@
     </dl>
   </section>
 </div>
+<script src="{{ public_path }}/static/integrate.js" defer></script>
 {% endblock %}

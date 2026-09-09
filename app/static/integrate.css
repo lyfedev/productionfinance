@@ -30,3 +30,4 @@
 .pf-int-contract h2 { font-size: 1rem; }
 .pf-int-contract dt { font-family: ui-monospace, monospace; font-size: .85rem; margin-top: .8rem; }
 .pf-int-contract dd { margin: .2rem 0 0 1.2rem; font-size: .88rem; color: #333; max-width: 70ch; }
+.pf-int-preset-fallback { display: inline-block; margin-top: .5rem; font-size: .85rem; }

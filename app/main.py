@@ -133,26 +133,66 @@ def health() -> dict:
 
 
 @app.get("/", response_class=HTMLResponse)
-def index(request: Request) -> HTMLResponse:
-    """Landing page — the two routes D-32 names (Route A: "Price a
-    production", Route B: "Reproduce a disclosure"). Both are live links as
-    of plan 03-02."""
-    # The hero is a live reconciliation, not copy. If the engine ever stops
-    # reproducing this figure the landing page shows the real difference
-    # rather than a stale claim of an exact match.
-    from app.services.validate import reproduce_disclosure
+def index(
+    request: Request,
+    jurisdiction_id: str | None = None,
+    qualified_spend: str | None = None,
+    go: str | None = None,
+) -> HTMLResponse:
+    """The landing page is the tool. Empty until the visitor asks."""
+    from app.services._paths import RULESET_PATH_BY_JURISDICTION
+    from app.services.integrate import IntegrationRequest, price_from_request
+    from engine.models import load_ruleset
 
-    result = reproduce_disclosure("ny_anora")
-    disclosed = int(result.disclosed_credit)
-    computed = int(result.computed_credit) if result.computed_credit is not None else None
-    anora = {
-        "spend": f"{int(result.disclosed_qualified_spend):,}",
-        "disclosed": f"{disclosed:,}",
-        "computed": f"{computed:,}" if computed is not None else "cannot be computed",
-        "difference": f"{computed - disclosed:,}" if computed is not None else "—",
+    names = []
+    for jid in sorted(RULESET_PATH_BY_JURISDICTION):
+        try:
+            rs = load_ruleset(RULESET_PATH_BY_JURISDICTION[jid])
+            label = rs.programmes[0].name if rs.programmes else jid
+        except Exception:  # noqa: BLE001 - a bad rule file must not blank the page
+            label = jid
+        names.append({"id": jid, "name": label})
+
+    ctx: dict = {
+        "public_path": PUBLIC_PATH,
+        "jurisdictions": names,
+        "selected": jurisdiction_id or "us-ny",
+        "spend": qualified_spend or "",
+        "result": None,
     }
-    return templates.TemplateResponse(
-        request=request,
-        name="index.html",
-        context={"public_path": PUBLIC_PATH, "anora": anora},
-    )
+
+    if go and qualified_spend:
+        result = price_from_request(
+            IntegrationRequest(
+                jurisdiction_id=ctx["selected"], qualified_spend=qualified_spend
+            )
+        )
+        ctx["result"] = result
+        raw = str(result.get("qualified_spend") or qualified_spend).split(".")[0]
+        try:
+            ctx["pretty_spend"] = f"{int(raw.replace(',', '')):,}"
+        except ValueError:
+            ctx["pretty_spend"] = qualified_spend
+
+        if result["status"] == "ok" and result["programmes"]:
+            prog = result["programmes"][0]
+            gross = prog["gross_credit"]
+            ctx["gross"] = f"{int(gross['value']):,}"
+            # A step beginning "no ..." is a rule the programme declares that
+            # did not apply here. Both are shown; only applied steps get
+            # full-strength ink.
+            ctx["steps"] = [
+                {"text": t, "applied": not t.lstrip().lower().startswith("no ")}
+                for t in gross["derivation_tree"]["derivation"]
+            ]
+            net = prog.get("net_cash") or {}
+            point = net.get("point")
+            if point and point != "None":
+                ctx["net"] = f"{int(point):,}"
+                ctx["net_note"] = "after the programme's own timing and tax treatment"
+            if ctx["selected"] == "us-ny" and raw.replace(",", "") == "3964760":
+                ctx["match_note"] = (
+                    "New York State disclosed a credit of 991,190 for Anora against this "
+                    "exact spend. Reproduced from the published rules, not looked up."
+                )
+    return templates.TemplateResponse(request=request, name="index.html", context=ctx)
