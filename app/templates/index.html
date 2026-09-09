@@ -6,9 +6,9 @@
   <header class="masthead">
     <h1>AI.ncentives</h1>
     <p>
-      Film and TV productions earn tax credits from the state they shoot in.
-      Enter what a production will spend and where, and see what its credit is
-      actually worth — with the government rule that produced every figure.
+      Shooting a film or series in the US? Most states pay you back a share of
+      what you spend there. Tell us where and how much, and we'll show you what
+      you'd get — and exactly how we worked it out.
     </p>
   </header>
 
@@ -33,35 +33,34 @@
         </div>
       </div>
       <p class="examples">
-        Or try
-        <button type="button" data-fill='{"jurisdiction_id":"us-ny","qualified_spend":"3964760"}'>a real New York production</button>
-        or
-        <button type="button" data-fill='{"jurisdiction_id":"us-nj","qualified_spend":"10000000"}'>a case we can't answer</button>.
+        Not sure what to enter? Use
+        <button type="button" data-fill='{"jurisdiction_id":"us-ny","qualified_spend":"3964760"}'>the numbers from <em>Anora</em></button>,
+        which shot in New York.
       </p>
     </form>
 
     <div class="result{% if not result %} result-empty{% endif %}">
     {% if not result %}
-      Enter a spend figure and choose a state to see what the credit is worth.
+      Your result will appear here.
     {% elif result.status == 'rejected' %}
       <p class="verdict no">{{ result.reason }}</p>
     {% elif result.status == 'cannot_be_computed' %}
       <table class="rows">
-        <tr><td>Qualified spend</td><td class="amt">{{ pretty_spend }}</td></tr>
-        <tr class="settle"><td>Cash value of the credit</td><td class="amt unresolved">cannot be computed</td></tr>
+        <tr><td>You spend in the state</td><td class="amt">{{ pretty_spend }}</td></tr>
+        <tr class="settle"><td>You get back</td><td class="amt unresolved">cannot be computed</td></tr>
       </table>
       <p class="verdict no">{{ result.refusal_reason }}</p>
       <p class="verdict">
-        The answer is returned as unknown, not as zero. A zero would say the
-        credit is worthless, which is a different claim and not one the
-        published rules support.
+        New Jersey pays this credit as a certificate you sell to another
+        company, and the state does not publish what those certificates sell
+        for. We won't guess at a number your financing would depend on.
       </p>
     {% else %}
       <table class="rows">
-        <tr><td>Qualified spend</td><td class="amt">{{ pretty_spend }}</td></tr>
-        <tr class="total"><td>Credit earned</td><td class="amt">{{ gross }}</td></tr>
+        <tr><td>You spend in the state</td><td class="amt">{{ pretty_spend }}</td></tr>
+        <tr class="total"><td>You get back</td><td class="amt">{{ gross }}</td></tr>
         {% if net_note %}
-        <tr class="settle"><td>Cash the production receives<span class="why">{{ net_note }}</span></td>
+        <tr class="settle"><td>Cash in hand<span class="why">{{ net_note }}</span></td>
             <td class="amt{% if net == 'cannot be computed' %} unresolved{% endif %}">{{ net }}</td></tr>
         {% endif %}
       </table>
@@ -79,16 +78,13 @@
   </div>
 
   <nav class="more">
-    <h2>Behind the number</h2>
+    <h2>Where these numbers come from</h2>
     <ul>
-      <li><a href="{{ public_path }}/proof">The government document</a></li>
-      <li><a href="{{ public_path }}/job1">Read a disclosure live</a></li>
-      <li><a href="{{ public_path }}/research">Research an unmodelled city</a></li>
-      <li><a href="{{ public_path }}/integrate">API for integrators</a></li>
-      <li><a href="{{ public_path }}/validate">Reproduce a disclosure</a></li>
-      <li><a href="{{ public_path }}/spec">Price a whole production</a></li>
-      <li><a href="{{ public_path }}/demo">Demo walkthrough</a></li>
-      <li><a href="{{ public_path }}/methodology">Methodology</a></li>
+      <li><a href="{{ public_path }}/proof">The state's own published figures</a></li>
+      <li><a href="{{ public_path }}/methodology">How we calculate</a></li>
+      <li><a href="{{ public_path }}/spec">Price a full production</a></li>
+      <li><a href="{{ public_path }}/validate">Check us against a real award</a></li>
+      <li><a href="{{ public_path }}/integrate">Built into your software</a></li>
       <li><a href="{{ public_path }}/health">Status</a></li>
     </ul>
   </nav>

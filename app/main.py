@@ -142,16 +142,20 @@ def index(
     """The landing page is the tool. Empty until the visitor asks."""
     from app.services._paths import RULESET_PATH_BY_JURISDICTION
     from app.services.integrate import IntegrationRequest, price_from_request
-    from engine.models import load_ruleset
 
-    names = []
-    for jid in sorted(RULESET_PATH_BY_JURISDICTION):
-        try:
-            rs = load_ruleset(RULESET_PATH_BY_JURISDICTION[jid])
-            label = rs.programmes[0].name if rs.programmes else jid
-        except Exception:  # noqa: BLE001 - a bad rule file must not blank the page
-            label = jid
-        names.append({"id": jid, "name": label})
+    # A person picks a place, not a programme. The rule files name the
+    # programme ("New York Film Production Tax Credit"), which is the right
+    # label inside the API and the wrong one in a dropdown.
+    PLACE = {
+        "us-ny": "New York",
+        "us-ca": "California",
+        "us-nj": "New Jersey",
+        "us-ct": "Connecticut",
+    }
+    names = [
+        {"id": jid, "name": PLACE.get(jid, jid)}
+        for jid in sorted(RULESET_PATH_BY_JURISDICTION, key=lambda j: PLACE.get(j, j))
+    ]
 
     ctx: dict = {
         "public_path": PUBLIC_PATH,
