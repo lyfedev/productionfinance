@@ -1,0 +1,55 @@
+# data/source_conflicts.yaml
+#
+# PRV-07/D-99: a committed record of REAL, currently-unresolved
+# disagreements between two-or-more authoritative sources this project
+# has actually examined. `app/services/proof.py::load_source_conflicts`
+# reads this file and `app/templates/_conflict.html` renders each entry —
+# both sources shown with their citations, the disagreement stated
+# plainly as unresolved. No entry here may declare a winner, an average,
+# or a preference for the more recent source: that discipline belongs to
+# the reader, not to this file.
+#
+# This file is EMPTY right now, on purpose. The two candidate conflicts
+# this project has so far investigated were both closed against a primary
+# source this session, not left open:
+#   - the New York $700M/$800M annual base-program figure — closed by the
+#     enacted budget bill text itself (sources/MANIFEST.yaml's SRC-01
+#     entries; the $800M reading is the $700M base plus the separate
+#     $100M independent-film pool, not a further statutory change).
+#   - the Georgia loan-out withholding rate, 4.99% vs 5.75% — closed as a
+#     recency artifact, not a live disagreement (sources/MANIFEST.yaml's
+#     SRC-05 entries; 4.99% is the current rate, 5.75% predates Georgia's
+#     2024 tax reform).
+# A resolved question is not a conflict. This surface renders only a
+# REAL, CURRENTLY unresolved disagreement — never a manufactured one to
+# demonstrate the feature (08-01-PLAN.md's own prohibition). When a
+# genuinely unresolved conflict is found in a future research session, it
+# is added here, in this shape:
+#
+# conflicts:
+#   - topic: "New York's annual base-program allocation"    # plain words
+#     sources:
+#       - label: "NYS Film Tax Credit Program Guidelines (2025-04-18)"
+#         value: "$700 million per year"
+#         source_url: "https://esd.ny.gov/..."
+#         source_document: "sources/ny/2026-08-24-esd-film-credit-guidelines.pdf"
+#         source_document_sha256: "42ffc801a4ff61f00ad71e38d3dc869f52ddf4d227f727181902989a7a489d14"
+#         date_checked: "2026-08-24"
+#       - label: "NYS Film Prod. CPA Agreed Upon Procedures (May 2026)"
+#         value: "$800 million per year"
+#         source_url: "https://esd.ny.gov/..."
+#         source_document: "sources/ny/2026-08-24-esd-film-prod-cpa-aup.pdf"
+#         source_document_sha256: "95b60708e11bc26833ce4e860ea8b2c5807d1192052b54a8ef7227dc6e3c2118"
+#         date_checked: "2026-08-24"
+#     note: >
+#       Two ESD-associated documents state different annual figures for
+#       the same programme and neither document explains the difference
+#       itself. This is displayed as unresolved rather than picked by
+#       recency or document type.
+#
+# `sources` must carry 2 or more entries; every field on a ConflictSource
+# other than `value`/`label`/`date_checked` may be null when genuinely
+# not applicable (a source with no separately archived document, for
+# instance), but never omitted or invented.
+
+conflicts: []

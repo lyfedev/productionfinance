@@ -1,0 +1,50 @@
+{# _conflict.html — PRV-07/D-99: the one component every unresolved
+   source-disagreement renders through. `conflict` is a real
+   `app.services.proof.SourceConflict` (never a dict) — `.topic`,
+   `.sources` (tuple of `ConflictSource`), `.note` are read directly.
+
+   Discipline this macro exists to enforce structurally, not just by
+   convention: every source in `conflict.sources` renders with EQUAL
+   weight, in the order given — no source is marked as preferred, no
+   value is averaged, no resolution is offered. The word "unresolved"
+   (or an equivalent plain statement) always appears; nothing here ever
+   states or implies which source is correct. #}
+{% macro render_conflict(conflict) %}
+<div class="pf-conflict" data-conflict-topic="{{ conflict.topic }}">
+  <p class="pf-conflict-topic"><strong>Unresolved: {{ conflict.topic }}</strong></p>
+  <p class="pf-conflict-statement">
+    {{ conflict.sources | length }} authoritative sources disagree on this figure.
+    This disagreement is shown as unresolved — no source below is picked as
+    correct, averaged, or preferred for being more recent.
+  </p>
+  <ul class="pf-conflict-sources">
+    {% for source in conflict.sources %}
+    <li class="pf-conflict-source">
+      <span class="pf-conflict-source-label">{{ source.label }}</span>
+      <span class="pf-conflict-source-value">states: {{ source.value }}</span>
+      <span class="pf-conflict-source-citation">
+        {% if source.source_document %}
+          archived document: <code>{{ source.source_document }}</code>
+          {% if source.source_document_sha256 %}
+            (sha256: <code>{{ source.source_document_sha256 }}</code>)
+          {% endif %}
+          {% if source.source_url %}
+            &mdash; live link: <a href="{{ source.source_url }}">{{ source.source_url }}</a>
+          {% endif %}
+        {% elif source.source_url %}
+          <a href="{{ source.source_url }}">{{ source.source_url }}</a>
+        {% else %}
+          no citation recorded
+        {% endif %}
+        {% if source.date_checked %}
+          &mdash; checked {{ source.date_checked }}
+        {% endif %}
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% if conflict.note %}
+  <p class="pf-conflict-note">{{ conflict.note }}</p>
+  {% endif %}
+</div>
+{% endmacro %}
