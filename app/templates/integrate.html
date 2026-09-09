@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Integration contract — ProductionFinance{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ public_path }}/static/integrate.css">{% endblock %}
+{% block content %}
+<div class="pf-int">
+  <header class="pf-int-head">
+    <h1>Integration contract</h1>
+    <p class="pf-int-lede">
+      ProductionFinance prices a film incentive from a jurisdiction and a
+      qualified-spend figure. This page is the wire contract: fill the fields on
+      the left, watch the request assemble in the middle, and submit to see the
+      exact JSON your system receives on the right — including the full
+      derivation of every figure.
+    </p>
+    <p class="pf-int-lede">
+      Nothing here is illustrative. The middle pane is the request body, the
+      right pane is the unmodified response from
+      <code>POST {{ public_path }}/api/v1/integrate</code>.
+    </p>
+  </header>
+
+  <section class="pf-int-presets">
+    <h2>Start from a worked case</h2>
+    <div class="pf-int-preset-row">
+      {% for key, preset in presets.items() %}
+      <form method="get" action="{{ public_path }}/integrate" class="pf-int-preset">
+        <input type="hidden" name="jurisdiction_id" value="{{ preset.request.jurisdiction_id }}">
+        <input type="hidden" name="qualified_spend" value="{{ preset.request.qualified_spend }}">
+        <input type="hidden" name="submitted" value="1">
+        <button type="submit" class="pf-int-preset-btn">{{ preset.label }}</button>
+        <p class="pf-int-preset-note">{{ preset.note }}</p>
+      </form>
+      {% endfor %}
+    </div>
+  </section>
+
+  <div class="pf-int-panes">
+    <section class="pf-int-pane">
+      <h2><span class="pf-int-num">1</span> Inputs</h2>
+      <p class="pf-int-hint">What the host system knows about the production.</p>
+      <form method="get" action="{{ public_path }}/integrate">
+        <label for="jurisdiction_id">Jurisdiction</label>
+        <select id="jurisdiction_id" name="jurisdiction_id">
+          {% for j in jurisdictions %}
+          <option value="{{ j }}" {% if j == selected %}selected{% endif %}>{{ j }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="qualified_spend">Qualified spend</label>
+        <input id="qualified_spend" name="qualified_spend" value="{{ spend }}" inputmode="decimal">
+        <p class="pf-int-hint">Decimal amount in the jurisdiction's own currency.</p>
+
+        <label for="spend_confidence">Spend confidence</label>
+        <input id="spend_confidence" name="spend_confidence" value="validated" readonly>
+        <p class="pf-int-hint">
+          <code>validated</code> means the figure came from a government
+          disclosure. A researched figure carries <code>researched</code> and can
+          never be stamped validated downstream.
+        </p>
+
+        <input type="hidden" name="submitted" value="1">
+        <button type="submit" class="pf-int-submit">Send request</button>
+      </form>
+    </section>
+
+    <section class="pf-int-pane">
+      <h2><span class="pf-int-num">2</span> Request we receive</h2>
+      <p class="pf-int-hint">Body of <code>POST /api/v1/integrate</code>.</p>
+      <pre class="pf-int-json pf-int-json-in">{{ inbound_json }}</pre>
+    </section>
+
+    <section class="pf-int-pane">
+      <h2><span class="pf-int-num">3</span> Response we return</h2>
+      {% if response_json %}
+      <p class="pf-int-hint">Returned verbatim. <code>derivation_tree</code> carries every step, including steps that did not apply.</p>
+      <pre class="pf-int-json pf-int-json-out">{{ response_json }}</pre>
+      {% else %}
+      <p class="pf-int-empty">Submit a request to see the response.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <section class="pf-int-contract">
+    <h2>Response states</h2>
+    <dl>
+      <dt><code>"status": "ok"</code></dt>
+      <dd>Priced. Each programme carries <code>qualifying_base</code>, <code>gross_credit</code> and <code>net_cash</code>, each with its own <code>derivation_tree</code>.</dd>
+      <dt><code>"status": "cannot_be_computed"</code></dt>
+      <dd>The engine declined to produce a figure and says why in <code>refusal_reason</code>. New Jersey and Connecticut credits are transferable and no government document states a transfer discount, so their cash value is genuinely unknown. The response returns <code>null</code>, never <code>0</code> — a zero would assert the credit is worthless.</dd>
+      <dt><code>"status": "rejected"</code></dt>
+      <dd>The request itself was not usable — unknown jurisdiction, or an unparseable amount.</dd>
+    </dl>
+  </section>
+</div>
+{% endblock %}

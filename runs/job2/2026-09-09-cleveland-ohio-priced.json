@@ -1,0 +1,660 @@
+{
+  "schema_version": 1,
+  "job_id": "52426926949949deaa35cf63968756c3",
+  "city_input": "Cleveland, Ohio",
+  "qualified_spend_input": "10000000",
+  "session_id": "126112f98e6540e9bc9cf8b5906e5e89",
+  "status": "terminal",
+  "terminal_reason": "sufficient",
+  "message": "Sufficient information was found for the Ohio Motion Picture Tax Credit applicable to Cleveland, Ohio. All five sufficiency fields and jurisdiction identity elements are determined.",
+  "rounds": [
+    {
+      "round_number": 1,
+      "objective": "Determine whether Cleveland, Ohio (or the jurisdiction it is in) has an active film/TV production incentive programme, and if so, find enough about it to build a cost model: rate, qualifying base definition, caps, payout mechanism, current availability.",
+      "search_queries": [
+        "Cleveland, Ohio film tax incentive",
+        "Cleveland, Ohio production incentive programme"
+      ],
+      "queries_normalized": false,
+      "mode": "fast",
+      "mode_normalized": false,
+      "results": [
+        {
+          "url": "https://www.clevelandfilm.com/the-latest/news/2026/08/19/hollywoods-push-for-federal-film-tax-credit-could-help-boost-production-in-all-states--variety",
+          "title": "Hollywood\u2018s Push for Federal Film Tax Credit Could Help Boost Production in All States |  Variety | August 19, 2026 | Greater Cleveland Film Commission"
+        },
+        {
+          "url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+          "title": "Incentives & Permits | Greater Cleveland Film Commission"
+        },
+        {
+          "url": "https://www.cleveland.com/entertainment/2025/01/ohio-awards-26-million-in-tax-credits-to-14-film-tv-projects.html",
+          "title": "Ohio awards $26 million in tax credits to 14 film, TV projects  - cleveland.com"
+        },
+        {
+          "url": "https://www.clevelandfilm.com/the-latest/overview",
+          "title": "The Latest | Greater Cleveland Film Commission"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Greater_Cleveland_Film_Commission",
+          "title": "Greater Cleveland Film Commission - Wikipedia"
+        },
+        {
+          "url": "https://development.ohio.gov/wps/wcm/connect/gov/76062abe-ada1-44b1-904a-5dc4b388d4bd/Application+Instructions.pdf?CACHEID=ROOTWORKSPACE.Z18_79GCH8013HMOA06A2E16IV2082-76062abe-ada1-44b1-904a-5dc4b388d4bd-pSb8p66&CONVERT_TO=url&MOD=AJPERES",
+          "title": "OHIO MOTION PICTURE TAX CREDIT PROGRAM ..."
+        },
+        {
+          "url": "https://www.wrapbook.com/blog/ohio-film-tax-credit",
+          "title": "How to Land the Ohio Film Tax Credit | Wrapbook"
+        },
+        {
+          "url": "https://www.clevelandfilm.com/the-latest/news/2026/08/10/development-awards-nearly-37-million-for-new-film-projects-across-ohio",
+          "title": "Development Awards Nearly $3.7 Million for New Film Projects Across Ohio | August 10, 2026 | Greater Cleveland Film Commission"
+        },
+        {
+          "url": "https://www.wkyc.com/article/entertainment/arts/5-ohio-film-tv-projects-receive-tax-credits-list-productions-where-theyre-being-made/95-981b41e6-cfb8-4776-91f2-fb38433f3d2c",
+          "title": "5 film, TV projects to shoot in Ohio receive $1.3M in tax credits: See the list of productions and where they're being made | wkyc.com"
+        },
+        {
+          "url": "https://www.clevelandfilm.com/the-latest/news/2026/06/23/development-awards-more-than-48-million-for-new-film-projects-across-ohio-ohio-department-of-development",
+          "title": "Development Awards More Than $4.8 Million for New Film Projects Across Ohio | Ohio Department of Development | June 23, 2026 | Greater Cleveland Film Commission"
+        }
+      ],
+      "decision": "sufficient",
+      "findings": [
+        {
+          "field": "rate",
+          "determined": true,
+          "value_text": "30%",
+          "evidence_quote": "The Ohio Motion Picture Tax Credit provides a refundable tax credit that equals 30% of in-state expenditures (above and below-the-line) on eligible productions.",
+          "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits"
+        },
+        {
+          "field": "qualifying_base_definition",
+          "determined": true,
+          "value_text": "Minimum spend of $300,000 in Ohio. Eligible spend includes all production spending and payroll (above-the-line and below-the-line, resident and non-resident) incurred in Ohio.",
+          "evidence_quote": "Eligible productions must spend a minimum of $300,000 in the State of Ohio",
+          "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits"
+        },
+        {
+          "field": "caps",
+          "determined": true,
+          "value_text": "$50 million annual program cap per fiscal year plus rollover ($5 million set aside for Broadway/theatrical productions); no individual compensation caps.",
+          "evidence_quote": "Each fiscal year will have a $50 million allocation plus any rollover amounts, with $5 million each year being designated specifically for Broadway/theatrical productions.",
+          "source_url": "https://www.clevelandfilm.com/the-latest/news/2026/08/10/development-awards-nearly-37-million-for-new-film-projects-across-ohio"
+        },
+        {
+          "field": "payout_mechanism",
+          "determined": true,
+          "value_text": "Refundable tax credit",
+          "evidence_quote": "At the heart of Ohio film incentives is the Ohio Motion Picture Tax Credit , a 30% refundable tax credit on all qualifying in-state production expenses.",
+          "source_url": "https://www.wrapbook.com/blog/ohio-film-tax-credit"
+        },
+        {
+          "field": "current_availability",
+          "determined": true,
+          "value_text": "Active; applications are reviewed and awarded on a rolling basis year-round.",
+          "evidence_quote": "Applications are reviewed and awarded on a rolling basis year-round.",
+          "source_url": "https://www.clevelandfilm.com/the-latest/news/2026/08/10/development-awards-nearly-37-million-for-new-film-projects-across-ohio"
+        }
+      ],
+      "summary": "Sufficient information was found for the Ohio Motion Picture Tax Credit applicable to Cleveland, Ohio. All five sufficiency fields and jurisdiction identity elements are determined.",
+      "newly_determined": [
+        "rate",
+        "qualifying_base_definition",
+        "caps",
+        "payout_mechanism",
+        "current_availability"
+      ],
+      "unmet_fields": [],
+      "discarded_fields": [],
+      "at": "2026-09-09T17:12:32.608Z"
+    }
+  ],
+  "sdk_calls": [
+    {
+      "sdk": "parallel-web",
+      "op": "search",
+      "target": "job2-round-1",
+      "elapsed_ms": 1411,
+      "outcome": "ok",
+      "at": "2026-09-09T17:12:21.186Z"
+    },
+    {
+      "sdk": "google-genai",
+      "op": "generate_content",
+      "target": "gemini-3.6-flash",
+      "elapsed_ms": 11290,
+      "outcome": "ok",
+      "at": "2026-09-09T17:12:32.607Z"
+    }
+  ],
+  "started_at": "2026-09-09T17:12:19.712Z",
+  "updated_at": "2026-09-09T17:12:32.639Z",
+  "ceiling_seconds": 240.0,
+  "boot_id": "924484cb89524331b6bf2386d67e59a2",
+  "round_count": 1,
+  "findings": [
+    {
+      "field": "rate",
+      "determined": true,
+      "value_text": "30%",
+      "evidence_quote": "The Ohio Motion Picture Tax Credit provides a refundable tax credit that equals 30% of in-state expenditures (above and below-the-line) on eligible productions.",
+      "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits"
+    },
+    {
+      "field": "qualifying_base_definition",
+      "determined": true,
+      "value_text": "Minimum spend of $300,000 in Ohio. Eligible spend includes all production spending and payroll (above-the-line and below-the-line, resident and non-resident) incurred in Ohio.",
+      "evidence_quote": "Eligible productions must spend a minimum of $300,000 in the State of Ohio",
+      "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits"
+    },
+    {
+      "field": "caps",
+      "determined": true,
+      "value_text": "$50 million annual program cap per fiscal year plus rollover ($5 million set aside for Broadway/theatrical productions); no individual compensation caps.",
+      "evidence_quote": "Each fiscal year will have a $50 million allocation plus any rollover amounts, with $5 million each year being designated specifically for Broadway/theatrical productions.",
+      "source_url": "https://www.clevelandfilm.com/the-latest/news/2026/08/10/development-awards-nearly-37-million-for-new-film-projects-across-ohio"
+    },
+    {
+      "field": "payout_mechanism",
+      "determined": true,
+      "value_text": "Refundable tax credit",
+      "evidence_quote": "At the heart of Ohio film incentives is the Ohio Motion Picture Tax Credit , a 30% refundable tax credit on all qualifying in-state production expenses.",
+      "source_url": "https://www.wrapbook.com/blog/ohio-film-tax-credit"
+    },
+    {
+      "field": "current_availability",
+      "determined": true,
+      "value_text": "Active; applications are reviewed and awarded on a rolling basis year-round.",
+      "evidence_quote": "Applications are reviewed and awarded on a rolling basis year-round.",
+      "source_url": "https://www.clevelandfilm.com/the-latest/news/2026/08/10/development-awards-nearly-37-million-for-new-film-projects-across-ohio"
+    }
+  ],
+  "undetermined_disclosures": [
+    "Whether this credit is subject to corporation tax was not determined by research; priced as non-taxable. If the real programme is taxable, the true net cash figure would be LOWER than shown here.",
+    "Whether an independent audit is mandatory, and any audit fee schedule, was not determined by research; priced with no audit fee deducted. If the real programme requires a paid audit, the true net cash figure would be LOWER than shown here.",
+    "Whether an above-the-line per-person compensation ceiling applies was not determined by research; priced with no per-person ceiling. If the real programme caps individual compensation, the true net cash figure would be LOWER than shown here.",
+    "When this programme's terms lock (application, start of principal photography, or completion) was not determined by research; assumed at completion for display purposes only \u2014 this does not change the computed dollar figure.",
+    "The rule model's effective-from date is set to today, the date the programme's current availability was confirmed in force by this research \u2014 not the date the programme's rules originally took effect, which was not separately determined."
+  ],
+  "ruleset_path": "/Volumes/VM3/vockelldev/cinemachallenge/prodfin/var/job2/52426926949949deaa35cf63968756c3.ruleset.yaml",
+  "priced": {
+    "jurisdiction_id": "ohio",
+    "total_net_cash": {
+      "figure_id": "9edd443216a74f9296f0030bdefb1aac",
+      "value": "3000000",
+      "unit": "USD",
+      "label": "Total landed net cash across all programmes",
+      "derivation": [
+        "summed 1 of 1 declared programme(s)' independent net-cash output(s) (never summed rates)",
+        "no mutually-exclusive programme pairs are declared in this ruleset"
+      ],
+      "source_url": null,
+      "date_checked": null,
+      "confidence": "researched",
+      "basis": null,
+      "caveat": null,
+      "live_fetched_this_run": false,
+      "inputs": [
+        {
+          "figure_id": "0ec5086010244de7931300123edad792",
+          "value": "3000000",
+          "unit": "USD",
+          "label": "Gross credit",
+          "derivation": [
+            "starting base: 10000000 USD (from Qualifying base)",
+            "no per-person ceiling applies in this jurisdiction",
+            "no uplift stacking rules are declared for this programme",
+            "flat rate 0.3 applied to base 10000000 USD \u2014 The Ohio Motion Picture Tax Credit provides a refundable tax credit that equals 30% of in-state expenditures (above and below-the-line) on eligible productions.",
+            "no per-project cap is declared for this programme",
+            "annual programme cap of 50000000 USD (calendar_year) declared \u2014 declared consumption-check method: manual \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+            "gross credit quantized to whole dollars: 3000000",
+            "no audit fee schedule is declared for this programme \u2014 $0 deducted",
+            "refundable mechanism: net cash equals gross credit less audit fee, no further conversion",
+            "net cash quantized: 3000000 USD"
+          ],
+          "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+          "date_checked": "2026-09-09",
+          "confidence": "researched",
+          "basis": null,
+          "caveat": null,
+          "live_fetched_this_run": false,
+          "inputs": [
+            {
+              "figure_id": "fd196dbf80444edf96da87dead43ee5c",
+              "value": "10000000",
+              "unit": "USD",
+              "label": "Qualifying base",
+              "derivation": [
+                "base type: total_qualified_spend \u2014 Ohio production incentive (live-researched) counts total qualified spend",
+                "no minimum-spend threshold is declared for this programme"
+              ],
+              "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+              "date_checked": "2026-09-09",
+              "confidence": "researched",
+              "basis": null,
+              "caveat": null,
+              "live_fetched_this_run": false,
+              "inputs": [
+                {
+                  "figure_id": "fc6bef952d134168ad466952a40f595e",
+                  "value": "10000000",
+                  "unit": "USD",
+                  "label": "Core expenditure (pre-cap)",
+                  "derivation": [
+                    "core expenditure recorded before any percentage cap applies"
+                  ],
+                  "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+                  "date_checked": "2026-09-09",
+                  "confidence": "researched",
+                  "basis": null,
+                  "caveat": null,
+                  "live_fetched_this_run": false,
+                  "inputs": []
+                },
+                {
+                  "figure_id": "e7480931b8584ec8a086a2a582a2e7a7",
+                  "value": "0",
+                  "unit": "USD",
+                  "label": "Excluded line items total",
+                  "derivation": [
+                    "0 excluded line item(s) declared on this programme; total subtracted: 0 USD"
+                  ],
+                  "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+                  "date_checked": "2026-09-09",
+                  "confidence": "researched",
+                  "basis": null,
+                  "caveat": null,
+                  "live_fetched_this_run": false,
+                  "inputs": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "programmes": [
+      {
+        "programme_id": "ohio-researched-programme",
+        "qualifying_base": {
+          "figure_id": "fd196dbf80444edf96da87dead43ee5c",
+          "value": "10000000",
+          "unit": "USD",
+          "label": "Qualifying base",
+          "derivation": [
+            "base type: total_qualified_spend \u2014 Ohio production incentive (live-researched) counts total qualified spend",
+            "no minimum-spend threshold is declared for this programme"
+          ],
+          "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+          "date_checked": "2026-09-09",
+          "confidence": "researched",
+          "basis": null,
+          "caveat": null,
+          "live_fetched_this_run": false,
+          "inputs": [
+            {
+              "figure_id": "fc6bef952d134168ad466952a40f595e",
+              "value": "10000000",
+              "unit": "USD",
+              "label": "Core expenditure (pre-cap)",
+              "derivation": [
+                "core expenditure recorded before any percentage cap applies"
+              ],
+              "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+              "date_checked": "2026-09-09",
+              "confidence": "researched",
+              "basis": null,
+              "caveat": null,
+              "live_fetched_this_run": false,
+              "inputs": []
+            },
+            {
+              "figure_id": "e7480931b8584ec8a086a2a582a2e7a7",
+              "value": "0",
+              "unit": "USD",
+              "label": "Excluded line items total",
+              "derivation": [
+                "0 excluded line item(s) declared on this programme; total subtracted: 0 USD"
+              ],
+              "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+              "date_checked": "2026-09-09",
+              "confidence": "researched",
+              "basis": null,
+              "caveat": null,
+              "live_fetched_this_run": false,
+              "inputs": []
+            }
+          ]
+        },
+        "gross_credit": {
+          "figure_id": "b586d507ffcd42328453b54104b419cd",
+          "value": "3000000",
+          "unit": "USD",
+          "label": "Gross credit",
+          "derivation": [
+            "starting base: 10000000 USD (from Qualifying base)",
+            "no per-person ceiling applies in this jurisdiction",
+            "no uplift stacking rules are declared for this programme",
+            "flat rate 0.3 applied to base 10000000 USD \u2014 The Ohio Motion Picture Tax Credit provides a refundable tax credit that equals 30% of in-state expenditures (above and below-the-line) on eligible productions.",
+            "no per-project cap is declared for this programme",
+            "annual programme cap of 50000000 USD (calendar_year) declared \u2014 declared consumption-check method: manual \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+            "gross credit quantized to whole dollars: 3000000"
+          ],
+          "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+          "date_checked": "2026-09-09",
+          "confidence": "researched",
+          "basis": null,
+          "caveat": null,
+          "live_fetched_this_run": false,
+          "inputs": [
+            {
+              "figure_id": "fd196dbf80444edf96da87dead43ee5c",
+              "value": "10000000",
+              "unit": "USD",
+              "label": "Qualifying base",
+              "derivation": [
+                "base type: total_qualified_spend \u2014 Ohio production incentive (live-researched) counts total qualified spend",
+                "no minimum-spend threshold is declared for this programme"
+              ],
+              "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+              "date_checked": "2026-09-09",
+              "confidence": "researched",
+              "basis": null,
+              "caveat": null,
+              "live_fetched_this_run": false,
+              "inputs": [
+                {
+                  "figure_id": "fc6bef952d134168ad466952a40f595e",
+                  "value": "10000000",
+                  "unit": "USD",
+                  "label": "Core expenditure (pre-cap)",
+                  "derivation": [
+                    "core expenditure recorded before any percentage cap applies"
+                  ],
+                  "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+                  "date_checked": "2026-09-09",
+                  "confidence": "researched",
+                  "basis": null,
+                  "caveat": null,
+                  "live_fetched_this_run": false,
+                  "inputs": []
+                },
+                {
+                  "figure_id": "e7480931b8584ec8a086a2a582a2e7a7",
+                  "value": "0",
+                  "unit": "USD",
+                  "label": "Excluded line items total",
+                  "derivation": [
+                    "0 excluded line item(s) declared on this programme; total subtracted: 0 USD"
+                  ],
+                  "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+                  "date_checked": "2026-09-09",
+                  "confidence": "researched",
+                  "basis": null,
+                  "caveat": null,
+                  "live_fetched_this_run": false,
+                  "inputs": []
+                }
+              ]
+            }
+          ]
+        },
+        "net_cash": {
+          "low": {
+            "figure_id": "0ec5086010244de7931300123edad792",
+            "value": "3000000",
+            "unit": "USD",
+            "label": "Gross credit",
+            "derivation": [
+              "starting base: 10000000 USD (from Qualifying base)",
+              "no per-person ceiling applies in this jurisdiction",
+              "no uplift stacking rules are declared for this programme",
+              "flat rate 0.3 applied to base 10000000 USD \u2014 The Ohio Motion Picture Tax Credit provides a refundable tax credit that equals 30% of in-state expenditures (above and below-the-line) on eligible productions.",
+              "no per-project cap is declared for this programme",
+              "annual programme cap of 50000000 USD (calendar_year) declared \u2014 declared consumption-check method: manual \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+              "gross credit quantized to whole dollars: 3000000",
+              "no audit fee schedule is declared for this programme \u2014 $0 deducted",
+              "refundable mechanism: net cash equals gross credit less audit fee, no further conversion",
+              "net cash quantized: 3000000 USD"
+            ],
+            "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+            "date_checked": "2026-09-09",
+            "confidence": "researched",
+            "basis": null,
+            "caveat": null,
+            "live_fetched_this_run": false,
+            "inputs": [
+              {
+                "figure_id": "fd196dbf80444edf96da87dead43ee5c",
+                "value": "10000000",
+                "unit": "USD",
+                "label": "Qualifying base",
+                "derivation": [
+                  "base type: total_qualified_spend \u2014 Ohio production incentive (live-researched) counts total qualified spend",
+                  "no minimum-spend threshold is declared for this programme"
+                ],
+                "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+                "date_checked": "2026-09-09",
+                "confidence": "researched",
+                "basis": null,
+                "caveat": null,
+                "live_fetched_this_run": false,
+                "inputs": [
+                  {
+                    "figure_id": "fc6bef952d134168ad466952a40f595e",
+                    "value": "10000000",
+                    "unit": "USD",
+                    "label": "Core expenditure (pre-cap)",
+                    "derivation": [
+                      "core expenditure recorded before any percentage cap applies"
+                    ],
+                    "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+                    "date_checked": "2026-09-09",
+                    "confidence": "researched",
+                    "basis": null,
+                    "caveat": null,
+                    "live_fetched_this_run": false,
+                    "inputs": []
+                  },
+                  {
+                    "figure_id": "e7480931b8584ec8a086a2a582a2e7a7",
+                    "value": "0",
+                    "unit": "USD",
+                    "label": "Excluded line items total",
+                    "derivation": [
+                      "0 excluded line item(s) declared on this programme; total subtracted: 0 USD"
+                    ],
+                    "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+                    "date_checked": "2026-09-09",
+                    "confidence": "researched",
+                    "basis": null,
+                    "caveat": null,
+                    "live_fetched_this_run": false,
+                    "inputs": []
+                  }
+                ]
+              }
+            ]
+          },
+          "high": {
+            "figure_id": "0ec5086010244de7931300123edad792",
+            "value": "3000000",
+            "unit": "USD",
+            "label": "Gross credit",
+            "derivation": [
+              "starting base: 10000000 USD (from Qualifying base)",
+              "no per-person ceiling applies in this jurisdiction",
+              "no uplift stacking rules are declared for this programme",
+              "flat rate 0.3 applied to base 10000000 USD \u2014 The Ohio Motion Picture Tax Credit provides a refundable tax credit that equals 30% of in-state expenditures (above and below-the-line) on eligible productions.",
+              "no per-project cap is declared for this programme",
+              "annual programme cap of 50000000 USD (calendar_year) declared \u2014 declared consumption-check method: manual \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+              "gross credit quantized to whole dollars: 3000000",
+              "no audit fee schedule is declared for this programme \u2014 $0 deducted",
+              "refundable mechanism: net cash equals gross credit less audit fee, no further conversion",
+              "net cash quantized: 3000000 USD"
+            ],
+            "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+            "date_checked": "2026-09-09",
+            "confidence": "researched",
+            "basis": null,
+            "caveat": null,
+            "live_fetched_this_run": false,
+            "inputs": [
+              {
+                "figure_id": "fd196dbf80444edf96da87dead43ee5c",
+                "value": "10000000",
+                "unit": "USD",
+                "label": "Qualifying base",
+                "derivation": [
+                  "base type: total_qualified_spend \u2014 Ohio production incentive (live-researched) counts total qualified spend",
+                  "no minimum-spend threshold is declared for this programme"
+                ],
+                "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+                "date_checked": "2026-09-09",
+                "confidence": "researched",
+                "basis": null,
+                "caveat": null,
+                "live_fetched_this_run": false,
+                "inputs": [
+                  {
+                    "figure_id": "fc6bef952d134168ad466952a40f595e",
+                    "value": "10000000",
+                    "unit": "USD",
+                    "label": "Core expenditure (pre-cap)",
+                    "derivation": [
+                      "core expenditure recorded before any percentage cap applies"
+                    ],
+                    "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+                    "date_checked": "2026-09-09",
+                    "confidence": "researched",
+                    "basis": null,
+                    "caveat": null,
+                    "live_fetched_this_run": false,
+                    "inputs": []
+                  },
+                  {
+                    "figure_id": "e7480931b8584ec8a086a2a582a2e7a7",
+                    "value": "0",
+                    "unit": "USD",
+                    "label": "Excluded line items total",
+                    "derivation": [
+                      "0 excluded line item(s) declared on this programme; total subtracted: 0 USD"
+                    ],
+                    "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+                    "date_checked": "2026-09-09",
+                    "confidence": "researched",
+                    "basis": null,
+                    "caveat": null,
+                    "live_fetched_this_run": false,
+                    "inputs": []
+                  }
+                ]
+              }
+            ]
+          },
+          "point": {
+            "figure_id": "0ec5086010244de7931300123edad792",
+            "value": "3000000",
+            "unit": "USD",
+            "label": "Gross credit",
+            "derivation": [
+              "starting base: 10000000 USD (from Qualifying base)",
+              "no per-person ceiling applies in this jurisdiction",
+              "no uplift stacking rules are declared for this programme",
+              "flat rate 0.3 applied to base 10000000 USD \u2014 The Ohio Motion Picture Tax Credit provides a refundable tax credit that equals 30% of in-state expenditures (above and below-the-line) on eligible productions.",
+              "no per-project cap is declared for this programme",
+              "annual programme cap of 50000000 USD (calendar_year) declared \u2014 declared consumption-check method: manual \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+              "gross credit quantized to whole dollars: 3000000",
+              "no audit fee schedule is declared for this programme \u2014 $0 deducted",
+              "refundable mechanism: net cash equals gross credit less audit fee, no further conversion",
+              "net cash quantized: 3000000 USD"
+            ],
+            "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+            "date_checked": "2026-09-09",
+            "confidence": "researched",
+            "basis": null,
+            "caveat": null,
+            "live_fetched_this_run": false,
+            "inputs": [
+              {
+                "figure_id": "fd196dbf80444edf96da87dead43ee5c",
+                "value": "10000000",
+                "unit": "USD",
+                "label": "Qualifying base",
+                "derivation": [
+                  "base type: total_qualified_spend \u2014 Ohio production incentive (live-researched) counts total qualified spend",
+                  "no minimum-spend threshold is declared for this programme"
+                ],
+                "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+                "date_checked": "2026-09-09",
+                "confidence": "researched",
+                "basis": null,
+                "caveat": null,
+                "live_fetched_this_run": false,
+                "inputs": [
+                  {
+                    "figure_id": "fc6bef952d134168ad466952a40f595e",
+                    "value": "10000000",
+                    "unit": "USD",
+                    "label": "Core expenditure (pre-cap)",
+                    "derivation": [
+                      "core expenditure recorded before any percentage cap applies"
+                    ],
+                    "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+                    "date_checked": "2026-09-09",
+                    "confidence": "researched",
+                    "basis": null,
+                    "caveat": null,
+                    "live_fetched_this_run": false,
+                    "inputs": []
+                  },
+                  {
+                    "figure_id": "e7480931b8584ec8a086a2a582a2e7a7",
+                    "value": "0",
+                    "unit": "USD",
+                    "label": "Excluded line items total",
+                    "derivation": [
+                      "0 excluded line item(s) declared on this programme; total subtracted: 0 USD"
+                    ],
+                    "source_url": "https://www.clevelandfilm.com/film-here/incentives-permits",
+                    "date_checked": "2026-09-09",
+                    "confidence": "researched",
+                    "basis": null,
+                    "caveat": null,
+                    "live_fetched_this_run": false,
+                    "inputs": []
+                  }
+                ]
+              }
+            ]
+          },
+          "arrival": {
+            "estimated_date": null,
+            "typical_days": null,
+            "reason": "At the heart of Ohio film incentives is the Ohio Motion Picture Tax Credit , a 30% refundable tax credit on all qualifying in-state production expenses."
+          }
+        },
+        "eligibility": {
+          "eligible": true,
+          "reasons": [
+            "minimum-spend threshold met (or none declared for this programme)",
+            "jurisdiction status is 'live_researched' \u2014 programme is open",
+            "no mutually-exclusive programme is declared for this programme"
+          ]
+        },
+        "availability": {
+          "available": null,
+          "reason": "no remaining-allocation figure was supplied for this run \u2014 consumption state was not fetched (Phase 7's DataFreshnessGate owns fetching it); defaulting an unknown to available would be the single most misleading simplification available in this engine"
+        }
+      }
+    ]
+  },
+  "identity": {
+    "jurisdiction_name": "Ohio",
+    "country_code": "US",
+    "level": "state",
+    "currency": "USD"
+  }
+}

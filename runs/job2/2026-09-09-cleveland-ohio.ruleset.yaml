@@ -1,0 +1,93 @@
+jurisdiction:
+  id: ohio
+  name: Ohio
+  country_code: US
+  level: state
+  parent_id: null
+  currency: USD
+  status: live_researched
+  effective_dates:
+    rule_version_effective_from: '2026-09-09'
+    rule_version_effective_to: null
+    source_checked_date: '2026-09-09'
+  sources:
+  - url: https://www.clevelandfilm.com/film-here/incentives-permits
+    title: Source cited by the live research agent for Ohio
+    accessed_date: '2026-09-09'
+    confidence: LOW
+  - url: https://www.clevelandfilm.com/the-latest/news/2026/08/10/development-awards-nearly-37-million-for-new-film-projects-across-ohio
+    title: Source cited by the live research agent for Ohio
+    accessed_date: '2026-09-09'
+    confidence: LOW
+  - url: https://www.wrapbook.com/blog/ohio-film-tax-credit
+    title: Source cited by the live research agent for Ohio
+    accessed_date: '2026-09-09'
+    confidence: LOW
+programmes:
+- id: ohio-researched-programme
+  name: Ohio production incentive (live-researched)
+  requires_separate_application: false
+  stacks_with: []
+  mutually_exclusive_with: []
+  mechanism: refundable
+  taxable: false
+  corporation_tax_rate: null
+  base_definition:
+    type: total_qualified_spend
+    pct_core_cap: null
+    excluded_line_items: []
+    custom_handler_id: null
+  per_person_ceiling:
+    applies: false
+    note: null
+    w2_cap_amount: null
+    loanout_exempt: null
+    loanout_withholding_rate: null
+    loanout_withholding_confirmed: null
+    loanout_withholding_schedule: []
+  rate_structure:
+    type: flat
+    base_rate: '0.3'
+    tiers: []
+    uplifts: []
+    ceiling_split: null
+    headcount_scale: null
+    source_note: The Ohio Motion Picture Tax Credit provides a refundable tax credit
+      that equals 30% of in-state expenditures (above and below-the-line) on eligible
+      productions.
+  minimum_spend: null
+  caps:
+    per_project_cap: null
+    annual_programme_cap:
+      amount:
+        value: '50000000'
+        currency: USD
+      period: calendar_year
+      escalator_schedule: null
+    cap_consumption_check:
+      method: manual
+      source_url: https://www.clevelandfilm.com/the-latest/news/2026/08/10/development-awards-nearly-37-million-for-new-film-projects-across-ohio
+  audit:
+    mandatory: false
+    fee_schedule: []
+  timing:
+    terms_lock_at: completion
+    application_window: null
+    decision_sla_days: null
+    payout_lag:
+      description: At the heart of Ohio film incentives is the Ohio Motion Picture
+        Tax Credit , a 30% refundable tax credit on all qualifying in-state production
+        expenses.
+      typical_days: null
+      interest_paid: null
+  transfer_discount:
+    applies: false
+    typical_rate_low: null
+    typical_rate_high: null
+    source_note: null
+  residency_rules: null
+  validation:
+    validated: false
+    validation_pair_fixture_glob: null
+    mean_error_pct: null
+    last_checked_against_disclosure: null

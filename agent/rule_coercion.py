@@ -219,6 +219,29 @@ def _classify_base_definition(text: str) -> str | None:
         return "labour_only"
     if "total" in lowered:
         return "total_qualified_spend"
+    # The standard statutory phrasing for an all-qualifying-spend base.
+    # Live runs against Ohio and Minnesota both refused here because their
+    # real text ("eligible spend includes ... labor", "production costs
+    # incurred in Minnesota directly attributable to ...") uses none of the
+    # four phrasings above, though both plainly describe total qualified
+    # spend. These are additive synonyms for that same base, not a loosening
+    # of the labour-only or lesser-of tests, which are still checked first.
+    if any(
+        phrase in lowered
+        for phrase in (
+            "qualified expenditure",
+            "qualifying expenditure",
+            "eligible expenditure",
+            "qualified production expenditure",
+            "direct production expenditure",
+            "production costs incurred",
+            "eligible spend",
+            "qualified spend",
+            "in-state expenditure",
+            "in-state spend",
+        )
+    ):
+        return "total_qualified_spend"
     return None
 
 

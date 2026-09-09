@@ -1,0 +1,32 @@
+.pf-int { max-width: 1400px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+.pf-int-head h1 { margin: 0 0 .5rem; font-size: 1.6rem; }
+.pf-int-lede { max-width: 62ch; color: #333; margin: .4rem 0; }
+.pf-int-presets { margin: 1.5rem 0; }
+.pf-int-presets h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: .05em; color: #555; }
+.pf-int-preset-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+.pf-int-preset { flex: 1 1 20rem; border: 1px solid #d5d5d5; border-radius: 6px; padding: .8rem; background: #fafafa; }
+.pf-int-preset-btn { width: 100%; padding: .6rem; font-size: .95rem; font-weight: 600; cursor: pointer;
+  background: #1b3a5c; color: #fff; border: 0; border-radius: 4px; }
+.pf-int-preset-note { font-size: .82rem; color: #444; margin: .5rem 0 0; }
+.pf-int-panes { display: grid; grid-template-columns: minmax(16rem, 1fr) minmax(18rem, 1.1fr) minmax(20rem, 1.6fr); gap: 1rem; align-items: start; }
+@media (max-width: 1000px) { .pf-int-panes { grid-template-columns: 1fr; } }
+.pf-int-pane { border: 1px solid #d5d5d5; border-radius: 6px; padding: 1rem; background: #fff; }
+.pf-int-pane h2 { font-size: 1rem; margin: 0 0 .25rem; display: flex; align-items: center; gap: .5rem; }
+.pf-int-num { display: inline-flex; width: 1.4rem; height: 1.4rem; align-items: center; justify-content: center;
+  background: #1b3a5c; color: #fff; border-radius: 50%; font-size: .8rem; }
+.pf-int-hint { font-size: .8rem; color: #555; margin: .25rem 0 .75rem; }
+.pf-int-pane label { display: block; font-weight: 600; font-size: .85rem; margin: .75rem 0 .25rem; }
+.pf-int-pane select, .pf-int-pane input { width: 100%; padding: .45rem; font-size: .95rem;
+  border: 1px solid #bbb; border-radius: 4px; box-sizing: border-box; }
+.pf-int-pane input[readonly] { background: #f0f0f0; color: #555; }
+.pf-int-submit { margin-top: 1rem; width: 100%; padding: .65rem; font-size: 1rem; font-weight: 600;
+  background: #1b3a5c; color: #fff; border: 0; border-radius: 4px; cursor: pointer; }
+.pf-int-json { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .78rem;
+  line-height: 1.45; white-space: pre; overflow-x: auto; max-height: 34rem; overflow-y: auto;
+  background: #12212f; color: #e6edf3; padding: .8rem; border-radius: 4px; margin: 0; }
+.pf-int-json-in { background: #1d2b18; }
+.pf-int-empty { color: #666; font-style: italic; padding: 1.5rem 0; }
+.pf-int-contract { margin-top: 2rem; border-top: 1px solid #ddd; padding-top: 1rem; }
+.pf-int-contract h2 { font-size: 1rem; }
+.pf-int-contract dt { font-family: ui-monospace, monospace; font-size: .85rem; margin-top: .8rem; }
+.pf-int-contract dd { margin: .2rem 0 0 1.2rem; font-size: .88rem; color: #333; max-width: 70ch; }
