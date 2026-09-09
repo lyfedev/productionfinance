@@ -172,6 +172,63 @@ def test_offline_run_is_never_live() -> None:
 
 
 # ---------------------------------------------------------------------------
+# AGT-08 groundedness guardrail (D-97, plan 05-07): the offline loop proves
+# BOTH branches — every genuine row in the committed double is grounded
+# (above), and a row whose quote does not appear in the document is
+# rejected as an ExtractionFailure, never priced.
+# ---------------------------------------------------------------------------
+
+
+def _double_awards_with_one_ungrounded_extra() -> list[ExtractedAward]:
+    ungrounded = ExtractedAward(
+        production_title="Test Production Zeta (ungrounded)",
+        qualified_spend="$99,000,000",
+        credit_amount="$24,750,000",
+        diversity_credit_amount=None,
+        source_row_text="Test Production Zeta | $99,000,000 | $24,750,000 | —",
+    )
+    return [*_double_awards(), ungrounded]
+
+
+def _fake_extract_awards_with_ungrounded_extra(_markdown: str) -> ExtractionResult:
+    return ExtractionResult(
+        award_set=ExtractedAwardSet(
+            report_title="ESD Test Double Report",
+            report_period="Q9-2099",
+            awards=_double_awards_with_one_ungrounded_extra(),
+        ),
+        truncated=False,
+        model="test-double",
+    )
+
+
+def test_offline_loop_rejects_an_ungrounded_award_alongside_the_grounded_rows() -> None:
+    """A row whose `source_row_text` names a production and figures that
+    appear nowhere in the extracted document is rejected — proving the
+    groundedness branch fires without disturbing the other four rows'
+    already-proven verdicts (D-87: never dropped silently, never priced)."""
+    run = run_job1(
+        search_fn=_fake_search,
+        extract_fn=_fake_extract,
+        extract_awards_fn=_fake_extract_awards_with_ungrounded_extra,
+    )
+
+    assert run.terminal_reason.value == "ok"
+    assert run.raw_award_count == 6
+    # The original 5 rows' bucket counts are unchanged; the new ungrounded
+    # row adds exactly one more extraction failure.
+    assert run.accuracy.exact_match == 2
+    assert run.accuracy.explained_variance == 1
+    assert run.accuracy.unexplained == 1
+    assert run.accuracy.extraction_failures == 2
+    assert len(run.awards) == 4
+
+    by_title_failure = {ef.production_title: ef for ef in run.extraction_failures}
+    zeta_failure = by_title_failure["Test Production Zeta (ungrounded)"]
+    assert "groundedness" in zeta_failure.error
+
+
+# ---------------------------------------------------------------------------
 # D-87: no module outside agent/schema.py ever constructs an
 # extracted-award object — proven by an AST walk, not a text grep.
 # ---------------------------------------------------------------------------

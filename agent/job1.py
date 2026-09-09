@@ -41,6 +41,7 @@ from typing import Literal
 import yaml
 
 from agent.gemini_client import ExtractionResult, extract_awards
+from agent.groundedness import check_grounded
 from agent.numbers import UnparseableFigureError, parse_money
 from agent.parallel_client import DisclosureDocument, extract_document, search_for_disclosure
 from agent.schema import ExtractedAward
@@ -215,6 +216,8 @@ def _price_and_classify_award(
     award: ExtractedAward,
     ruleset,  # engine.models.JurisdictionRuleSet — unannotated, see D-85 note above
     rules: Sequence[VarianceRule],
+    *,
+    document_text: str,
 ) -> AwardResult | ExtractionFailure:
     """Parse and price one extracted award through the existing engine
     (D-85: the same `price_jurisdiction` entry point
@@ -222,7 +225,27 @@ def _price_and_classify_award(
     classify the disclosed-vs-computed comparison through the D-86
     taxonomy. Returns an `ExtractionFailure` — never a fabricated figure
     (D-87) — when the award's money fields do not parse or the engine
-    cannot price it."""
+    cannot price it.
+
+    `document_text` is keyword-only with no default (AGT-08's groundedness
+    guardrail, D-97): every caller must supply the extracted document's own
+    text so the award's `source_row_text` and reported money figures can be
+    checked against it BEFORE anything is parsed or priced. An ungrounded
+    award becomes an `ExtractionFailure` naming the guardrail — it is never
+    priced, never dropped silently, and never replaced by a fabricated
+    substitute (D-87)."""
+    verdict = check_grounded(
+        award.source_row_text,
+        document_text,
+        (award.qualified_spend, award.credit_amount, award.diversity_credit_amount or ""),
+    )
+    if not verdict.grounded:
+        return ExtractionFailure(
+            production_title=award.production_title,
+            raw_value=verdict.quote_prefix,
+            error=f"groundedness guardrail: {verdict.reason}",
+        )
+
     try:
         qualified_spend, disclosed_credit, _diversity_credit = _parse_award_figures(award)
     except UnparseableFigureError as exc:
@@ -361,7 +384,9 @@ def run_job1(
     results: list[AwardResult] = []
     extraction_failures: list[ExtractionFailure] = []
     for award in selected:
-        outcome = _price_and_classify_award(award, ruleset, rules)
+        outcome = _price_and_classify_award(
+            award, ruleset, rules, document_text=document.markdown
+        )
         if isinstance(outcome, ExtractionFailure):
             extraction_failures.append(outcome)
         else:
