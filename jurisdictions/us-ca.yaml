@@ -129,13 +129,12 @@ programmes:
     base_definition:
       type: total_qualified_spend
       pct_core_cap: null
-      excluded_line_items:
-        - "RTC 17053.98.1(a)(22)(B)(iv): above-the-line wages paid per person per production for writers, directors, music directors, music composers, music supervisors, producers, and performers (other than background actors with no scripted lines) are excluded from 'qualified wages' entirely — a categorical role-based exclusion built into the statutory definition of qualified expenditures itself, NOT the PerPersonCeiling schema's W-2-cap-with-loan-out-exemption model (same class of schema mismatch as jurisdictions/us-ct.yaml's star-talent exclusion — see per_person_ceiling.note below)."
+      excluded_line_items: []
       custom_handler_id: null
 
     per_person_ceiling:
       applies: false
-      note: "The categorical writer/director/producer/performer wage exclusion (RTC 17053.98.1(a)(22)(B)(iv)) is recorded in base_definition.excluded_line_items above, not here — it excludes named roles from qualified wages entirely rather than capping any one person's compensation, so it is not this schema's W-2-cap-with-loan-out-exemption PerPersonCeiling model."
+      note: "RTC 17053.98.1(a)(22)(B)(iv): above-the-line wages paid per person per production for writers, directors, music directors, music composers, music supervisors, producers, and performers (other than background actors with no scripted lines) are excluded from 'qualified wages' entirely — a categorical role-based exclusion built into the statutory definition of qualified expenditures itself, NOT this schema's W-2-cap-with-loan-out-exemption PerPersonCeiling model (same class of schema mismatch as jurisdictions/us-ct.yaml's star-talent exclusion). base_definition.excluded_line_items is left empty rather than naming this exclusion there: that field subtracts a named, dollar-valued line item from a SpendBreakdown that actually carries one (engine/qualifying_base.py::_apply_excluded_line_items looks the name up in SpendBreakdown.line_items and raises KeyError if absent) — neither committed CA fixture discloses a per-role wage breakdown to subtract, only a single total qualified_spend figure, so there is no line-item value to name here without inventing one. Not modeled quantitatively; disclosed here in prose instead."
       w2_cap_amount: null
       loanout_exempt: null
       loanout_withholding_rate: null

@@ -26,16 +26,25 @@ assertion:
     is "Credit Allocation", dated 7/27/2026 in the "Credit Allocation Date"
     column — this is the amount the CA Film Commission approved a production
     to draw against, not a post-production, audited-cost figure like NY's
-    "Credit Issued Amount". CA's Program 4.0 non-independent base rate is a
-    documented 20%, with uplift categories (out-of-zone filming, relocating
-    TV series, etc.) bringing the effective rate toward the 35% implied here
-    (35.1%) for a non-independent scripted TV series; the approved-projects
-    table itself does not itemize which specific uplift categories this
-    production claimed, so the residue above a bare base rate is a named,
-    not-fully-observable, unobservable exactly as D-04 requires. A small
-    bounded tolerance is used rather than exact because an allocation-stage
-    figure is itself a snapshot subject to later true-up, not a final
-    reconciled amount.
+    "Credit Issued Amount". CORRECTED (plan 05-04, superseding this fixture's
+    Phase-1-authored guess of a 20% base rate + unconfirmed uplifts): the
+    sourced base rate for California's "Feature Film, New TV Series,
+    Mini-Series, Pilots" (non-independent) track is a DIRECTLY-STATED 35%,
+    confirmed both by RTC 17053.98.1(a)(4)(A) ("Thirty-five percent of the
+    qualified expenditures...") and by film.ca.gov's own live Program 4.0
+    page — see jurisdictions/us-ca.yaml. $46,522,000 x 0.35 = $16,282,700
+    against the disclosed $16,335,000: a residue of $52,300, 11.24 bps of
+    disclosed spend — comfortably inside this fixture's 50 bps tolerance,
+    and small enough to be consistent with an unitemized fraction of spend
+    qualifying for one of the sourced-but-undeclared uplifts (out-of-zone
+    filming, visual effects, local hire labor — see jurisdictions/us-ca.yaml's
+    header comment for why none is declared on the rule file itself), not
+    with the base rate being wrong. Which uplift categories, if any, this
+    specific production claimed is not itemized in the approved-projects
+    table — a named, not-fully-observable residue, exactly as D-04 requires.
+    A small bounded tolerance is used rather than exact because an
+    allocation-stage figure is itself a snapshot subject to later true-up,
+    not a final reconciled amount.
 
 notes: >
   Re-verified independently this session directly against the live CA Film

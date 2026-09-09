@@ -24,13 +24,20 @@ assertion:
   variance_reason: >
     Same allocation-vs-issued reasoning as ca_clueless_s1.yaml: disclosure
     stage is allocated (Credit Allocation Date 6/22/2026), not a final
-    audited issuance. The implied rate here (35.0%) is even cleaner than
-    Clueless S1's 35.1%, landing almost exactly on CA's documented
-    non-independent uplift ceiling, but the approved-projects table still
-    does not itemize which specific uplift categories (animation, relocating
-    series, etc.) a "Non-Independent Feature Film Animation" production like
-    this claimed to reach that rate from the 20% base — the same class of
-    named unobservable as Clueless S1, carried at the same tolerance.
+    audited issuance. CORRECTED (plan 05-04, superseding this fixture's
+    Phase-1-authored guess of a 20% base rate + unconfirmed uplifts): the
+    sourced base rate for California's "Feature Film, New TV Series,
+    Mini-Series, Pilots" (non-independent) track is a DIRECTLY-STATED 35% —
+    see jurisdictions/us-ca.yaml and RTC 17053.98.1(a)(4)(A). $47,538,000 x
+    0.35 = $16,638,300 against the disclosed $16,638,000: a residue of only
+    $300, 0.06 bps of disclosed spend — an almost exact match on the bare
+    base rate alone, with no uplift needed to explain the residue at all.
+    The approved-projects table still does not itemize which, if any,
+    uplift categories (out-of-zone filming, visual effects, local hire
+    labor) a "Non-Independent Feature Film Animation" production like this
+    claimed — the same class of named unobservable as Clueless S1, carried
+    at the same tolerance, even though this pair's residue is small enough
+    that no uplift contribution is actually implied by the numbers.
 
 notes: >
   Re-verified independently this session against the same live CA Film
