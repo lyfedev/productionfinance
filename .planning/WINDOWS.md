@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 27
+open_count: 28
 waived_count: 0
 fixed_count: 0
-total_count: 27
-last_updated: 2026-09-09T07:28:20.617Z
+total_count: 28
+last_updated: 2026-09-09T07:51:42.668Z
 ---
 
 # Broken Windows Ledger
@@ -42,6 +42,7 @@ last_updated: 2026-09-09T07:28:20.617Z
 | 25 | 04 | lint-warning | engine/sensitivity.py,tests/test_engine_sensitivity.py,app/services/spec.py,app/routers/spec.py |  | Plan 04-07 adds new FURB157 (verbose Decimal constructor, RD-01 quoted-Decimal convention) findings, matching every prior plan in this phase's precedent -- repo-wide ruff baseline measured 451 before this plan's changes (matching WINDOWS entry 24), 463 after (net +12). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-08-27T01:55:54.368Z |  |
 | 26 | 05 | unmet-truth | agent/job1.py |  | AGT-03 requires a live run reproducing at least three disclosed government award figures exactly. PARALLEL_API_KEY and GEMINI_API_KEY/GOOGLE_API_KEY are not set in this environment (verified at plan 05-02 execution time), so no live SDK call has been made and no runs/job1/*.json live-run artifact exists. The full extract-price-classify loop is proven offline against a committed, self-declared test-double fixture (tests/fixtures/agent/esd_excerpt_double.md, see tests/test_agent_job1_offline.py) with the expected bucket counts, but this is NOT a live reproduction of real ESD figures. Resolves automatically once a human sets both keys and runs `uv run python -m agent.job1 --require-live --json`, and the resulting run (with run_mode==live and exact_match>=3) is committed under runs/job1/. | open |  | 2026-09-09T07:26:36.778Z |  |
 | 27 | 05 | lint-warning | tests/test_agent_numbers.py,tests/test_agent_taxonomy.py |  | Plan 05-02 adds 22 new FURB157 (verbose Decimal("N") constructor) findings across the two new test files -- same established RD-01 quoted-Decimal convention already present hundreds of times pre-existing across engine/tests (see WINDOWS entries 2, 4, 5, 11, 14, 17, 23, 24, 25 for the identical accepted pattern in every prior phase). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-09-09T07:28:20.617Z |  |
+| 28 | 05 | unmet-truth | app/routers/job1.py,agent/job1.py |  | 05-03 deployed /job1 to https://vockell.com/finance/job1 (git_sha 9af46b0) and verified anonymously: page renders, POST /job1 correctly names both missing env vars, all pre-existing routes (/, /health, /spec, /validate) still 200. But PARALLEL_API_KEY and GEMINI_API_KEY/GOOGLE_API_KEY remain unset in /opt/prodfin/.env on the box (confirmed via grep -c immediately before this deploy), so no PRODFIN_SDK_CALL sdk=parallel-web or sdk=google-genai line exists anywhere in journalctl -u prodfin, and no runs/job1/ live artifact was produced. SHP-05, SHP-06 and AGT-03 all remain unverified in production. Human action required: obtain both keys, write them into /opt/prodfin/.env as the prodfin user with mode 600, run sudo systemctl restart prodfin, then POST https://vockell.com/finance/job1 from a logged-out browser, poll the redirect to terminal, and re-run sudo journalctl -u prodfin --since "15 min ago" \| grep PRODFIN_SDK_CALL expecting one sdk=parallel-web line and one sdk=google-genai line; copy the resulting run artifact into runs/job1/ and commit it. | open |  | 2026-09-09T07:51:42.668Z |  |
 
 ````json
 [
@@ -367,6 +368,18 @@ last_updated: 2026-09-09T07:28:20.617Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-09T07:28:20.617Z",
+    "resolved_at": null
+  },
+  {
+    "id": 28,
+    "kind": "unmet-truth",
+    "phase": "05",
+    "file": "app/routers/job1.py,agent/job1.py",
+    "line": null,
+    "description": "05-03 deployed /job1 to https://vockell.com/finance/job1 (git_sha 9af46b0) and verified anonymously: page renders, POST /job1 correctly names both missing env vars, all pre-existing routes (/, /health, /spec, /validate) still 200. But PARALLEL_API_KEY and GEMINI_API_KEY/GOOGLE_API_KEY remain unset in /opt/prodfin/.env on the box (confirmed via grep -c immediately before this deploy), so no PRODFIN_SDK_CALL sdk=parallel-web or sdk=google-genai line exists anywhere in journalctl -u prodfin, and no runs/job1/ live artifact was produced. SHP-05, SHP-06 and AGT-03 all remain unverified in production. Human action required: obtain both keys, write them into /opt/prodfin/.env as the prodfin user with mode 600, run sudo systemctl restart prodfin, then POST https://vockell.com/finance/job1 from a logged-out browser, poll the redirect to terminal, and re-run sudo journalctl -u prodfin --since \"15 min ago\" | grep PRODFIN_SDK_CALL expecting one sdk=parallel-web line and one sdk=google-genai line; copy the resulting run artifact into runs/job1/ and commit it.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-09T07:51:42.668Z",
     "resolved_at": null
   }
 ]

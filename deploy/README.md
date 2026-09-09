@@ -578,6 +578,47 @@ ssh -i "$PRODFIN_SSH_KEY" "$PRODFIN_SSH_USER@$PRODFIN_STATIC_IP"
 systemctl is-active "$PRODFIN_SERVICE"
 ```
 
+## Phase 5 plan 05-03 deploy — rollback position recorded before deploying
+
+**Recorded 2026-09-09, immediately before running `deploy/deploy.sh` for
+this plan, per the mandatory "write the rollback command down before
+deploying" rule.** SSH key path used: `~/.ssh/LightsailDefaultKey-us-west-2.pem`
+(the path in `deploy/hosting.env`) — this is the file with correct `600`
+permissions on this developer machine; `.claude/CLAUDE.md` names
+`~/Downloads/LightsailDefaultKey-us-west-2.pem`, which also exists here
+(same key, `644` permissions) but `deploy/hosting.env` is the
+deploy-canonical source, so that is the one used.
+
+**Pre-deploy state, verified live on the box:**
+- Currently-deployed short SHA: `60efb6b` (`Revert "docs(03): name
+  /prodfin as the deployment mount path"` — the box had not been
+  redeployed since early Phase 3/4 work; every plan 04-* and 05-* commit
+  was sitting undeployed until this plan).
+- `prodfin.service`: `active`.
+- `free -m`: `total=472Mi used=112Mi free=59Mi shared=0 buff/cache=300Mi
+  available=347Mi`; `Swap: total=634Mi used=108Mi free=526Mi`.
+- `/opt/prodfin/.env` exists but contains **neither** `PARALLEL_API_KEY`
+  nor `GEMINI_API_KEY`/`GOOGLE_API_KEY` — confirmed by a direct `grep -c`
+  on the box immediately before deploying (0 matches for both). Path B
+  (below) therefore applies to this deploy; no live SDK call is possible
+  until a human adds both keys.
+
+**Rollback command**, if this deploy leaves `prodfin.service` unhealthy or
+`https://vockell.com/finance` stops returning 200:
+
+```bash
+ssh -i ~/.ssh/LightsailDefaultKey-us-west-2.pem bitnami@35.165.60.123
+sudo -u prodfin git -C /opt/prodfin reset --hard 60efb6b
+sudo -u prodfin env UV_CACHE_DIR=/opt/prodfin/.cache bash -c \
+  "cd /opt/prodfin && uv sync --frozen"
+sudo systemctl restart prodfin.service
+curl -fsS http://127.0.0.1:8000/health
+```
+
+`https://vockell.com/finance` must return 200 for every pre-existing route
+after either a successful deploy or a rollback — that is the exit
+condition for this step regardless of outcome.
+
 ## Phase 5 — agent credentials (SHP-05 / SHP-06)
 
 Job 1 (`agent/job1.py`) calls two AI services at runtime — Parallel Search
