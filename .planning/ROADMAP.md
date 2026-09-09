@@ -223,13 +223,13 @@ Plans:
   4. Every Job 1 result is classified as exact match, explained variance, or unexplained — no blended mean-error number that can silently absorb a real bug
   5. Every document and PDF extraction runs through a permitted Google SDK, proven by a timestamped log line at the call site in production logs, with groundedness checks on extracted quotes, preference for primary `.gov` domains, locale-aware number parsing, and proposed-bill versus enacted-law classification all enforced
 
-**Plans**: 2/3 plans executed
+**Plans**: 3/3 plans executed
 
 Plans:
 
 - [x] 05-01-PLAN.md — Tracer: Parallel Search → Parallel Extract → google-genai → engine, one award end to end, with a timestamped log line at both SDK call sites (SHP-05, SHP-06, AGT-09)
 - [x] 05-02-PLAN.md — Every award in the document, locale-aware figure parsing, the three-value mismatch taxonomy and the honest accuracy counts (AGT-01, AGT-02, AGT-03, AGT-04)
-- [ ] 05-03-PLAN.md — `/job1` on the hosted URL for an anonymous visitor, run persistence, deploy, and the production-log proof for SHP-05/SHP-06
+- [x] 05-03-PLAN.md — `/job1` on the hosted URL for an anonymous visitor, run persistence, deploy, and the production-log proof for SHP-05/SHP-06
 
 **Cut line**: **Connecticut (JUR-04) is the first cuttable item in all of Accounts.** Its CSV schema is the least-verified of the four and the three-award Definition of Done is already met by NY/CA/NJ. Demote CT to live-researched-only if the deadline tightens.
 **Absolute constraint**: AWS Textract is the single most likely accidental Stage One disqualification on this project — it is the obvious tool for exactly what Job 1 does. All extraction routes through Parallel Extract plus Gemini. Never Textract, Bedrock, Comprehend or any other AWS AI service.
@@ -363,7 +363,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 9/9 | Complete    | 2026-08-25 |
 | 3. New York End-to-End — The Anora Proof | 1 — Accounts | 3/3 | Complete    | 2026-08-25 |
 | 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 7/7 | In Progress|  |
-| 5. Curated Breadth & the Validation Loop | 1 — Accounts | 2/3 | In Progress|  |
+| 5. Curated Breadth & the Validation Loop | 1 — Accounts | 3/3 | In Progress|  |
 | 6. The Interface | 1 — Accounts | 0/TBD | Not started | - |
 | 7. Live Research, Caching & Durable Jobs | 1 — Accounts | 0/TBD | Not started | - |
 | 8. Demo Proof, Export & Submission | 1 — Accounts | 0/TBD | Not started | - |

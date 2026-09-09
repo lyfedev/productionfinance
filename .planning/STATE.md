@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Curated Breadth & the Validation Loop
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-09-09T07:32:10.274Z"
+stopped_at: Completed 05-03-PLAN.md
+last_updated: "2026-09-09T07:54:29.597Z"
 last_activity: 2026-09-09
 last_activity_desc: Phase 05 plan 01 executed — SHP-05/SHP-06 eligibility spine
-state_head: 994ed7ec3bd8b23321528b8dc543cea8f50a91b0
+state_head: 4caed018d1c5e5aa53dc081a979ed7544b9847e9
 progress:
   total_phases: 11
   completed_phases: 3
-  total_plans: 31
+  total_plans: 32
   completed_plans: 29
   percent: 27
 ---
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 ## Current Position
 
 Phase: 05 (Curated Breadth & the Validation Loop) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: 05-01 complete (SHP-05/SHP-06 eligibility spine, tracer) — ready for 05-02
 Last activity: 2026-09-09 — Phase 05 plan 01 executed
 
@@ -97,6 +97,7 @@ human sets `PARALLEL_API_KEY` and `GEMINI_API_KEY`/`GOOGLE_API_KEY` per
 | Phase 04 P07 | 33min | 3 tasks | 8 files |
 | Phase 05 P01 | 55min | 3 tasks | 12 files |
 | Phase 05 P02 | 55min | 3 tasks | 10 files |
+| Phase 05 P03 | 30 min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -147,6 +148,9 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-01 (tracer): agent/ package wires Parallel Search -> primary-government-domain filter -> Parallel Extract -> google-genai structured extraction -> engine.pipeline.price_jurisdiction, in that fixed order (D-82), with both SDKs imported lazily and a D-84 PRODFIN_SDK_CALL log line unconditional at both call sites. Parallel/Gemini SDK call signatures resolved by introspecting the installed parallel-web==1.3.3 / google-genai==2.19.0 packages, not from memory (recorded in 05-01-SUMMARY.md's Decisions Made). tests/test_agent_eligibility.py (14 tests) is the standing CI gate. No API key is present in this environment — SHP-05/SHP-06 are code-verified but UNVERIFIED-IN-PRODUCTION until a human installs both keys per deploy/README.md and runs `python -m agent.job1 --limit 1 --require-live` successfully once.
 - [Phase 05]: 05-02: D-88 locale-aware money parsing (parse_money) and D-86 three-value mismatch taxonomy (MatchClass/classify/AccuracySummary) land together; explained_variance is reachable only through agent/variance_rules.yaml's closed predicate registry (T-05-07), with an unknown predicate raising at load.
 - [Phase 05]: 05-02: AGT-03 (three exact live reproductions) is honestly gated open via .planning/WINDOWS.md entry #26, not a live artifact -- PARALLEL_API_KEY/GEMINI_API_KEY remain unset in this environment; tests/test_agent_job1_offline.py enforces exactly one of {live artifact, WINDOWS.md entry}, never a skip.
+- [Phase 05]: Job 1's SDK-call evidence block reuses agent.telemetry.sdk_call via an ambient contextvars collector (agent.telemetry.collecting), not a signature change at the existing parallel_client.py/gemini_client.py call sites -- the D-84 log line and the on-page evidence are provably the same record.
+- [Phase 05]: The non-live rendering guard (T-05-15) is enforced in app/routers/job1.py itself, not only in the template: for a non-live run, awards/accuracy are never placed in the Jinja2 context at all, so a template rewrite cannot leak an accuracy figure for data it was never handed.
+- [Phase 05]: Deployed to vockell.com/finance (git_sha 9af46b0) with no API keys on the box (Path B). SHP-05 and SHP-06 were left Pending in REQUIREMENTS.md despite the mechanical shared-ID gate reporting them ready, because both are live-outcome claims that remain false; only AGT-02 (a mechanism claim, already proven) was marked complete. WINDOWS.md entry 28 records the exact human action needed.
 
 ### Pending Todos
 
@@ -173,6 +177,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-09T07:32:01.560Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-09-09T07:54:29.401Z
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None
