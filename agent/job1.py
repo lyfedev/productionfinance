@@ -53,6 +53,7 @@ from agent.taxonomy import (
     load_variance_rules,
     summarize,
 )
+from agent.telemetry import collecting
 from app.services._paths import REPO_ROOT
 from engine.models import load_ruleset
 from engine.pipeline import price_jurisdiction
@@ -129,6 +130,11 @@ class Job1Run:
     awards: tuple[AwardResult, ...] = field(default_factory=tuple)
     extraction_failures: tuple[ExtractionFailure, ...] = field(default_factory=tuple)
     accuracy: AccuracySummary = _EMPTY_ACCURACY
+    # The D-84 evidence block (plan 05-03): the exact same records the
+    # PRODFIN_SDK_CALL log lines report, captured via
+    # `agent.telemetry.collecting` — never a second, independently-produced
+    # claim. Empty for a replay run driven entirely by injected fakes.
+    sdk_calls: tuple[dict, ...] = field(default_factory=tuple)
 
     @property
     def ran_live(self) -> bool:
@@ -264,12 +270,17 @@ def run_job1(
     search_fn: SearchFn | None = None,
     extract_fn: ExtractFn | None = None,
     extract_awards_fn: ExtractAwardsFn | None = None,
+    on_stage: Callable[[str], None] | None = None,
 ) -> Job1Run:
     """Execute the fixed D-82 sequence and return a `Job1Run`.
 
     `limit` bounds how many extracted awards are priced (default: `None`
     — every row the document lists, AGT-01). `search_fn`/`extract_fn`/
     `extract_awards_fn` are test seams; a test double is never a default.
+    `on_stage`, if given, is called with one of "searching", "extracting",
+    "reading" or "pricing" as the run enters each stage — plan 05-03's
+    `/job1` page uses this to name the in-flight stage instead of a bare
+    spinner.
 
     The `PARALLEL_API_KEY`/`GEMINI_API_KEY` configuration check below only
     applies when using the REAL client functions — a caller driving the
@@ -280,6 +291,10 @@ def run_job1(
     search = search_fn or search_for_disclosure
     extract = extract_fn or extract_document
     do_extract_awards = extract_awards_fn or extract_awards
+
+    def _stage(name: str) -> None:
+        if on_stage is not None:
+            on_stage(name)
 
     status = integration_status()
     run_mode: Literal["live", "replay"] = (
@@ -295,24 +310,33 @@ def run_job1(
             message=status.not_configured_message(),
         )
 
-    url = search()
-    if url is None:
-        return Job1Run(
-            run_mode=run_mode,
-            terminal_reason=TerminalReason.no_primary_source_found,
-            message="Search returned no primary-government-domain result",
-        )
+    sdk_calls: list[dict] = []
 
-    document = extract(url)
-    if document is None:
-        return Job1Run(
-            run_mode=run_mode,
-            terminal_reason=TerminalReason.document_extract_failed,
-            message="Extract returned no usable content for the search result",
-            search_url=url,
-        )
+    with collecting(sdk_calls):
+        _stage("searching")
+        url = search()
+        if url is None:
+            return Job1Run(
+                run_mode=run_mode,
+                terminal_reason=TerminalReason.no_primary_source_found,
+                message="Search returned no primary-government-domain result",
+                sdk_calls=tuple(sdk_calls),
+            )
 
-    extraction = do_extract_awards(document.markdown)
+        _stage("extracting")
+        document = extract(url)
+        if document is None:
+            return Job1Run(
+                run_mode=run_mode,
+                terminal_reason=TerminalReason.document_extract_failed,
+                message="Extract returned no usable content for the search result",
+                search_url=url,
+                sdk_calls=tuple(sdk_calls),
+            )
+
+        _stage("reading")
+        extraction = do_extract_awards(document.markdown)
+
     awards = extraction.award_set.awards
     if not awards:
         return Job1Run(
@@ -326,8 +350,10 @@ def run_job1(
             gemini_model=extraction.model,
             report_title=extraction.award_set.report_title,
             report_period=extraction.award_set.report_period,
+            sdk_calls=tuple(sdk_calls),
         )
 
+    _stage("pricing")
     selected = awards[:limit] if limit is not None else awards
     ruleset = load_ruleset(_RULESET_PATH)
     rules = load_variance_rules(_VARIANCE_RULES_PATH)
@@ -357,6 +383,7 @@ def run_job1(
         awards=tuple(results),
         extraction_failures=tuple(extraction_failures),
         accuracy=accuracy,
+        sdk_calls=tuple(sdk_calls),
     )
 
 

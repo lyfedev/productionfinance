@@ -16,6 +16,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from app import __version__
+from app.routers import job1 as job1_router
 from app.routers import spec as spec_router
 from app.routers import validate as validate_router
 
@@ -73,6 +74,7 @@ templates = Jinja2Templates(directory=Path(__file__).resolve().parent / "templat
 
 app.include_router(spec_router.router)
 app.include_router(validate_router.router)
+app.include_router(job1_router.router)
 
 
 @app.get("/health")

@@ -201,9 +201,16 @@ def test_no_module_outside_schema_constructs_an_extracted_award_object() -> None
                 and isinstance(func.value, ast.Name)
                 and func.value.id in _MODEL_NAMES
             ):
-                # The ONE sanctioned site: agent/gemini_client.py parsing
-                # the real Gemini response via a Pydantic classmethod.
-                if path.name == "gemini_client.py" and func.attr.startswith("model_validate"):
+                # The sanctioned sites: agent/gemini_client.py parsing the
+                # real Gemini response, and agent/runs.py (plan 05-03)
+                # reading back a run this same process already saved to
+                # disk — both go through a Pydantic classmethod, never the
+                # bare constructor, and neither ever fabricates data that
+                # didn't come from a real Gemini response in the first
+                # place.
+                if path.name in ("gemini_client.py", "runs.py") and func.attr.startswith(
+                    "model_validate"
+                ):
                     continue
                 violations.append(f"{path.name}:{node.lineno}: {func.value.id}.{func.attr}(...)")
 

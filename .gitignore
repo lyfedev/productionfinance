@@ -32,6 +32,11 @@ frontend/dist/
 .cache/
 data/cache/
 
+# Job 1 run persistence (agent/runs.py) — ephemeral, per-process working
+# state, never the audit trail. `runs/job1/` (NOT ignored) is the separate,
+# committed directory holding the one human-verified live run artifact.
+var/
+
 # OS / editor
 .DS_Store
 Thumbs.db

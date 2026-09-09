@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Job 1 — reproduce an ESD disclosure{% endblock %}
+{% block content %}
+
+{% if in_flight %}
+<meta http-equiv="refresh" content="3">
+{% endif %}
+
+<p><a href="{{ public_path }}/">&larr; Back to ProductionFinance</a></p>
+
+<h1>Job 1 — reproduce an ESD disclosure live</h1>
+<p>
+  Parallel Search locates the most recent New York ESD quarterly film tax
+  credit report, Parallel Extract returns clean text, <code>google-genai</code>
+  turns it into typed production/award pairs, and the existing pricing
+  engine re-prices every one of them (AGT-01, AGT-02).
+</p>
+
+{% if not_configured_message %}
+<p><strong>Not configured:</strong> {{ not_configured_message }}</p>
+{% elif show_form %}
+<form method="post" action="{{ public_path }}/job1">
+  <button type="submit">Run Job 1</button>
+</form>
+<p><small>At most one run every {{ min_interval_seconds }}s.</small></p>
+{% endif %}
+
+{% if refusal_reason %}
+<p><strong>{{ refusal_reason }}</strong></p>
+{% endif %}
+
+{% if in_flight %}
+<h2>Run in progress</h2>
+<p>Stage: <strong>{{ stage or "starting" }}</strong> &mdash; this page refreshes itself every 3 seconds.</p>
+{% endif %}
+
+{% if run %}
+<h2>{% if run.terminal_reason.value == "ok" %}Terminal result{% else %}Run outcome{% endif %}</h2>
+
+{% if non_live_banner %}
+<p><strong>{{ non_live_banner }}</strong></p>
+{% endif %}
+
+{% if run.message %}
+<p>{{ run.message }}</p>
+{% endif %}
+
+{% if run.search_url %}
+<h3>Search result</h3>
+<p>
+  Document:
+  <a href="{{ run.search_url }}">{{ run.search_url }}</a>
+  &mdash; primary-government-domain check: <strong>passed</strong>
+</p>
+{% endif %}
+
+{% if run.document_sha256 %}
+<h3>Document</h3>
+<table>
+  <tr><th>sha256</th><td>{{ run.document_sha256 }}</td></tr>
+  <tr><th>Character count</th><td>{{ "{:,}".format(run.document_char_count) }}</td></tr>
+  {% if run.truncated %}
+  <tr><th>Truncation</th><td><strong>Document was truncated before extraction (MAX_DOCUMENT_CHARS).</strong></td></tr>
+  {% endif %}
+  <tr><th>Gemini model</th><td>{{ run.gemini_model }}</td></tr>
+  {% if run.report_title %}<tr><th>Report title</th><td>{{ run.report_title }}</td></tr>{% endif %}
+  {% if run.report_period %}<tr><th>Report period</th><td>{{ run.report_period }}</td></tr>{% endif %}
+  <tr><th>Rows read</th><td>{{ run.raw_award_count }}</td></tr>
+</table>
+{% endif %}
+
+{% if show_accuracy %}
+<h3>Accuracy — honest bucket counts (out of {{ accuracy.awards_extracted }} rows)</h3>
+<table>
+  <tr><th>Exact match</th><td>{{ accuracy.exact_match }} / {{ accuracy.awards_extracted }}</td></tr>
+  <tr><th>Explained variance</th><td>{{ accuracy.explained_variance }} / {{ accuracy.awards_extracted }}</td></tr>
+  <tr><th>Unexplained</th><td>{{ accuracy.unexplained }} / {{ accuracy.awards_extracted }}</td></tr>
+  <tr><th>Extraction failures</th><td>{{ accuracy.extraction_failures }} / {{ accuracy.awards_extracted }}</td></tr>
+</table>
+
+<h3>Every award</h3>
+<table>
+  <tr>
+    <th>Production</th>
+    <th>Disclosed</th>
+    <th>Engine-computed</th>
+    <th>Verdict</th>
+    <th>Explanation</th>
+  </tr>
+  {% for r in awards %}
+  <tr>
+    <td>{{ r.award.production_title }}</td>
+    <td>{{ "{:,}".format(r.disclosed) }}</td>
+    <td>{% if r.computed is not none %}{{ "{:,}".format(r.computed) }}{% else %}&mdash;{% endif %}</td>
+    <td>{{ r.match_class.value }}</td>
+    <td>
+      {% if r.explanation %}
+        {{ r.explanation.rule_id }} &mdash; {{ r.explanation.reason }}
+        (<a href="{{ r.explanation.source_url }}">source</a>, checked {{ r.explanation.date_checked }})
+      {% else %}
+        &mdash;
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% if run.extraction_failures %}
+<h3>Extraction failures (never dropped silently)</h3>
+<table>
+  <tr><th>Production</th><th>Raw value</th><th>Error</th></tr>
+  {% for ef in run.extraction_failures %}
+  <tr><td>{{ ef.production_title }}</td><td>{{ ef.raw_value }}</td><td>{{ ef.error }}</td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+{% endif %}
+
+{% if run.sdk_calls %}
+<h3>SDK call evidence (D-84)</h3>
+<table>
+  <tr><th>SDK</th><th>Operation</th><th>Target</th><th>Elapsed (ms)</th><th>Outcome</th><th>UTC timestamp</th></tr>
+  {% for record in run.sdk_calls %}
+  <tr>
+    <td>{{ record.sdk }}</td>
+    <td>{{ record.op }}</td>
+    <td>{{ record.target }}</td>
+    <td>{{ record.elapsed_ms }}</td>
+    <td>{{ record.outcome }}</td>
+    <td>{{ record.at }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+{% endif %}
+
+{% endblock %}
