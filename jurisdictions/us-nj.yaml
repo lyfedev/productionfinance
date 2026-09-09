@@ -112,6 +112,28 @@
 # reproducing its disclosed credit; the current, live figure is what this
 # file declares.
 #
+# MECHANISM CHOICE (transferable, not nonrefundable_credit — a deliberate
+# departure from jurisdictions/us-ca.yaml's precedent, not an inconsistency):
+# N.J.A.C. 19:31T-1.6(a) states the credit as, by default, "a credit
+# against the tax imposed" — the same nonrefundable-credit-against-
+# liability shape California's Program 4.0 has. But N.J.A.C. 19:31T-
+# 1.10(a) states the transfer right applies to "tax credits, upon receipt
+# thereof by an approved applicant" generally, "IN LIEU OF the approved
+# applicant being allowed any amount of the credit against [its own] tax
+# liability" — a broadly available elective alternative for THIS SAME
+# programme, not restricted to a track this file excludes (contrast
+# California's Program 4.0, where sale is reserved by statute to the
+# Independent Films track alone, a track jurisdictions/us-ca.yaml
+# deliberately does not model — which is why that file correctly declares
+# nonrefundable_credit instead). New Jersey's transfer right's breadth,
+# and its statutory phrasing ("may be transferred, by sale or assignment,
+# in full or in part"), closely mirrors jurisdictions/us-ct.yaml's
+# Connecticut statute ("may be sold, assigned or otherwise transferred, in
+# whole or in part") — declared transferable there for the identical
+# reasoning. transferable is the more honest single-value characterization
+# of how a real New Jersey film-credit holder actually converts this
+# credit to cash, and is what this file declares.
+#
 # TRANSFER DISCOUNT (the known landmine, resolved here with a genuine
 # partial source rather than either an invented full range or a wholly
 # unsourced null pair): N.J.A.C. 19:31T-1.10(b), P.L. 2018 c. 56 Section
@@ -170,7 +192,7 @@ programmes:
     stacks_with: []
     mutually_exclusive_with: []
 
-    mechanism: nonrefundable_credit
+    mechanism: transferable
     taxable: false
     corporation_tax_rate: null
 
@@ -248,7 +270,7 @@ programmes:
       application_window: null
       decision_sla_days: null
       payout_lag:
-        description: "N.J.A.C. 19:31T-1.6(n): unused tax credit may be carried forward, if necessary, to the seven privilege periods or taxable years following the year for which it was allowed. This is a nonrefundable-credit-against-tax-liability default (subject to the elective transfer path — see transfer_discount below), not a direct cash-arrival lag; no statutory cash-arrival day-count applies to the default carryforward path, so typical_days stays an explicit null rather than an invented number."
+        description: "N.J.A.C. 19:31T-1.6(n): unused tax credit may be carried forward, if necessary, to the seven privilege periods or taxable years following the year for which it was allowed — the path a producer takes if it never elects the transfer certificate below. No statutory cash-arrival day-count applies to either the carryforward-against-liability path or the elective transfer-certificate sale; a real transfer's timing depends on when a buyer is found, which this session's sources do not state as a fixed lag. typical_days stays an explicit null rather than an invented number."
         typical_days: null
         interest_paid: null
 
