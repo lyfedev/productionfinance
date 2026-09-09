@@ -110,7 +110,12 @@ def _run_render_context(run: Job1Run) -> dict:
     """T-05-15, enforced here, not only in the template: `awards` and
     `accuracy` are populated ONLY for a `run_mode == "live"` run that
     reached its `ok` terminal state — a template rewrite cannot render an
-    accuracy figure for data that was never put in the context."""
+    accuracy figure for data that was never put in the context.
+
+    `source_enactment` (AGT-08, D-97, plan 05-07) is a property of the
+    SOURCE DOCUMENT, not of a priced figure — it renders for any run that
+    reached Extract, live or replay alike, and is never used to imply a
+    figure was validated (it says nothing about `awards`/`accuracy`)."""
     is_live = run.run_mode == "live"
     show_accuracy = is_live and run.terminal_reason == TerminalReason.ok
     return {
@@ -124,6 +129,7 @@ def _run_render_context(run: Job1Run) -> dict:
         ),
         "awards": run.awards if show_accuracy else (),
         "accuracy": run.accuracy if show_accuracy else None,
+        "source_enactment": run.source_enactment,
     }
 
 
@@ -134,6 +140,7 @@ _EMPTY_RUN_CONTEXT = {
     "non_live_banner": None,
     "awards": (),
     "accuracy": None,
+    "source_enactment": None,
 }
 
 

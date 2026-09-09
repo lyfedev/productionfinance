@@ -52,6 +52,21 @@
   <a href="{{ run.search_url }}">{{ run.search_url }}</a>
   &mdash; primary-government-domain check: <strong>passed</strong>
 </p>
+{% if source_enactment %}
+<p>
+  Legal status of source document:
+  {% if source_enactment.status.value == "enacted" %}
+  <strong>Enacted law</strong>
+  {% elif source_enactment.status.value == "proposed" %}
+  <strong>Proposed bill &mdash; not yet enacted</strong>
+  {% else %}
+  <strong>Unknown</strong> &mdash; no enactment or pending-legislation marker was found; this is not a claim either way.
+  {% endif %}
+  {% if source_enactment.matched_markers %}
+  (matched: {{ source_enactment.matched_markers|join(", ") }})
+  {% endif %}
+</p>
+{% endif %}
 {% endif %}
 
 {% if run.document_sha256 %}

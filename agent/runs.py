@@ -24,6 +24,7 @@ import uuid
 from decimal import Decimal
 from pathlib import Path
 
+from agent.enactment import EnactmentStatus, EnactmentVerdict
 from agent.job1 import ExtractionFailure, Job1Run, TerminalReason
 from agent.schema import ExtractedAward
 from agent.taxonomy import AccuracySummary, AwardResult, MatchClass, VarianceExplanation
@@ -143,6 +144,22 @@ def _extraction_failure_to_dict(failure: ExtractionFailure) -> dict:
     }
 
 
+def _enactment_to_dict(verdict: EnactmentVerdict) -> dict:
+    return {
+        "status": verdict.status.value,
+        "matched_markers": list(verdict.matched_markers),
+        "evidence": list(verdict.evidence),
+    }
+
+
+def _enactment_from_dict(data: dict) -> EnactmentVerdict:
+    return EnactmentVerdict(
+        status=EnactmentStatus(data["status"]),
+        matched_markers=tuple(data.get("matched_markers", ())),
+        evidence=tuple(data.get("evidence", ())),
+    )
+
+
 def run_to_dict(run: Job1Run) -> dict:
     """Every `Decimal` via `str(...)`, every enum via `.value`. Never
     includes an environment variable, a key, or a raw document/prompt
@@ -172,6 +189,9 @@ def run_to_dict(run: Job1Run) -> dict:
             _extraction_failure_to_dict(ef) for ef in run.extraction_failures
         ],
         "sdk_calls": [dict(record) for record in run.sdk_calls],
+        "source_enactment": (
+            _enactment_to_dict(run.source_enactment) if run.source_enactment is not None else None
+        ),
     }
 
 
@@ -196,6 +216,12 @@ def run_from_dict(data: dict) -> Job1Run:
         )
         for ef in data.get("extraction_failures", [])
     )
+    # A run persisted before this change (AGT-08's enactment guardrail,
+    # D-97, plan 05-07) has no "source_enactment" key at all —
+    # `data.get(...)` returns None for it, and this loads that pre-existing
+    # run with a null verdict rather than raising.
+    enactment_data = data.get("source_enactment")
+    source_enactment = _enactment_from_dict(enactment_data) if enactment_data else None
     return Job1Run(
         run_mode=data["run_mode"],
         terminal_reason=TerminalReason(data["terminal_reason"]),
@@ -212,6 +238,7 @@ def run_from_dict(data: dict) -> Job1Run:
         extraction_failures=extraction_failures,
         accuracy=accuracy,
         sdk_calls=tuple(data.get("sdk_calls", [])),
+        source_enactment=source_enactment,
     )
 
 

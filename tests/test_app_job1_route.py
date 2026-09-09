@@ -25,6 +25,7 @@ from fastapi.testclient import TestClient
 
 import agent.runs as runs_module
 import app.routers.job1 as job1_router
+from agent.enactment import EnactmentStatus, EnactmentVerdict
 from agent.gemini_client import ExtractionResult
 from agent.job1 import Job1Run, TerminalReason, run_job1
 from agent.parallel_client import DisclosureDocument
@@ -41,11 +42,24 @@ def _fake_search() -> str:
     return _FAKE_URL
 
 
-def _fake_extract(url: str) -> DisclosureDocument:
-    markdown = "test-double-markdown, not a real government document"
-    return DisclosureDocument(
-        url=url, markdown=markdown, sha256="deadbeef" * 8, char_count=len(markdown)
+def _fake_extract_factory(awards: list[ExtractedAward]):
+    """AGT-08's groundedness guardrail (D-97, plan 05-07) checks every
+    award's `source_row_text` and reported money figures against the
+    extracted document's own text — so this route-test double, like the
+    one in tests/test_agent_job1_offline.py, must build markdown that
+    genuinely contains each award's `source_row_text`, or every route
+    fixture in this module would be rejected as ungrounded regardless of
+    what the route test itself is exercising."""
+    markdown = "\n".join(award.source_row_text for award in awards) or (
+        "test-double-markdown, not a real government document"
     )
+
+    def _fake(url: str) -> DisclosureDocument:
+        return DisclosureDocument(
+            url=url, markdown=markdown, sha256="deadbeef" * 8, char_count=len(markdown)
+        )
+
+    return _fake
 
 
 def _fake_extract_awards_factory(awards: list[ExtractedAward]):
@@ -95,7 +109,7 @@ def _three_bucket_awards() -> list[ExtractedAward]:
 def _build_run(awards: list[ExtractedAward], *, run_mode: str | None = None) -> Job1Run:
     run = run_job1(
         search_fn=_fake_search,
-        extract_fn=_fake_extract,
+        extract_fn=_fake_extract_factory(awards),
         extract_awards_fn=_fake_extract_awards_factory(awards),
     )
     if run_mode is not None:
@@ -173,6 +187,26 @@ def test_get_job1_with_persisted_live_run_shows_bucket_counts_and_every_award():
     assert "Test Production Beta" in response.text
     assert "Test Production Gamma (unexplained)" in response.text
     assert "unexplained" in response.text
+
+
+def test_get_job1_with_persisted_proposed_verdict_renders_proposed_not_enacted():
+    """AGT-08's enactment guardrail (D-97, plan 05-07): a run carrying a
+    `proposed` verdict must render that word, and must NEVER render an
+    "enacted" label — a rate read from a bill that never passed is never
+    presented as law."""
+    run = _build_run(_three_bucket_awards(), run_mode="live")
+    proposed_verdict = EnactmentVerdict(
+        status=EnactmentStatus.proposed,
+        matched_markers=("referred_to_committee", "introduced"),
+        evidence=("referred to the committee", "introduced by"),
+    )
+    run = dataclasses.replace(run, source_enactment=proposed_verdict)
+    runs_module.save_run(run, run_id="e" * 32)
+
+    response = client.get("/job1")
+    assert response.status_code == 200
+    assert "Proposed bill" in response.text
+    assert "Enacted law" not in response.text
 
 
 # ---------------------------------------------------------------------------

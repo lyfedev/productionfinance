@@ -40,6 +40,7 @@ from typing import Literal
 
 import yaml
 
+from agent.enactment import EnactmentVerdict, classify_enactment
 from agent.gemini_client import ExtractionResult, extract_awards
 from agent.groundedness import check_grounded
 from agent.numbers import UnparseableFigureError, parse_money
@@ -136,6 +137,13 @@ class Job1Run:
     # `agent.telemetry.collecting` — never a second, independently-produced
     # claim. Empty for a replay run driven entirely by injected fakes.
     sdk_calls: tuple[dict, ...] = field(default_factory=tuple)
+    # AGT-08's enactment guardrail (D-97, plan 05-07): a defaulted field so
+    # every existing construction of Job1Run keeps working unchanged.
+    # Populated as soon as Extract returns a usable document — a property
+    # of the SOURCE DOCUMENT, not of any individual award, so it is never
+    # gated by `run_mode` the way `awards`/`accuracy` are (T-05-15's rule
+    # protects PRICED FIGURES from a replay run, not this classification).
+    source_enactment: EnactmentVerdict | None = None
 
     @property
     def ran_live(self) -> bool:
@@ -357,6 +365,12 @@ def run_job1(
                 sdk_calls=tuple(sdk_calls),
             )
 
+        # AGT-08's enactment guardrail (D-97): classified as soon as a
+        # usable document exists, from that document's own URL and text —
+        # a property of the source document, populated for every terminal
+        # state from here on, never gated by run_mode.
+        source_enactment = classify_enactment(document.url, document.markdown)
+
         _stage("reading")
         extraction = do_extract_awards(document.markdown)
 
@@ -374,6 +388,7 @@ def run_job1(
             report_title=extraction.award_set.report_title,
             report_period=extraction.award_set.report_period,
             sdk_calls=tuple(sdk_calls),
+            source_enactment=source_enactment,
         )
 
     _stage("pricing")
@@ -409,6 +424,7 @@ def run_job1(
         extraction_failures=tuple(extraction_failures),
         accuracy=accuracy,
         sdk_calls=tuple(sdk_calls),
+        source_enactment=source_enactment,
     )
 
 
@@ -425,6 +441,15 @@ def _run_to_dict(run: Job1Run) -> dict:
         "report_title": run.report_title,
         "report_period": run.report_period,
         "raw_award_count": run.raw_award_count,
+        "source_enactment": (
+            {
+                "status": run.source_enactment.status.value,
+                "matched_markers": list(run.source_enactment.matched_markers),
+                "evidence": list(run.source_enactment.evidence),
+            }
+            if run.source_enactment is not None
+            else None
+        ),
         "accuracy": {
             "awards_extracted": run.accuracy.awards_extracted,
             "exact_match": run.accuracy.exact_match,

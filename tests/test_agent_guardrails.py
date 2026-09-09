@@ -23,6 +23,7 @@ unnoticed.
 
 from __future__ import annotations
 
+from agent.enactment import EnactmentStatus, classify_enactment
 from agent.groundedness import check_grounded
 from agent.job1 import ExtractionFailure, run_job1
 from agent.schema import ExtractedAward
@@ -33,7 +34,7 @@ from agent.schema import ExtractedAward
 # test_every_guardrail_has_a_firing_test only checks the ids present here.
 # ---------------------------------------------------------------------------
 
-GUARDRAIL_IDS: tuple[str, ...] = ("groundedness",)
+GUARDRAIL_IDS: tuple[str, ...] = ("groundedness", "enactment")
 
 
 def test_every_guardrail_has_a_firing_test() -> None:
@@ -158,3 +159,46 @@ def test_run_job1_rejects_ungrounded_award_as_extraction_failure() -> None:
     assert run.accuracy.exact_match == 0
     assert run.accuracy.explained_variance == 0
     assert run.accuracy.unexplained == 0
+
+
+# ---------------------------------------------------------------------------
+# Guardrail 4: proposed bill vs. enacted law classification (new, plan
+# 05-07)
+# ---------------------------------------------------------------------------
+
+
+def test_enactment_document_with_enactment_marker_classifies_as_enacted() -> None:
+    text = "Chapter 59 of the Laws of 2023. Approved and signed into law by the Governor."
+    verdict = classify_enactment("https://www.nysenate.gov/legislation/laws/TAX/24", text)
+    assert verdict.status is EnactmentStatus.enacted
+    assert verdict.matched_markers
+    assert len(verdict.matched_markers) == len(verdict.evidence)
+
+
+def test_enactment_document_with_pending_marker_only_classifies_as_proposed() -> None:
+    text = "S1234-2023: Referred to the Committee on Ways and Means. Introduced by Sen. Doe."
+    verdict = classify_enactment("https://www.nysenate.gov/legislation/bills/2023/S1234", text)
+    assert verdict.status is EnactmentStatus.proposed
+    assert verdict.matched_markers
+
+
+def test_enactment_document_with_neither_marker_classifies_as_unknown() -> None:
+    text = "This press release discusses the film production tax credit program generally."
+    verdict = classify_enactment("https://esd.ny.gov/press-release", text)
+    assert verdict.status is EnactmentStatus.unknown
+    assert verdict.matched_markers == ()
+    assert verdict.evidence == ()
+
+
+def test_enactment_document_with_both_markers_prefers_enacted_and_records_both() -> None:
+    text = (
+        "Chapter 59 of the Laws of 2023, signed into law, which amended the bill "
+        "as introduced and referred to committee prior to passage."
+    )
+    verdict = classify_enactment("https://www.nysenate.gov/legislation/laws/TAX/24", text)
+    assert verdict.status is EnactmentStatus.enacted
+    # The precedence rule (module docstring, agent/enactment.py): enacted
+    # wins, but BOTH marker sets are recorded, never laundered away.
+    assert len(verdict.matched_markers) >= 2
+    assert "referred_to_committee" in verdict.matched_markers
+    assert "chapter_of_the_laws_of" in verdict.matched_markers
