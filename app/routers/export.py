@@ -1,16 +1,19 @@
-"""`/export` (UI-09) — Phase 8 plan 02, Task 1. Follows
+"""`/export` (UI-09) and `/demo` (DMO-01..04) — Phase 8 plan 02. Follows
 `app/routers/methodology.py`'s established shape: imports
 `PUBLIC_PATH`/`templates` from `app.main` inside each handler (never at
 module import — avoids a circular import with `app.main`, which includes
-this router), and holds no business logic of its own. Its
+this router), and holds no business logic of its own. `/export`'s
 query-parameter list mirrors `app/routers/compare.py::get_compare`'s own
 signature (the established per-module duplication discipline this
 repo's routers already use — see `app/routers/methodology.py`'s
 docstring for the same note) so a comparison's own URL can be turned
 into its export URL by changing only the path.
 
-(`/demo` — DMO-01..04 — is added to this same router in Task 2/3 of this
-plan; see this module's git history for that follow-up commit.)
+`/demo` needs no query-string input: DMO-01 and DMO-04 link to their own
+existing pages (`/proof`, `/research`) rather than being rebuilt here,
+and DMO-02/DMO-03 are both computed against fixed, illustrative,
+committed data (`app.services.demo`) — the whole point of a demo page is
+that it is showable without a visitor filling in a form first.
 """
 
 from __future__ import annotations
@@ -19,7 +22,9 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from pydantic import ValidationError
 
+from agent.settings import integration_status
 from app.services.compare import CompareInputs
+from app.services.demo import naive_arithmetic_example, rate_ranking_inversion
 from app.services.export import build_export_document
 
 __all__ = ["router"]
@@ -100,4 +105,39 @@ def get_export(
         request=request,
         name="export_document.html",
         context={"public_path": PUBLIC_PATH, "document": document},
+    )
+
+
+@router.get("/demo", response_class=HTMLResponse)
+def get_demo(request: Request) -> HTMLResponse:
+    """The four demo beats (DMO-01..04), staged in order on one page so
+    they are showable rather than described. DMO-01 (open on
+    validation) and DMO-04 (a city with no curated model, researched
+    live) both link to their own existing pages (`/proof`, `/research`)
+    — this route does not rebuild either. DMO-02 (the naive-arithmetic
+    case) and DMO-03 (the ranking inversion) are computed fresh on every
+    request from committed data via `app.services.demo` — nothing here
+    is pre-recorded.
+
+    DMO-04 (D-101): if either integration credential is absent, this
+    route renders the SAME `agent.settings.integration_status()`
+    not-configured message `/research` itself renders — never a faked
+    or simulated run. `PARALLEL_API_KEY`/`GEMINI_API_KEY` are not
+    installed on this host as of this plan; the unavailable state below
+    is the honest, current outcome, not a placeholder for the future."""
+    from app.main import PUBLIC_PATH, templates
+
+    naive_example = naive_arithmetic_example()
+    ranking = rate_ranking_inversion()
+    research_status = integration_status()
+
+    return templates.TemplateResponse(
+        request=request,
+        name="demo.html",
+        context={
+            "public_path": PUBLIC_PATH,
+            "naive_example": naive_example,
+            "ranking": ranking,
+            "research_status": research_status,
+        },
     )

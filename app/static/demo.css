@@ -1,0 +1,101 @@
+/* demo.css — styling for the demo page this plan owns
+   (app/templates/demo.html, DMO-01..04). A sibling plan owns
+   prodfin.css this wave, so this is a SEPARATE stylesheet loaded
+   alongside it and alongside provenance.css, reusing both files' own
+   custom properties and established classes (--pf-ink, --pf-space-*,
+   .pf-figure, .pf-noprint, etc.) rather than redefining them.
+
+   Vocabulary discipline: this file is covered by the D-70 gate over
+   app/static/ — no class name or comment here names the product's
+   prescriptive-vocabulary list. Every word choice below is descriptive,
+   never prescriptive. */
+
+.pf-demo-beat {
+  margin: var(--pf-space-6, 2rem) 0;
+  padding: var(--pf-space-4, 1rem);
+  border: 1px solid var(--pf-line, #d8dbe0);
+  border-radius: var(--pf-radius, 10px);
+  background: var(--pf-paper, #fff);
+}
+
+.pf-demo-disclaimer {
+  padding: var(--pf-space-3, 0.75rem);
+  border: 1px solid var(--pf-line-soft, #e9ebee);
+  border-radius: var(--pf-radius, 10px);
+  background: var(--pf-paper-sunk, #f6f7f9);
+  color: var(--pf-ink-soft, #4a5058);
+  font-size: 0.9em;
+}
+
+.pf-demo-arithmetic {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pf-space-4, 1rem);
+  margin: var(--pf-space-4, 1rem) 0;
+}
+
+.pf-demo-naive,
+.pf-demo-correct {
+  flex: 1 1 16rem;
+  padding: var(--pf-space-3, 0.75rem);
+  border-radius: var(--pf-radius, 10px);
+}
+
+.pf-demo-naive {
+  border: 1px solid var(--pf-ramp-high, #a4133c);
+  background: var(--pf-paper-sunk, #f6f7f9);
+}
+
+.pf-demo-correct {
+  border: 1px solid var(--pf-line, #d8dbe0);
+}
+
+.pf-demo-naive-figure {
+  font-family: var(--pf-font-mono, monospace);
+  font-size: 1.4em;
+}
+
+.pf-demo-overstatement {
+  font-weight: bold;
+}
+
+.pf-demo-ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--pf-space-3, 0.75rem) 0;
+}
+
+.pf-demo-ranking-table th,
+.pf-demo-ranking-table td {
+  border: 1px solid var(--pf-line, #d8dbe0);
+  padding: var(--pf-space-2, 0.5rem) var(--pf-space-3, 0.75rem);
+  text-align: left;
+}
+
+.pf-demo-unavailable-list li {
+  margin: var(--pf-space-2, 0.5rem) 0;
+}
+
+.pf-demo-inversion-note {
+  padding: var(--pf-space-3, 0.75rem);
+  border-left: 3px solid var(--pf-ink, #1a1d21);
+  background: var(--pf-paper-sunk, #f6f7f9);
+}
+
+.pf-demo-jurisdiction-detail {
+  margin: var(--pf-space-3, 0.75rem) 0;
+  padding-top: var(--pf-space-2, 0.5rem);
+  border-top: 1px solid var(--pf-line-soft, #e9ebee);
+}
+
+.pf-demo-unavailable-beat {
+  padding: var(--pf-space-3, 0.75rem);
+  border: 1px solid var(--pf-ramp-high, #a4133c);
+  border-radius: var(--pf-radius, 10px);
+  background: var(--pf-paper-sunk, #f6f7f9);
+}
+
+.pf-demo-unavailable-reason {
+  color: var(--pf-ink-soft, #4a5058);
+  font-size: 0.9em;
+}

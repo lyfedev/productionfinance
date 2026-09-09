@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Demo — ProductionFinance{% endblock %}
+{% block content %}
+{% from "_figure.html" import render_figure %}
+
+<link rel="stylesheet" href="{{ public_path }}/static/prodfin.css">
+<link rel="stylesheet" href="{{ public_path }}/static/provenance.css">
+<link rel="stylesheet" href="{{ public_path }}/static/demo.css">
+
+<p><a href="{{ public_path }}/">&larr; Back to ProductionFinance</a></p>
+
+<h1>Demo</h1>
+<p>
+  Four beats, each computed fresh on this page load from real, committed
+  data — nothing below is pre-recorded.
+</p>
+
+<section class="pf-demo-beat" aria-labelledby="pf-demo-beat-1-heading">
+  <h2 id="pf-demo-beat-1-heading">1. Open on validation</h2>
+  <p>
+    Reproduce a published government award figure exactly, with the
+    government document shown alongside it.
+  </p>
+  <p>
+    <a href="{{ public_path }}/proof">Open the proof panel</a>
+    &mdash; a reproduced credit figure next to the archived government
+    document itself, its sha256 hash, and the honest bucket-count
+    accuracy figure across every validation pair this project has
+    committed.
+  </p>
+</section>
+
+<section class="pf-demo-beat" aria-labelledby="pf-demo-beat-2-heading">
+  <h2 id="pf-demo-beat-2-heading">2. Naive percentage arithmetic, badly wrong</h2>
+  <p class="pf-demo-disclaimer">{{ naive_example.illustrative_disclaimer }}</p>
+
+  <p>
+    Qualifying spend: {{ naive_example.qualifying_spend }}
+    {{ naive_example.currency }}.
+  </p>
+
+  <div class="pf-demo-arithmetic">
+    <div class="pf-demo-naive">
+      <h3>Naive</h3>
+      <p class="pf-demo-naive-figure">
+        {{ naive_example.naive_figure }} {{ naive_example.currency }}
+      </p>
+      <p class="pf-demo-naive-derivation">{{ naive_example.naive_derivation }}</p>
+      <p class="pf-demo-naive-note">
+        No further derivation. This is what applying the headline rate to
+        the whole spend, by hand, produces.
+      </p>
+    </div>
+
+    <div class="pf-demo-correct">
+      <h3>Computed by the engine</h3>
+      {{ render_figure(naive_example.correct_net_cash, label="Net cash") }}
+    </div>
+  </div>
+
+  <p class="pf-demo-overstatement">
+    The naive figure overstates the computed net-cash figure by
+    {{ naive_example.overstatement_pct }}%
+    ({{ naive_example.naive_figure }} vs
+    {{ naive_example.correct_net_cash.value }} {{ naive_example.currency }}) &mdash;
+    the ceiling split, the 80% cap, and corporation tax each account for
+    part of the difference, and each step is shown in the derivation
+    above.
+  </p>
+</section>
+
+<section class="pf-demo-beat" aria-labelledby="pf-demo-beat-3-heading">
+  <h2 id="pf-demo-beat-3-heading">3. A ranking that inverts</h2>
+  <p>
+    The same {{ ranking.qualifying_spend }} {{ ranking.currency }} of
+    qualifying spend, priced against all four curated jurisdictions.
+    Both orderings below come from the same computation — nothing is
+    re-derived between them.
+  </p>
+
+  <h3>Ordered by headline rate</h3>
+  <table class="pf-demo-ranking-table">
+    <thead>
+      <tr><th>Position</th><th>Jurisdiction</th><th>Headline rate</th></tr>
+    </thead>
+    <tbody>
+      {% for row in ranking.by_headline_rate %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ row.jurisdiction_name }}</td>
+        <td>{{ (row.headline_rate * 100) | round(2) }}%</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Ordered by real net cash</h3>
+  {% if ranking.by_net_cash %}
+  <table class="pf-demo-ranking-table">
+    <thead>
+      <tr><th>Position</th><th>Jurisdiction</th><th>Net cash</th></tr>
+    </thead>
+    <tbody>
+      {% for row in ranking.by_net_cash %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ row.jurisdiction_name }}</td>
+        <td>{{ row.net_cash.value }} {{ ranking.currency }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No jurisdiction in this set produced a computable net-cash point figure.</p>
+  {% endif %}
+
+  {% if ranking.net_cash_unavailable %}
+  <h3>Real net cash not computable, at this spend</h3>
+  <p>
+    Never given a fabricated number in place of a missing one (D-56/D-87)
+    &mdash; each jurisdiction below has a real, sourced headline rate but
+    an unsourced or incomplete conversion step:
+  </p>
+  <ul class="pf-demo-unavailable-list">
+    {% for row in ranking.net_cash_unavailable %}
+    <li>
+      <strong>{{ row.jurisdiction_name }}</strong>
+      ({{ (row.headline_rate * 100) | round(2) }}% headline rate) &mdash;
+      {{ row.net_cash_unavailable_reason }}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <p class="pf-demo-inversion-note">
+    {% set first_headline = ranking.by_headline_rate[0] %}
+    {% set last_headline = ranking.by_headline_rate[-1] %}
+    On headline rate, {{ first_headline.jurisdiction_name }} leads and
+    {{ last_headline.jurisdiction_name }} sits last. Once a real,
+    computed net-cash figure is required instead of a headline
+    percentage, {{ last_headline.jurisdiction_name }}'s position changes:
+    it is one of only {{ ranking.by_net_cash | length }} jurisdiction(s)
+    in this set whose net cash can be confirmed at all, while the
+    jurisdictions that outranked it on headline rate alone cannot be
+    confirmed to deliver more than a sourced floor at this spend.
+  </p>
+
+  <details class="pf-demo-methodology">
+    <summary>the exact per-jurisdiction figures behind both tables</summary>
+    {% for row in ranking.by_headline_rate %}
+    <div class="pf-demo-jurisdiction-detail">
+      <h4>{{ row.jurisdiction_name }}</h4>
+      {{ render_figure(row.qualifying_base) }}
+      {{ render_figure(row.gross_credit) }}
+      {% if row.net_cash %}
+        {{ render_figure(row.net_cash) }}
+      {% else %}
+        <p class="pf-demo-unavailable-reason">{{ row.net_cash_unavailable_reason }}</p>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </details>
+</section>
+
+<section class="pf-demo-beat" aria-labelledby="pf-demo-beat-4-heading">
+  <h2 id="pf-demo-beat-4-heading">4. A city with no curated model, researched live</h2>
+
+  {% if research_status.parallel_configured and research_status.gemini_configured %}
+  <p>
+    Both integrations are configured on this host.
+    <a href="{{ public_path }}/research">Research a jurisdiction</a> &mdash;
+    name a city with no curated rule model and watch a live agent loop
+    research it: Parallel Search, then <code>google-genai</code> judging
+    whether it has enough to build a cost model, live, with every round
+    shown.
+  </p>
+  {% else %}
+  <p class="pf-demo-unavailable-beat">
+    This beat is unavailable on this deployment right now:
+    {{ research_status.not_configured_message() }}
+  </p>
+  <p>
+    This is stated plainly rather than simulated. A pre-recorded run
+    presented as live, or a live-looking spinner in front of nothing,
+    is the exact dishonesty this project exists to refuse to produce.
+    <a href="{{ public_path }}/research">The research page</a> itself
+    states the identical unavailable reason.
+  </p>
+  {% endif %}
+</section>
+
+{% endblock %}
