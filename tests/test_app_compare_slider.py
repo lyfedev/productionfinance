@@ -97,6 +97,39 @@ def test_get_compare_start_index_out_of_range_returns_422():
     assert response.status_code == 422
 
 
+def test_post_compare_json_invalid_payload_returns_422_json_never_a_500():
+    """[Rule 1 deviation] `except ValidationError: raise HTTPException(...,
+    detail=exc.errors())` (bare, no `include_context=False`) crashes at
+    RESPONSE-render time — not at validation time — whenever
+    pydantic-core embeds the raw `ValueError` instance itself in a
+    validator error's `ctx.error` (observed on `GET /compare`'s own
+    direct `CompareInputs(...)` construction; `json.dumps` cannot
+    serialize a bare exception object, turning a clean 422 into an
+    unhandled 500). This asserts BOTH invalid-input surfaces this router
+    owns return a real, JSON-parseable 422 body — never raise while
+    rendering the error response itself."""
+    over_cap = client.post(
+        "/api/v1/compare",
+        json={"candidate_cities": [f"City {i}" for i in range(13)]},
+    )
+    assert over_cap.status_code == 422
+    assert "at most 12 candidate cities" in over_cap.json()["detail"][0]["msg"]
+
+    bad_index = client.post("/api/v1/compare", json={"start_index": 999})
+    assert bad_index.status_code == 422
+    assert "start_index" in bad_index.json()["detail"][0]["msg"]
+
+
+def test_get_compare_over_cap_candidate_cities_returns_422_json_never_a_500():
+    """The exact GET-path reproduction of the Rule 1 bug above — this is
+    the surface that actually crashed with a bare `exc.errors()`."""
+    response = client.get(
+        "/compare", params=[("candidate_cities", f"City {i}") for i in range(13)]
+    )
+    assert response.status_code == 422
+    assert "at most 12 candidate cities" in response.json()["detail"][0]["msg"]
+
+
 def test_post_compare_json_carries_a_ranked_list_html_fragment():
     """UI-03's slider JS injects this fragment verbatim on a settled
     position — it must be present, non-empty, and contain the SAME

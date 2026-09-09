@@ -208,7 +208,14 @@ def post_compare_json(inputs: CompareInputs) -> dict:
     try:
         comparison = build_comparison(inputs)
     except ValidationError as exc:
-        raise HTTPException(status_code=422, detail=exc.errors()) from exc
+        # Same fix as the GET handler above: `include_context=False`
+        # drops pydantic-core's raw `ValueError` instance from `ctx.error`
+        # (embedded there by default for a validator-raised error — both
+        # `CompareInputs._resolve_start_index` and
+        # `_candidate_city_count_within_bound` raise this way), which
+        # `json.dumps` cannot serialize and would otherwise turn this
+        # clean 422 into an unhandled 500 while rendering the response.
+        raise HTTPException(status_code=422, detail=exc.errors(include_context=False)) from exc
 
     from app.main import PUBLIC_PATH, templates
 
