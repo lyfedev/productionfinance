@@ -1,0 +1,183 @@
+/* prodfin.css — ProductionFinance's design system, established here for
+   /compare and every later Phase 6 surface that extends it.
+
+   Vocabulary discipline: this file is covered by the D-70 gate over
+   app/static/ — no class name, token name or comment here may use
+   prescriptive language ("recommend", "should", "best", "optimal", etc.).
+   Every word choice below is descriptive, not prescriptive. */
+
+:root {
+  /* Spacing scale — a single ratio, used everywhere layout needs a gap. */
+  --pf-space-1: 0.25rem;
+  --pf-space-2: 0.5rem;
+  --pf-space-3: 0.75rem;
+  --pf-space-4: 1rem;
+  --pf-space-5: 1.5rem;
+  --pf-space-6: 2rem;
+  --pf-space-7: 3rem;
+
+  /* Type — a display face for headings, a plain reading face for body
+     copy, and a genuinely tabular numeric face for every money value. */
+  --pf-font-display: "Iowan Old Style", "Georgia", "Times New Roman", serif;
+  --pf-font-body: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --pf-font-mono: "SF Mono", "Menlo", "Consolas", monospace;
+
+  /* Neutral scale. */
+  --pf-ink: #1a1d21;
+  --pf-ink-soft: #4a5058;
+  --pf-line: #d8dbe0;
+  --pf-line-soft: #e9ebee;
+  --pf-paper: #ffffff;
+  --pf-paper-sunk: #f6f7f9;
+
+  /* The net-cost sequential ramp — the ranked band's own colour identity.
+     Two stops; the map's interpolate expression walks the same range. */
+  --pf-ramp-low: #2a6f97;
+  --pf-ramp-high: #a4133c;
+
+  /* The unranked band's deliberately non-scale neutral treatment — never
+     drawn from the ramp above, so it can never be mistaken for a point
+     on the net-cost colour scale. */
+  --pf-unranked-bg: #f1f0ec;
+  --pf-unranked-line: #c9c4b8;
+  --pf-unranked-ink: #6b6558;
+
+  --pf-radius: 10px;
+  --pf-shadow: 0 1px 2px rgba(20, 20, 30, 0.06), 0 6px 20px rgba(20, 20, 30, 0.05);
+}
+
+.pf-inputs,
+.pf-map-section,
+.pf-band {
+  font-family: var(--pf-font-body);
+  color: var(--pf-ink);
+}
+
+.pf-inputs h2,
+.pf-map-section h2,
+.pf-band h2,
+.pf-band h3 {
+  font-family: var(--pf-font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Every money value in this project reads through this class — tabular
+   figures keep a column of dollar amounts visually aligned, digit for
+   digit, the way a spreadsheet does. */
+.pf-money,
+.pf-money-table td.pf-money {
+  font-family: var(--pf-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.pf-basis {
+  color: var(--pf-ink-soft);
+  font-size: 0.85em;
+  font-family: var(--pf-font-body);
+}
+
+.pf-money-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--pf-paper);
+  border-radius: var(--pf-radius);
+  overflow: hidden;
+  box-shadow: var(--pf-shadow);
+  margin: var(--pf-space-3) 0 var(--pf-space-5);
+}
+
+.pf-money-table th,
+.pf-money-table td {
+  padding: var(--pf-space-3) var(--pf-space-4);
+  border-bottom: 1px solid var(--pf-line-soft);
+  text-align: left;
+  vertical-align: top;
+}
+
+.pf-money-table thead th {
+  background: var(--pf-paper-sunk);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pf-ink-soft);
+}
+
+.pf-money-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* --- Map + ranked list layout ------------------------------------- */
+
+.pf-map-section {
+  margin: var(--pf-space-5) 0;
+}
+
+.pf-map {
+  width: 100%;
+  height: 26rem;
+  border-radius: var(--pf-radius);
+  overflow: hidden;
+  box-shadow: var(--pf-shadow);
+  background: var(--pf-paper-sunk);
+  border: 1px solid var(--pf-line);
+}
+
+.pf-map-legend {
+  color: var(--pf-ink-soft);
+  font-size: 0.9rem;
+  margin-top: var(--pf-space-2);
+}
+
+.pf-noscript {
+  padding: var(--pf-space-4);
+  color: var(--pf-ink-soft);
+}
+
+@media (min-width: 60rem) {
+  .pf-layout {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: var(--pf-space-6);
+    align-items: start;
+  }
+}
+
+/* --- Band identity --------------------------------------------------- */
+
+.pf-band--ranked {
+  border-left: 4px solid var(--pf-ramp-low);
+  padding-left: var(--pf-space-4);
+  margin-bottom: var(--pf-space-6);
+}
+
+.pf-band--unranked {
+  background: var(--pf-unranked-bg);
+  border: 1px dashed var(--pf-unranked-line);
+  border-radius: var(--pf-radius);
+  padding: var(--pf-space-4) var(--pf-space-5);
+  color: var(--pf-unranked-ink);
+  margin-bottom: var(--pf-space-6);
+}
+
+.pf-band--unranked h2 {
+  color: var(--pf-unranked-ink);
+}
+
+.pf-band--unpriced {
+  padding: var(--pf-space-3) var(--pf-space-5);
+  color: var(--pf-ink-soft);
+  font-size: 0.95rem;
+  border-top: 1px solid var(--pf-line-soft);
+  margin-bottom: var(--pf-space-6);
+}
+
+.pf-incentive-unknown {
+  color: var(--pf-unranked-ink);
+  font-style: italic;
+}
+
+.pf-live-checks {
+  margin: var(--pf-space-5) 0;
+}

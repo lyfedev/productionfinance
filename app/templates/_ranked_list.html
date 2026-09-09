@@ -1,0 +1,71 @@
+{# _ranked_list.html — the D-55 two-band ranked list. Included by
+   compare.html. `comparison.net_ranked` and `comparison.incentive_not_modelled`
+   are two SEPARATE tuples the service layer already split (never a
+   single list this template has to filter by a `band` flag) — no branch
+   below ever emits both bands into one shared table body. #}
+
+<section class="pf-band pf-band--ranked" aria-labelledby="pf-ranked-heading">
+  <h2 id="pf-ranked-heading">Ranked on net landed cost</h2>
+  {% if comparison.net_ranked %}
+  <p>Sorted ascending by total landed cost — net of the modelled incentive.
+    Only a city whose incentive is genuinely modelled appears here.</p>
+  <table class="pf-money-table">
+    <thead>
+      <tr>
+        <th>City</th>
+        <th>Net landed cost</th>
+        <th>Cost total (pre-incentive)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for city in comparison.net_ranked %}
+      <tr data-city-id="{{ city.city_id }}">
+        <td>{{ city.city_id }}</td>
+        <td class="pf-money">
+          {{ city.total_landed_cost.value }} {{ city.total_landed_cost.unit }}
+          <span class="pf-basis">({{ city.total_landed_cost.basis }})</span>
+        </td>
+        <td class="pf-money">{{ city.cost_only_total.value }} {{ city.cost_only_total.unit }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No candidate city has both a committed cost profile and a committed rule file yet.</p>
+  {% endif %}
+</section>
+
+<section class="pf-band pf-band--unranked" aria-labelledby="pf-unranked-heading">
+  <h2 id="pf-unranked-heading">No incentive modelled yet</h2>
+  {% if comparison.incentive_not_modelled %}
+  <p>These totals are <strong>not comparable</strong> to the ranked band
+    above — one is net of a modelled incentive and this one is not. Kept
+    in a separate band, never interleaved as though the two totals meant
+    the same thing (D-55).</p>
+  <table class="pf-money-table">
+    <thead>
+      <tr>
+        <th>City</th>
+        <th>Cost-only total</th>
+        <th>Incentive</th>
+        <th>Why no incentive is modelled</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for city in comparison.incentive_not_modelled %}
+      <tr data-city-id="{{ city.city_id }}">
+        <td>{{ city.city_id }}</td>
+        <td class="pf-money">
+          {{ city.cost_only_total.value }} {{ city.cost_only_total.unit }}
+          <span class="pf-basis">({{ city.cost_only_total.basis }})</span>
+        </td>
+        <td class="pf-incentive-unknown">unknown — not modelled</td>
+        <td>{{ city.reason }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>Every candidate city with a committed cost profile also has a modelled incentive.</p>
+  {% endif %}
+</section>

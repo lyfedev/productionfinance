@@ -14,9 +14,11 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app import __version__
+from app.routers import compare as compare_router
 from app.routers import job1 as job1_router
 from app.routers import research as research_router
 from app.routers import spec as spec_router
@@ -91,10 +93,20 @@ app = FastAPI(title="ProductionFinance", version=__version__, lifespan=lifespan)
 # templates (T-03-04).
 templates = Jinja2Templates(directory=Path(__file__).resolve().parent / "templates")
 
+# Module-anchored, never CWD-relative, matching `templates` above — serves
+# only this project's own committed CSS/JS (T-06-06: never a repo root or
+# a user-writable path).
+app.mount(
+    "/static",
+    StaticFiles(directory=Path(__file__).resolve().parent / "static"),
+    name="static",
+)
+
 app.include_router(spec_router.router)
 app.include_router(validate_router.router)
 app.include_router(job1_router.router)
 app.include_router(research_router.router)
+app.include_router(compare_router.router)
 
 
 @app.get("/health")

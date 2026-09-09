@@ -1,0 +1,47 @@
+# data/city_geo.yaml — committed cartographic reference table (Phase 6,
+# UI-02). One entry per committed `CityCostProfile` (data/cost_profiles/),
+# keyed by that profile's own `city_id`. These are REFERENCE COORDINATES
+# for map placement only — a city centroid, not a production office and
+# not a priced figure. Never treat a value on this file as landed cost.
+#
+# `engine/city_geo.py::geo_for_city_id` is the only read path. A city with
+# no entry here returns `None` and is simply absent from the map — it is
+# never given a guessed or interpolated coordinate.
+#
+# Every numeric value is a quoted YAML string (RD-01, matching every other
+# committed data file under data/).
+
+cities:
+  us-ny-new-york:
+    city_id: "us-ny-new-york"
+    label: "New York, NY"
+    latitude: "40.7128"
+    longitude: "-74.0060"
+    source_url: "https://en.wikipedia.org/wiki/New_York_City"
+    date_checked: "2026-09-09"
+    note: >
+      City centroid coordinate (Manhattan-area reference point commonly
+      cited for New York City) for map placement only — not a production
+      office location and not a priced figure.
+
+  us-ca-los-angeles:
+    city_id: "us-ca-los-angeles"
+    label: "Los Angeles, CA"
+    latitude: "34.0522"
+    longitude: "-118.2437"
+    source_url: "https://en.wikipedia.org/wiki/Los_Angeles"
+    date_checked: "2026-09-09"
+    note: >
+      City centroid coordinate for downtown Los Angeles, for map placement
+      only — not a production office location and not a priced figure.
+
+  gb-london:
+    city_id: "gb-london"
+    label: "London, UK"
+    latitude: "51.5072"
+    longitude: "-0.1276"
+    source_url: "https://en.wikipedia.org/wiki/London"
+    date_checked: "2026-09-09"
+    note: >
+      City centroid coordinate for central London, for map placement only
+      — not a production office location and not a priced figure.

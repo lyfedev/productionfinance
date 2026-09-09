@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Compare candidate cities — ProductionFinance{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ public_path }}/static/prodfin.css">
+
+<p><a href="{{ public_path }}/spec">&larr; Back to the form</a></p>
+
+<h1>Compare candidate cities</h1>
+
+<section class="pf-inputs" aria-labelledby="pf-inputs-heading">
+  <h2 id="pf-inputs-heading">The production, as read</h2>
+  <table>
+    <tr><th>Production type</th><td>{{ comparison.inputs.production_type }}</td></tr>
+    <tr><th>Shoot days — stage</th><td>{{ comparison.inputs.shoot_days_stage }}</td></tr>
+    <tr><th>Shoot days — location</th><td>{{ comparison.inputs.shoot_days_location }}</td></tr>
+    <tr>
+      <th>Crew</th>
+      <td>
+        {% if comparison.inputs.crew_size is not none %}
+          {{ comparison.inputs.crew_size }} (supplied)
+        {% else %}
+          Tier: {{ comparison.inputs.crew_tier }}
+        {% endif %}
+      </td>
+    </tr>
+    <tr><th>Start window</th><td>{{ comparison.inputs.start_quarter }} {{ comparison.inputs.start_year }}</td></tr>
+    <tr><th>Candidate cities, as typed</th><td>{{ comparison.inputs.candidate_cities | join(", ") }}</td></tr>
+    <tr><th>Reporting currency</th><td>{{ comparison.inputs.reporting_currency }}</td></tr>
+  </table>
+</section>
+
+<section class="pf-map-section" aria-labelledby="pf-map-heading">
+  <h2 id="pf-map-heading">Where these cities land</h2>
+  <div id="map" class="pf-map" data-style-url="https://tiles.openfreemap.org/styles/liberty">
+    <noscript>
+      <p class="pf-noscript">
+        The map is a visual enhancement and needs JavaScript to render.
+        Every figure it would show is already in the ranked list below —
+        nothing on this page exists only inside a script.
+      </p>
+    </noscript>
+  </div>
+  <p class="pf-map-legend">
+    Marker colour is driven by total landed cost on the ranked band only —
+    darker means more expensive. Grey markers carry no incentive figure
+    yet and are never placed on that colour ramp (see "No incentive
+    modelled yet" below).
+  </p>
+</section>
+
+{% include "_ranked_list.html" %}
+
+<script type="application/json" id="compare-geojson">{{ comparison.geojson | tojson }}</script>
+<link
+  rel="modulepreload"
+  href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.5.0/dist/maplibre-gl.mjs"
+  integrity="sha384-JSpRJbecWVT+/CpPOGbOXbf7X7PQrFF1TWN+PmKY2IWjVK/09fq3orZEap4h5e2a"
+  crossorigin="anonymous">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.5.0/dist/maplibre-gl.css"
+  integrity="sha384-Q5Blg3vUVAlUKqIPJYz7wGnz40Vwrx4pVuFVicI73+8c/26Zr5hhckfuIiIUflLE"
+  crossorigin="anonymous">
+<script type="module" src="{{ public_path }}/static/compare.js"></script>
+
+{% endblock %}
