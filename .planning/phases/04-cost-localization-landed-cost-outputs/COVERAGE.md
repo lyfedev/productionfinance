@@ -22,6 +22,6 @@ The matrix below therefore records, per capability, whether Phase 4 uses it as a
 | parallel.search | OPT-OUT | Parallel is imported and called at runtime in Phase 7 (live research for uncurated cities); Phase 4 is offline-deterministic by design so that its golden cost totals are meaningful in CI |
 | parallel.extract | OPT-OUT | Phase 5 (Job 1 — parsing government award PDFs); Phase 4 parses no disclosure document |
 | google-genai.structured-extraction | OPT-OUT | Phase 5 (Job 1) and Phase 7 (Job 2); Phase 4 imports no AI SDK at all — a plan proposing one is a scope error |
-| aws.textract | OPT-OUT | Forbidden by name — every AWS AI endpoint is a Stage One disqualification, and Textract is the specific trap on this project because per-diem files and union rate cards are PDFs. All document reading is a plain fetch and parse. |
+| aws.textract | OPT-OUT | Forbidden by name — every AWS AI endpoint is a Stage One disqualification, and Textract is the trap here because per-diem files and rate cards are PDFs. All document reading is a plain fetch/parse. |
 
 **Enforcement.** The zero-new-dependency rule is enforced by the existing `lockfile-scan` CI job plus a per-plan acceptance criterion asserting `git diff --stat pyproject.toml uv.lock` is empty. The no-AWS-AI rule is enforced by the existing `vendor-scan` CI job plus explicit grep acceptance criteria in plans 04-02 and 04-03.
