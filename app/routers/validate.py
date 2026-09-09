@@ -43,6 +43,7 @@ def _validate_result_to_json(result: ValidateResult) -> dict:
         "report_period": result.report_period,
         "date_checked": result.date_checked,
         "refusal_reason": result.refusal_reason,
+        "disclosure_stage": result.disclosure_stage,
     }
 
 

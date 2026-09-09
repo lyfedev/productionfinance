@@ -298,3 +298,69 @@ def test_landing_page_shows_both_routes_and_health_link():
     assert "Price a production" in response.text
     assert "Reproduce a disclosure" in response.text
     assert "/health" in response.text
+
+
+# ---------------------------------------------------------------------------
+# 05-08 Task 2 — disclosure_stage carried through to what a visitor reads.
+# Every assertion below reads the stage from the fixture itself (never a
+# hardcoded literal) so it cannot drift from the data.
+# ---------------------------------------------------------------------------
+
+
+def _fixture_stage(pair_id: str) -> str | None:
+    path = validate_service.VALIDATION_PAIRS_DIR / f"{pair_id}.yaml"
+    return validate_service._load_fixture(path).get("disclosure_stage")
+
+
+def test_disclosure_stage_present_on_json_view_for_three_distinct_stages():
+    for pair_id in ("ny_anora", "ca_clueless_s1", "nj_joker"):
+        expected_stage = _fixture_stage(pair_id)
+        assert expected_stage is not None, pair_id
+        response = client.get(f"/api/v1/validate/{pair_id}")
+        assert response.status_code == 200
+        assert response.json()["disclosure_stage"] == expected_stage
+
+    stages = {_fixture_stage(p) for p in ("ny_anora", "ca_clueless_s1", "nj_joker")}
+    assert len(stages) == 3, "expected NY/CA/NJ to read three genuinely distinct stages"
+
+
+def test_rendered_result_page_names_the_stage_for_ny_ca_and_nj():
+    for pair_id in ("ny_anora", "ca_clueless_s1", "nj_joker"):
+        expected_stage = _fixture_stage(pair_id)
+        response = client.get(f"/validate/{pair_id}")
+        assert response.status_code == 200
+        assert f"Disclosure stage: <strong>{expected_stage}</strong>" in response.text
+
+
+def test_rendered_result_page_explains_non_issued_stages_without_issued_wording():
+    allocated_response = client.get("/validate/ca_clueless_s1")
+    assert "approval to draw against" in allocated_response.text
+    assert "Credit issued" not in allocated_response.text
+
+    estimated_response = client.get("/validate/nj_joker")
+    assert "pre-certification figure" in estimated_response.text
+    assert "Credit issued" not in estimated_response.text
+
+    issued_response = client.get("/validate/ny_anora")
+    # ny_anora's stage is "issued" — the "not a final, audited issuance"
+    # caveat is reserved for a non-issued stage and must not appear here.
+    assert "not a final, audited issuance" not in issued_response.text
+
+
+def test_selection_form_shows_each_pairs_stage_beside_its_title():
+    response = client.get("/validate")
+    assert response.status_code == 200
+    for pair_id in ("ny_anora", "ca_clueless_s1", "nj_joker", "ct_christmas_always"):
+        expected_stage = _fixture_stage(pair_id) or "not recorded"
+        assert f"disclosure stage: {expected_stage}" in response.text
+
+
+def test_disclosure_stage_present_on_refused_result_too():
+    # A refused result (T-05-35) still carries the fixture's own stage —
+    # the honest-refusal path must not blank out provenance fields it
+    # already has.
+    for pair_id in ("nj_joker", "ct_christmas_always"):
+        expected_stage = _fixture_stage(pair_id)
+        result = validate_service.reproduce_disclosure(pair_id)
+        assert result.computed_credit is None
+        assert result.disclosure_stage == expected_stage

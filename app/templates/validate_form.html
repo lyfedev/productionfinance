@@ -30,6 +30,7 @@
           {% if pair.selectable and pair.pair_id == "ny_anora" %}checked{% endif %}
         >
         {{ pair.production_title }} ({{ pair.jurisdiction_id }})
+        &mdash; disclosure stage: {{ pair.disclosure_stage or "not recorded" }}
         {% if not pair.selectable %}
           &mdash; not selectable: {{ pair.unselectable_reason }}
         {% endif %}

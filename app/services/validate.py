@@ -73,6 +73,15 @@ class SelectablePair:
     # RULESET_PATH_BY_JURISDICTION` just resolves to the "no curated rule
     # model" branch), but the annotation must match what actually happens.
     jurisdiction_id: str | None
+    # `str | None`, same `data.get(...)` convention as jurisdiction_id
+    # above — a blocked fixture legitimately declares `disclosure_stage:
+    # null` (it has no stage until it clears its blocker), and a
+    # malformed fixture missing the key must resolve to a readable
+    # absence, never a crash. So a visitor choosing a pair sees the stage
+    # (allocated/estimated/issued) before submitting, not only afterwards
+    # (JUR-02/JUR-03 — an allocation or an estimate is never presented
+    # with the weight of an issued credit).
+    disclosure_stage: str | None
     selectable: bool
     unselectable_reason: str | None
 
@@ -95,6 +104,13 @@ class ValidateResult:
     report_period: str | None
     date_checked: str | None
     refusal_reason: str | None
+    # `str | None` — the fixture's own declared stage, populated from
+    # `data.get("disclosure_stage")` in `common_kwargs` below (present on
+    # both the computed and the refused result). California's figures are
+    # allocation-stage and New Jersey's are estimated (JUR-02/JUR-03) —
+    # this field is what lets a reader tell those apart from an issued
+    # credit rather than treating all three as one kind of number.
+    disclosure_stage: str | None
 
 
 def _load_fixture(path: Path) -> dict:
@@ -135,6 +151,7 @@ def selectable_pairs() -> tuple[SelectablePair, ...]:
                 pair_id=pair_id,
                 production_title=data.get("production_title", pair_id),
                 jurisdiction_id=jurisdiction_id,
+                disclosure_stage=data.get("disclosure_stage"),
                 selectable=selectable,
                 unselectable_reason=reason,
             )
@@ -186,6 +203,7 @@ def reproduce_disclosure(pair_id: str) -> ValidateResult:
         "source_document_sha256": pair.get("source_document_sha256"),
         "report_period": pair.get("report_period"),
         "date_checked": pair.get("date_checked"),
+        "disclosure_stage": pair.get("disclosure_stage"),
     }
 
     try:

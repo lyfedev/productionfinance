@@ -2,6 +2,23 @@
 {% block title %}Reproduce a disclosure — {{ result.production_title }}{% endblock %}
 {% block content %}
 
+{% macro stage_explanation(stage) %}
+  {%- if stage == "allocated" -%}
+    an allocation is an approval to draw against — the commission has
+    approved the amount, but it is not yet an audited post-production
+    issuance, and the final issued credit may differ.
+  {%- elif stage == "estimated" -%}
+    an estimate is a pre-certification figure — the same disclosure later
+    supersedes it with an adjusted certification once the production's
+    spend is audited.
+  {%- elif stage == "issued" -%}
+    issued means the credit has cleared the jurisdiction's full audit and
+    certification process — this is the final figure, not a projection.
+  {%- else -%}
+    no disclosure stage is recorded for this pair.
+  {%- endif -%}
+{% endmacro %}
+
 {% macro figure_node(figure) %}
 <div class="figure-node">
   <p>
@@ -39,11 +56,15 @@
 
 <h1>Reproduce a disclosure: {{ result.production_title }}</h1>
 <p>Jurisdiction: {{ result.jurisdiction_id }}</p>
+<p>
+  Disclosure stage: <strong>{{ result.disclosure_stage or "not recorded" }}</strong>
+  &mdash; {{ stage_explanation(result.disclosure_stage) }}
+</p>
 
 <h2>Disclosed (government-published)</h2>
 <table>
   <tr><th>Qualified spend</th><td>{{ "{:,}".format(result.disclosed_qualified_spend) }}</td></tr>
-  <tr><th>Credit issued</th><td>{{ "{:,}".format(result.disclosed_credit) }}</td></tr>
+  <tr><th>Credit disclosed ({{ result.disclosure_stage or "stage not recorded" }})</th><td>{{ "{:,}".format(result.disclosed_credit) }}</td></tr>
   <tr><th>Report period</th><td>{{ result.report_period or "not recorded" }}</td></tr>
   <tr><th>Date checked</th><td>{{ result.date_checked or "not recorded" }}</td></tr>
   <tr><th>Source document</th><td>{{ result.source_document or "not recorded" }}</td></tr>
@@ -67,7 +88,7 @@
 </p>
 {% else %}
 <table>
-  <tr><th>Credit issued</th><td>{{ "{:,}".format(result.computed_credit) }}</td></tr>
+  <tr><th>Computed credit (matching the {{ result.disclosure_stage or "unrecorded" }} disclosure)</th><td>{{ "{:,}".format(result.computed_credit) }}</td></tr>
   <tr>
     <th>Source</th>
     <td>
@@ -94,6 +115,15 @@
 
 <h2>Verdict</h2>
 <p><strong>{{ result.verdict }}</strong></p>
+<p>
+  This verdict compares the computed figure against a
+  <strong>{{ result.disclosure_stage or "unrecorded-stage" }}</strong>
+  disclosed figure.
+  {% if result.disclosure_stage and result.disclosure_stage != "issued" %}
+    A {{ result.disclosure_stage }} figure is not a final, audited issuance
+    &mdash; {{ stage_explanation(result.disclosure_stage) }}
+  {% endif %}
+</p>
 
 {% if result.computed_figure %}
 <h2>Full derivation tree</h2>
