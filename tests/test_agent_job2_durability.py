@@ -23,6 +23,13 @@ Two layers are proven here:
     `GET /research/{job_id}` renders a terminal page with no auto-refresh
     on the very first load.
 
+A third layer proves D-92/UI-10's rendering contract directly:
+`app/templates/research_result.html` shows every round's objective,
+queries, sources, summary, newly-determined and still-missing fields, and
+what it searched next — for both an in-flight run (round, elapsed,
+ceiling, refresh tag present) and a terminal run (no refresh tag, terminal
+reason named in plain words).
+
 Every test redirects `RESEARCH_RUNS_DIR` to `tmp_path` — no test writes
 into the repo's own `var/job2/` (the same discipline
 `tests/test_agent_job2_offline.py` already follows).
@@ -403,3 +410,157 @@ def test_sigkill_mid_run_is_reclassified_by_a_fresh_process_and_renders_terminal
         payload = json_response.json()
         assert payload["status"] == "interrupted"
         assert payload["round_count"] == 1
+
+
+# ---------------------------------------------------------------------------
+# D-92/UI-10: the reasoning trail as a rendered product surface
+# ---------------------------------------------------------------------------
+
+
+def _round_record(**overrides) -> dict:
+    base = {
+        "round_number": 1,
+        "objective": "Determine whether Nowhereville has an active incentive programme.",
+        "search_queries": ["Nowhereville film tax incentive"],
+        "queries_normalized": False,
+        "mode": "fast",
+        "mode_normalized": False,
+        "results": [
+            {"url": "https://example.gov/incentive", "title": "Example incentive programme"}
+        ],
+        "decision": "continue",
+        "findings": [],
+        "summary": "Found a candidate programme page; rate not yet confirmed.",
+        "newly_determined": [],
+        "unmet_fields": ["rate", "qualifying_base_definition", "caps"],
+        "discarded_fields": [],
+        "at": "2026-09-09T18:00:05.000Z",
+    }
+    base.update(overrides)
+    return base
+
+
+def test_in_flight_page_names_round_elapsed_ceiling_and_carries_refresh_tag(tmp_path):
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    job_id = "20" * 16
+    save_run(
+        {
+            "schema_version": research_runs.SCHEMA_VERSION,
+            "job_id": job_id,
+            "city_input": "Nowhereville",
+            "qualified_spend_input": None,
+            "session_id": "sess-1",
+            "status": "running",
+            "terminal_reason": None,
+            "message": None,
+            "rounds": [],
+            "sdk_calls": [],
+            "started_at": "2026-09-09T18:00:00.000Z",
+            "updated_at": "2026-09-09T18:00:00.000Z",
+            "ceiling_seconds": 240.0,
+            "round_count": 0,
+        }
+    )
+    research_runs.append_round(job_id, _round_record())
+
+    with TestClient(app) as client:
+        response = client.get(f"/research/{job_id}")
+
+    assert response.status_code == 200
+    body = response.text
+    assert 'http-equiv="refresh"' in body
+    assert "Round 1" in body
+    assert "Elapsed:" in body
+    assert "240s" in body  # the wall-clock ceiling
+    assert "another round is in progress" in body
+
+
+def test_terminal_page_renders_the_full_round_trail_and_no_refresh_tag(tmp_path):
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    job_id = "21" * 16
+    save_run(
+        {
+            "schema_version": research_runs.SCHEMA_VERSION,
+            "job_id": job_id,
+            "city_input": "Nowhereville",
+            "qualified_spend_input": None,
+            "session_id": "sess-1",
+            "status": "terminal",
+            "terminal_reason": "sufficient",
+            "message": "All five fields determined.",
+            "rounds": [],
+            "sdk_calls": [],
+            "started_at": "2026-09-09T18:00:00.000Z",
+            "updated_at": "2026-09-09T18:00:10.000Z",
+            "ceiling_seconds": 240.0,
+            "round_count": 0,
+        }
+    )
+    research_runs.append_round(
+        job_id,
+        _round_record(
+            round_number=1,
+            newly_determined=["rate"],
+            unmet_fields=[
+                "qualifying_base_definition",
+                "caps",
+                "payout_mechanism",
+                "current_availability",
+            ],
+        ),
+    )
+    research_runs.append_round(
+        job_id,
+        _round_record(
+            round_number=2,
+            objective="continue researching the remaining fields",
+            decision="sufficient",
+            summary="round summary: sufficient",
+            newly_determined=[
+                "qualifying_base_definition",
+                "caps",
+                "payout_mechanism",
+                "current_availability",
+            ],
+            unmet_fields=[],
+        ),
+    )
+
+    with TestClient(app) as client:
+        html_response = client.get(f"/research/{job_id}")
+        json_response = client.get(f"/api/v1/research/{job_id}")
+
+    assert html_response.status_code == 200
+    body = html_response.text
+    assert 'http-equiv="refresh"' not in body
+    # Every round's objective, sources, summary, and field lists are on the page.
+    assert "Round 1" in body and "Round 2" in body
+    assert "Determine whether Nowhereville" in body
+    assert "continue researching the remaining fields" in body
+    assert "https://example.gov/incentive" in body
+    assert "Example incentive programme" in body
+    assert "Found a candidate programme page" in body
+    assert "round summary: sufficient" in body
+    assert "rate" in body
+    assert "qualifying base definition" in body  # underscores rendered as spaces
+    # Round 1's "searched next" is round 2's own objective — the two never diverge.
+    assert body.count("continue researching the remaining fields") >= 2
+    assert "2 rounds" in body
+    assert "sufficient" in body.lower()
+
+    # The JSON mirror carries the identical rounds list (D-92: the two
+    # surfaces can never diverge on what happened).
+    assert json_response.status_code == 200
+    payload = json_response.json()
+    assert payload["round_count"] == 2
+    assert [r["round_number"] for r in payload["rounds"]] == [1, 2]
+    assert (
+        payload["rounds"][0]["objective"]
+        == "Determine whether Nowhereville has an active incentive programme."
+    )

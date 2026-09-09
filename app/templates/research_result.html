@@ -51,43 +51,77 @@
 {% if in_flight %}
 <h3>Research in progress</h3>
 <p>
-  Wall-clock ceiling: {{ ceiling_seconds }}s &mdash; this page refreshes
-  itself every 3 seconds.
+  Round {{ record.round_count }} under way. Elapsed:
+  {% if elapsed_seconds is not none %}{{ elapsed_seconds }}s{% else %}&mdash;{% endif %}
+  &mdash; wall-clock ceiling: {{ ceiling_seconds }}s. This page refreshes
+  itself every 3 seconds; it will stop refreshing the moment this run
+  reaches a terminal state.
 </p>
-{% if record.rounds %}
-{% set current = record.rounds[-1] %}
-<p>
-  Round {{ record.round_count }} complete, searching further &mdash;
-  objective was: <em>{{ current.objective }}</em>
-</p>
-{% if current.unmet_fields %}
-<p>Still unmet: {{ current.unmet_fields | join(", ") }}</p>
-{% endif %}
 {% else %}
-<p>Starting the first round&hellip;</p>
-{% endif %}
-{% else %}
-<h3>Terminal result: {{ record.terminal_reason }}</h3>
+<h3>Terminal result: {{ record.terminal_reason | replace("_", " ") }}</h3>
 {% if record.message %}<p>{{ record.message }}</p>{% endif %}
 {% endif %}
 
-<h3>Rounds ({{ record.round_count }})</h3>
-<table>
-  <tr>
-    <th>#</th><th>Objective</th><th>Queries</th><th>Mode</th>
-    <th>Decision</th><th>Unmet fields</th>
-  </tr>
-  {% for r in record.rounds %}
-  <tr>
-    <td>{{ r.round_number }}</td>
-    <td>{{ r.objective }}</td>
-    <td>{{ r.search_queries | join(", ") }}</td>
-    <td>{{ r.mode }}</td>
-    <td>{{ r.decision }}</td>
-    <td>{% if r.unmet_fields %}{{ r.unmet_fields | join(", ") }}{% else %}&mdash;{% endif %}</td>
-  </tr>
-  {% endfor %}
-</table>
+<h3>The agent's reasoning trail</h3>
+<p>
+  This is the agent's actual search history for this run, read back from
+  the record on disk — not a debug log, the real evidence for what it did
+  (D-92). Each round below shows what it searched under, what it found,
+  what was still missing afterward, and what it went on to search next.
+</p>
+
+{% if record.rounds %}
+{% for r in record.rounds %}
+<div class="figure-node">
+  <h4>Round {{ r.round_number }}</h4>
+  <p><strong>Objective it searched under:</strong> {{ r.objective }}</p>
+  <p>
+    <strong>Queries:</strong> {{ r.search_queries | join("; ") }}
+    {% if r.queries_normalized %}<em>(normalized to the SDK's 3-6-word contract)</em>{% endif %}
+    &mdash; mode: {{ r.mode }}{% if r.mode_normalized %} <em>(normalized)</em>{% endif %}
+  </p>
+  {% if r.results %}
+  <p><strong>Sources it read:</strong></p>
+  <ul>
+    {% for res in r.results %}
+    <li>
+      {% if res.url %}<a href="{{ res.url }}">{{ res.title or res.url }}</a>
+      {% else %}{{ res.title or "(untitled)" }}{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <p><strong>What this round established:</strong> {{ r.summary }}</p>
+  <p>
+    <strong>Newly determined:</strong>
+    {% if r.newly_determined %}{{ r.newly_determined | join(", ") | replace("_", " ") }}
+    {% else %}nothing new this round{% endif %}
+  </p>
+  <p>
+    <strong>Still missing:</strong>
+    {% if r.unmet_fields %}{{ r.unmet_fields | join(", ") | replace("_", " ") }}
+    {% else %}nothing &mdash; all five fields determined{% endif %}
+  </p>
+  {% if not loop.last %}
+  <p><strong>It searched next:</strong> {{ record.rounds[loop.index0 + 1].objective }}</p>
+  {% elif in_flight %}
+  <p><strong>It searched next:</strong> another round is in progress &mdash; see above.</p>
+  {% else %}
+  <p>
+    <strong>This was the last round.</strong> Final result:
+    {{ record.terminal_reason | replace("_", " ") }}{% if record.message %} &mdash; {{ record.message }}{% endif %}
+  </p>
+  {% endif %}
+</div>
+{% endfor %}
+{% else %}
+<p>No round has completed yet.</p>
+{% endif %}
+
+<p>
+  {{ record.round_count }} round{{ "s" if record.round_count != 1 else "" }}
+  total{% if not in_flight %}, ending in <strong>{{ record.terminal_reason | replace("_", " ") }}</strong>{% endif %}.
+</p>
 
 {% if record.sdk_calls %}
 <h3>SDK call evidence (D-84)</h3>

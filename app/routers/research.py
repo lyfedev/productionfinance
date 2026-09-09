@@ -66,6 +66,21 @@ def _utc_now_iso() -> str:
     return datetime.now(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
+def _elapsed_seconds(record: dict) -> int | None:
+    """Whole seconds since `record["started_at"]`, or None if it is missing
+    or unparseable — UI-10's "never a silent spinner" requires an in-flight
+    page to name a concrete number, but a malformed timestamp must degrade
+    to omitting it, never to a crash or a fabricated value."""
+    started_at = record.get("started_at")
+    if not started_at:
+        return None
+    try:
+        started = datetime.fromisoformat(started_at)
+    except ValueError:
+        return None
+    return max(0, int((datetime.now(UTC) - started).total_seconds()))
+
+
 def _start_job(city_input: str, qualified_spend_input: str | None) -> dict:
     """Attempt to start a new Job 2 run. Returns a dict describing the
     outcome — never raises for an expected refusal (unconfigured, invalid
@@ -142,6 +157,7 @@ def _base_context(*, public_path: str, show_form: bool, city_prefill: str = "") 
         "refusal_reason": None,
         "record": None,
         "in_flight": False,
+        "elapsed_seconds": None,
         "min_interval_seconds": int(MIN_SECONDS_BETWEEN_RUNS),
         "ceiling_seconds": int(JOB2_WALL_CLOCK_CEILING_SECONDS),
     }
@@ -244,12 +260,17 @@ def get_research_job_html(request: Request, job_id: str) -> HTMLResponse:
         record = result["record"]
         context["record"] = record
         context["in_flight"] = record.get("status") == "running"
+        if context["in_flight"]:
+            context["elapsed_seconds"] = _elapsed_seconds(record)
 
     return templates.TemplateResponse(request=request, name="research_result.html", context=context)
 
 
 @router.get("/api/v1/research/{job_id}")
 def get_research_job_json(job_id: str) -> dict:
+    """Returns the SAME record dict `get_research_job_html` renders into
+    `research_result.html` — including its full `rounds` list — so the HTML
+    page and this JSON mirror can never diverge on what happened (D-92)."""
     result = _get_job_or_error(job_id)
     if result is None:
         raise HTTPException(status_code=404, detail=f"unknown research job: {job_id}")
