@@ -60,6 +60,7 @@ __all__ = [
     "SPEND_ORIGIN_STATEMENT",
     "CityAssessment",
     "CityAssumptions",
+    "LiveProgrammeCheck",
     "ModelAssumptions",
     "RefusalResult",
     "RuleTerm",
@@ -197,6 +198,37 @@ class ModelAssumptions:
 
 
 @dataclass(frozen=True)
+class LiveProgrammeCheck:
+    """AGT-10 Task 2 (plan 07-04): the live cap-consumption and
+    programme-open/closed check for one jurisdiction's primary programme,
+    carried as its own, separately-sourced statement alongside the priced
+    result. `availability` mirrors `engine.credit.Availability.available`'s
+    own three-state contract (`None` when consumption state was not
+    fetched or not determined — never defaulted to available, RD-04).
+
+    **The critical constraint this whole plan exists to hold:** neither
+    field here is ever written into `Jurisdiction.status`, ever passed to
+    `assess_eligibility`, or ever changes a `Figure.confidence` value.
+    Overwriting `Jurisdiction.status` from a live check would silently
+    relabel researched data as validated — the exact dishonesty D-93/RD-02
+    and this plan's own guard rail exist to refute. See
+    `app/services/spec.py::_resolve_live_programme_checks` for the second
+    `price_jurisdiction` call this reads from, kept structurally separate
+    from the `RankedCity` tree `engine.ranker.rank` already produced —
+    neither its dollar figures nor its confidence stamps are touched by
+    this."""
+
+    jurisdiction_id: str
+    programme_id: str
+    availability: bool | None
+    availability_reason: str
+    programme_status_state: str
+    programme_status_reason: str
+    programme_status_source_url: str | None
+    programme_status_checked_at: str | None
+
+
+@dataclass(frozen=True)
 class SpecResult:
     """Plan 04-06 (D-55/OUT-01/OUT-02) replaces the flat `city_costs` list
     D-71 introduced with the two-band ranked structure: `ranked_cities`
@@ -219,7 +251,10 @@ class SpecResult:
     changes `ranked_cities`' own totals (those still come from the
     committed FX snapshot via `engine.landed_cost.aggregate`, unchanged by
     this plan) — it is a genuinely live, separately-disclosed FX check,
-    not a second source of truth for the rendered dollar figures."""
+    not a second source of truth for the rendered dollar figures.
+    `live_programme_checks` carries one entry per jurisdiction with a
+    committed rule file among the candidate cities — empty when none of
+    them do."""
 
     spec: ProductionSpec
     crew_headcount: CrewHeadcount
@@ -233,6 +268,7 @@ class SpecResult:
     most_moving_sensitivity_row: SensitivityRow | None
     assumptions: ModelAssumptions | None
     fx_resolutions: tuple[FxResolution, ...]
+    live_programme_checks: tuple[LiveProgrammeCheck, ...]
 
 
 def handle_spec_submission(raw: SpecFormSubmission) -> SpecResult | RefusalResult:
@@ -289,7 +325,9 @@ def handle_spec_submission(raw: SpecFormSubmission) -> SpecResult | RefusalResul
     if "us-ny" in resolved_jurisdictions:
         rule_terms = tuple(_new_york_rule_terms())
 
-    ranked_cities, profile_by_city_id, fx_resolutions = _rank_candidate_cities(spec, crew_headcount)
+    ranked_cities, profile_by_city_id, fx_resolutions, live_programme_checks = (
+        _rank_candidate_cities(spec, crew_headcount)
+    )
     gap = _gap_for_ranked_cities(ranked_cities)
 
     if gap is None:
@@ -318,6 +356,7 @@ def handle_spec_submission(raw: SpecFormSubmission) -> SpecResult | RefusalResul
         most_moving_sensitivity_row=most_moving_sensitivity_row,
         assumptions=assumptions,
         fx_resolutions=fx_resolutions,
+        live_programme_checks=live_programme_checks,
     )
 
 
@@ -327,6 +366,7 @@ def _rank_candidate_cities(
     tuple[RankedCity, ...],
     dict[str, CityCostProfile],
     tuple[FxResolution, ...],
+    tuple[LiveProgrammeCheck, ...],
 ]:
     """D-55/COST-01: build the ONE canonical budget for this submission
     (lazily, and only once — never rebuilt per city), localize it against
@@ -347,8 +387,12 @@ def _rank_candidate_cities(
 
     Plan 07-04 (AGT-10) additionally returns `fx_resolutions` (one live
     FX check per distinct non-reporting source currency present, via
-    `_resolve_fx_for_localized_cities`), computed from the SAME
-    `localized_by_city` this function already builds."""
+    `_resolve_fx_for_localized_cities`) and `live_programme_checks` (one
+    live cap-consumption/programme-status check per jurisdiction with a
+    committed rule file, via `_resolve_live_programme_checks`) — both
+    computed from the SAME `localized_by_city`/`ruleset_by_jurisdiction`
+    this function already builds, never a second independent resolution
+    of either."""
     budget = None
     localized_by_city: dict[str, LocalizedBudget] = {}
     ruleset_by_jurisdiction: dict[str, JurisdictionRuleSet] = {}
@@ -388,16 +432,19 @@ def _rank_candidate_cities(
             )
 
     if not localized_by_city:
-        return (), profile_by_city_id, ()
+        return (), profile_by_city_id, (), ()
 
     fx_resolutions = _resolve_fx_for_localized_cities(localized_by_city)
+    live_programme_checks = _resolve_live_programme_checks(
+        ruleset_by_jurisdiction, localized_by_city
+    )
 
     ranked = rank(
         localized_by_city,
         ruleset_by_jurisdiction,
         reporting_currency=REPORTING_CURRENCY,
     )
-    return ranked, profile_by_city_id, fx_resolutions
+    return ranked, profile_by_city_id, fx_resolutions, live_programme_checks
 
 
 def _resolve_fx_for_localized_cities(
@@ -437,6 +484,90 @@ def _resolve_fx_for_localized_cities(
     return tuple(
         _resolve_fx(base, REPORTING_CURRENCY, on_date) for base in distinct_source_currencies
     )
+
+
+def _resolve_live_programme_checks(
+    ruleset_by_jurisdiction: dict[str, JurisdictionRuleSet],
+    localized_by_city: dict[str, LocalizedBudget],
+) -> tuple[LiveProgrammeCheck, ...]:
+    """AGT-10 Task 2 (plan 07-04): cap consumption and programme
+    open/closed status for every jurisdiction with a committed rule file
+    among this submission's candidate cities. Both resolvers are reached
+    ONLY through `app.services.cache_policy` — never `agent.live_checks`
+    directly from here.
+
+    The live programme-status answer is carried on its own line,
+    alongside the priced result; it is NEVER written into
+    `Jurisdiction.status` and never changes any `Figure.confidence` value
+    — `tests/test_route_a_basis_walk.py` is unchanged by this plan and
+    still proves it.
+
+    A SEPARATE `engine.pipeline.price_jurisdiction` call below (purely to
+    obtain the correctly-computed three-state `Availability` answer once
+    a live cap-consumption figure is resolved — `engine.credit
+    .assess_availability` is the only consumer of
+    `annual_cap_remaining_by_programme`, RD-04) is kept structurally
+    apart from `engine.ranker.rank`'s own internal `price_jurisdiction`
+    call, which is what actually produces the `RankedCity` Figures
+    rendered as the submission's dollar totals above. No dollar figure or
+    confidence stamp rendered elsewhere moves because of this."""
+    if not ruleset_by_jurisdiction:
+        return ()
+
+    from app.services.cache_policy import resolve_cap_consumption, resolve_programme_status
+    from engine.pipeline import price_jurisdiction
+
+    checks: list[LiveProgrammeCheck] = []
+    for jurisdiction_id, ruleset in ruleset_by_jurisdiction.items():
+        programme = ruleset.programmes[0]
+        cap_check = programme.caps.cap_consumption_check
+
+        remaining = resolve_cap_consumption(
+            jurisdiction_name=ruleset.jurisdiction.name,
+            programme_name=programme.name,
+            cap_consumption_method=cap_check.method if cap_check is not None else None,
+            source_url_hint=cap_check.source_url if cap_check is not None else None,
+        )
+        status_check = resolve_programme_status(
+            jurisdiction_name=ruleset.jurisdiction.name, programme_name=programme.name
+        )
+
+        matching_city = next(
+            (loc for loc in localized_by_city.values() if loc.jurisdiction_id == jurisdiction_id),
+            None,
+        )
+        availability: bool | None = None
+        availability_reason = "no candidate city localized against this jurisdiction's cost profile"
+        if matching_city is not None:
+            priced = price_jurisdiction(
+                ruleset,
+                matching_city.spend_breakdown.total_spend,
+                annual_cap_remaining_by_programme=(
+                    {programme.id: remaining} if remaining is not None else None
+                ),
+                spend_confidence="researched",
+                spend_breakdown=matching_city.spend_breakdown,
+            )
+            programme_priced = next(
+                (pp for pp in priced.programmes if pp.programme_id == programme.id), None
+            )
+            if programme_priced is not None:
+                availability = programme_priced.availability.available
+                availability_reason = programme_priced.availability.reason
+
+        checks.append(
+            LiveProgrammeCheck(
+                jurisdiction_id=jurisdiction_id,
+                programme_id=programme.id,
+                availability=availability,
+                availability_reason=availability_reason,
+                programme_status_state=status_check.state,
+                programme_status_reason=status_check.reason,
+                programme_status_source_url=status_check.source_url,
+                programme_status_checked_at=status_check.checked_at,
+            )
+        )
+    return tuple(checks)
 
 
 _ALL_QUARTERS: tuple[str, ...] = ("Q1", "Q2", "Q3", "Q4")

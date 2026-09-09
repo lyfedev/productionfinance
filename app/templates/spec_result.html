@@ -138,6 +138,40 @@
 </table>
 {% endif %}
 
+{% if result.live_programme_checks %}
+<h2>Live programme checks</h2>
+<p>Cap availability and programme open/closed status, both checked live at
+  request time (AGT-10). Neither line changes the priced figures above,
+  and neither is written into this jurisdiction's curated status.</p>
+<table>
+  <tr><th>Jurisdiction</th><th>Programme</th><th>Cap availability</th><th>Programme status</th></tr>
+  {% for check in result.live_programme_checks %}
+  <tr>
+    <td>{{ check.jurisdiction_id }}</td>
+    <td>{{ check.programme_id }}</td>
+    <td>
+      {% if check.availability is none %}
+        not determined &mdash; {{ check.availability_reason }}
+      {% elif check.availability %}
+        available &mdash; {{ check.availability_reason }}
+      {% else %}
+        not available &mdash; {{ check.availability_reason }}
+      {% endif %}
+    </td>
+    <td>
+      {{ check.programme_status_state }} &mdash; {{ check.programme_status_reason }}
+      {% if check.programme_status_source_url %}
+        (<a href="{{ check.programme_status_source_url }}">source</a>)
+      {% endif %}
+      {% if check.programme_status_checked_at %}
+        &mdash; checked {{ check.programme_status_checked_at }}
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
 {% if result.gap %}
 <h2>The gap: {{ result.gap.city_a_id }} vs {{ result.gap.city_b_id }}</h2>
 <p>{{ result.gap.sign_convention }}</p>
