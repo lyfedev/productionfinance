@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Curated Breadth & the Validation Loop
 status: executing
-stopped_at: Completed 05-06-PLAN.md
-last_updated: "2026-09-09T08:39:11.590Z"
+stopped_at: Completed 05-04-PLAN.md (California, JUR-02)
+last_updated: "2026-09-09T08:41:55.262Z"
 last_activity: 2026-09-09
 last_activity_desc: Phase 05 plan 01 executed — SHP-05/SHP-06 eligibility spine
-state_head: a4d2ee9fe9f7f7982d9277c28be51d26e5711ab1
+state_head: 24a690cdf0c82604eadc62ae109debb334c98886
 progress:
   total_phases: 11
   completed_phases: 3
   total_plans: 42
-  completed_plans: 32
+  completed_plans: 33
   percent: 27
 ---
 
@@ -100,6 +100,7 @@ human sets `PARALLEL_API_KEY` and `GEMINI_API_KEY`/`GOOGLE_API_KEY` per
 | Phase 05 P03 | 30 min | 3 tasks | 12 files |
 | Phase 07 P01 | 55min | 3 tasks | 11 files |
 | Phase 05 P06 | ~35min | 3 tasks | 5 files |
+| Phase 05 P04 | 25min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -155,6 +156,7 @@ Recent decisions affecting current work:
 - [Phase 05]: Deployed to vockell.com/finance (git_sha 9af46b0) with no API keys on the box (Path B). SHP-05 and SHP-06 were left Pending in REQUIREMENTS.md despite the mechanical shared-ID gate reporting them ready, because both are live-outcome claims that remain false; only AGT-02 (a mechanism claim, already proven) was marked complete. WINDOWS.md entry 28 records the exact human action needed.
 - [Phase 07]: 07-01 (tracer): agent/job2.py lands the D-90 self-terminating research loop — while True: driven only by SufficiencyVerdict.decision, no round counter, proven by an AST gate plus scripted 1/2/5-round tests. One session_id threads every round's Search call; app/services/cache_policy.py is the single AGT-10 choke point, asserted before the first Search (mutation-tested). var/job2/{job_id}.json persists each round atomically before the next round starts (D-92). No API key is present in this environment — every claim is proven offline (24 new tests); the live Parallel/Gemini call pair remains unverified pending keys, same as 05-01's SHP-05/SHP-06 gap.
 - [Phase 05]: Plan 05-06: two new Connecticut validation pairs (Colony Video 2015 Productions at 10%, Mako Games at 15%) fill the last two unexercised rate bands; the transfer-discount refusal is now asserted uniformly per-pair rather than for one pair only.
+- [Phase 05]: 05-04: California (JUR-02) modelled as one nonrefundable_credit programme at a directly-sourced 35% base rate (RTC 17053.98.1), not the 20%+uplifts guess Phase 1 assumed — RTC 17053.98 (the statute this plan's own Task 1 text names) is the superseded Program 3.0 statute; RTC 17053.98.1 is the current one, confirming 35%/40% directly and matching both fixtures within 12 bps on the bare base rate
 
 ### Pending Todos
 
@@ -181,6 +183,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-09T08:39:11.373Z
-Stopped at: Completed 05-06-PLAN.md
+Last session: 2026-09-09T08:41:55.063Z
+Stopped at: Completed 05-04-PLAN.md (California, JUR-02)
 Resume file: None
