@@ -19,21 +19,9 @@ report_period: "SFY2021"
 date_checked: "2026-08-24"
 
 assertion:
-  mode: bounded
-  tolerance_bps: 50
-  variance_reason: >
-    disclosure_stage is estimated for the same reason as nj_joker.yaml: the
-    dashboard's own column headers are "Est. NJ Qualified Film Prod.
-    Expenses After 7/1/18" and "Total Award", not the row's separate
-    "Adjusted Certification" figure ($5,173,771), which is the later,
-    lower, audited-cost-verified amount. The implied rate against Total
-    Award is a clean 30.0% (matching the 30.0% recorded in
-    feasibility-incentives.md), with no Diversity Bonus claimed on this row
-    ("No") — so the residue here is smaller than Joker's, but the
-    estimated-vs-adjusted gap ($5,371,984 to $5,173,771, about 200bps) is
-    itself the named unobservable: which portion of estimated qualified
-    spend was later disallowed at certification is not stated anywhere in
-    this table.
+  mode: exact
+  tolerance_bps: null
+  variance_reason: null
 
 notes: >
   Re-verified independently this session against the same live NJEDA "Film
@@ -63,3 +51,15 @@ notes: >
   holds; diversity_credit_amount omitted as null for the same reason as
   nj_joker.yaml (Diversity Bonus is a Yes/No flag here, and this row is
   "No" — there is no disclosed dollar amount to record either way).
+
+  disclosure_stage stays "estimated" (never "issued"/"allocated") because
+  the dashboard's own column headers are "Est. NJ Qualified Film Prod.
+  Expenses After 7/1/18" and "Total Award" — both pre-certification
+  figures, not the row's separate, later, lower Adjusted Certification
+  figure ($5,173,771) noted above. assertion.mode is now "exact" (plan
+  05-05): jurisdictions/us-nj.yaml's sourced 30% base rate at N.J.A.C.
+  19:31T-1.6(a)(2) (the tier both committed New Jersey fixtures need)
+  reproduces this row's disclosed $5,371,984 Total Award EXACTLY —
+  $17,906,613 x 0.30 = $5,371,983.90, quantized ROUND_HALF_UP to
+  $5,371,984 — with zero residue, since no Diversity Bonus was claimed on
+  this row. See tests/test_jurisdiction_us_nj.py::test_trial_of_the_chicago_7_reproduces_exactly.

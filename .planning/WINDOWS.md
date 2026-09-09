@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 29
+open_count: 31
 waived_count: 0
 fixed_count: 0
-total_count: 29
-last_updated: 2026-09-09T08:36:30.149Z
+total_count: 31
+last_updated: 2026-09-09T08:57:38.249Z
 ---
 
 # Broken Windows Ledger
@@ -44,6 +44,8 @@ last_updated: 2026-09-09T08:36:30.149Z
 | 27 | 05 | lint-warning | tests/test_agent_numbers.py,tests/test_agent_taxonomy.py |  | Plan 05-02 adds 22 new FURB157 (verbose Decimal("N") constructor) findings across the two new test files -- same established RD-01 quoted-Decimal convention already present hundreds of times pre-existing across engine/tests (see WINDOWS entries 2, 4, 5, 11, 14, 17, 23, 24, 25 for the identical accepted pattern in every prior phase). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-09-09T07:28:20.617Z |  |
 | 28 | 05 | unmet-truth | app/routers/job1.py,agent/job1.py |  | 05-03 deployed /job1 to https://vockell.com/finance/job1 (git_sha 9af46b0) and verified anonymously: page renders, POST /job1 correctly names both missing env vars, all pre-existing routes (/, /health, /spec, /validate) still 200. But PARALLEL_API_KEY and GEMINI_API_KEY/GOOGLE_API_KEY remain unset in /opt/prodfin/.env on the box (confirmed via grep -c immediately before this deploy), so no PRODFIN_SDK_CALL sdk=parallel-web or sdk=google-genai line exists anywhere in journalctl -u prodfin, and no runs/job1/ live artifact was produced. SHP-05, SHP-06 and AGT-03 all remain unverified in production. Human action required: obtain both keys, write them into /opt/prodfin/.env as the prodfin user with mode 600, run sudo systemctl restart prodfin, then POST https://vockell.com/finance/job1 from a logged-out browser, poll the redirect to terminal, and re-run sudo journalctl -u prodfin --since "15 min ago" \| grep PRODFIN_SDK_CALL expecting one sdk=parallel-web line and one sdk=google-genai line; copy the resulting run artifact into runs/job1/ and commit it. | open |  | 2026-09-09T07:51:42.668Z |  |
 | 29 | 05 | lint-warning | tests/test_jurisdiction_us_ct.py |  | Plan 05-06 adds 3 new FURB157 (verbose Decimal("N") constructor) findings in the new Connecticut test module -- same established RD-01 quoted-Decimal convention already present hundreds of times pre-existing across engine/tests (see WINDOWS entries 2, 4, 5, 11, 14, 17, 23, 24, 25, 27 for the identical accepted pattern in every prior phase). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-09-09T08:36:30.149Z |  |
+| 30 | 05 | lint-warning | tests/test_jurisdiction_us_nj.py |  | Plan 05-05 adds 3 new FURB157 (verbose Decimal("N") constructor) findings in the new New Jersey test module -- same established RD-01 quoted-Decimal convention already present hundreds of times pre-existing across engine/tests (see WINDOWS entries 2, 4, 5, 11, 14, 17, 23, 24, 25, 27, 29 for the identical accepted pattern in every prior phase). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-09-09T08:57:28.982Z |  |
+| 31 | 05 | unmet-truth | jurisdictions/us-nj.yaml |  | JUR-03: jurisdictions/us-nj.yaml's transfer_discount.typical_rate_low is sourced (0.75, N.J.A.C. 19:31T-1.10(b), P.L. 2018 c.56 Section 1(e), and NJEDA's own transfer-application form all independently confirm the identical floor), but typical_rate_high is null -- no New Jersey government document located this session states a ceiling on what a transferred credit actually sells for above that floor. engine.net_cash.transferable correctly refuses to convert at a partially-sourced discount range rather than invent a ceiling (D-87), so price_jurisdiction raises ValueError for every active New Jersey pair -- both fixtures reproduce their disclosed credit exactly/near-exactly through the direct base-then-credit path (see tests/test_jurisdiction_us_nj.py) but NOT through price_jurisdiction. Documented in test_price_jurisdiction_refuses_unsourced_transfer_discount; resolves automatically if us-nj.yaml is ever sourced with a real discount ceiling. Mirrors WINDOWS entry 3's identical pattern for Connecticut. | open |  | 2026-09-09T08:57:38.249Z |  |
 
 ````json
 [
@@ -393,6 +395,30 @@ last_updated: 2026-09-09T08:36:30.149Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-09T08:36:30.149Z",
+    "resolved_at": null
+  },
+  {
+    "id": 30,
+    "kind": "lint-warning",
+    "phase": "05",
+    "file": "tests/test_jurisdiction_us_nj.py",
+    "line": null,
+    "description": "Plan 05-05 adds 3 new FURB157 (verbose Decimal(\"N\") constructor) findings in the new New Jersey test module -- same established RD-01 quoted-Decimal convention already present hundreds of times pre-existing across engine/tests (see WINDOWS entries 2, 4, 5, 11, 14, 17, 23, 24, 25, 27, 29 for the identical accepted pattern in every prior phase). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-09T08:57:28.982Z",
+    "resolved_at": null
+  },
+  {
+    "id": 31,
+    "kind": "unmet-truth",
+    "phase": "05",
+    "file": "jurisdictions/us-nj.yaml",
+    "line": null,
+    "description": "JUR-03: jurisdictions/us-nj.yaml's transfer_discount.typical_rate_low is sourced (0.75, N.J.A.C. 19:31T-1.10(b), P.L. 2018 c.56 Section 1(e), and NJEDA's own transfer-application form all independently confirm the identical floor), but typical_rate_high is null -- no New Jersey government document located this session states a ceiling on what a transferred credit actually sells for above that floor. engine.net_cash.transferable correctly refuses to convert at a partially-sourced discount range rather than invent a ceiling (D-87), so price_jurisdiction raises ValueError for every active New Jersey pair -- both fixtures reproduce their disclosed credit exactly/near-exactly through the direct base-then-credit path (see tests/test_jurisdiction_us_nj.py) but NOT through price_jurisdiction. Documented in test_price_jurisdiction_refuses_unsourced_transfer_discount; resolves automatically if us-nj.yaml is ever sourced with a real discount ceiling. Mirrors WINDOWS entry 3's identical pattern for Connecticut.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-09T08:57:38.249Z",
     "resolved_at": null
   }
 ]
