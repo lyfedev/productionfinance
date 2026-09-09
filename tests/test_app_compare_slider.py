@@ -188,3 +188,49 @@ def test_get_compare_start_index_no_js_path_reranks_the_server_rendered_page():
         "the no-JS re-submitted page must show a genuinely different total for a "
         "different start date, not a stale cached figure"
     )
+
+
+# ---------------------------------------------------------------------------
+# Task 2 — the slider markup itself, progressively enhanced
+# ---------------------------------------------------------------------------
+
+
+def test_slider_is_a_genuine_native_range_input_never_js_only():
+    """The ranking must never be available only via JavaScript — asserted
+    by confirming the slider exists as a real `<input type="range">` form
+    control (which functions with no script engine at all) inside a
+    plain `<form method="get">`, plus a submit button that works without
+    any JavaScript intercepting it."""
+    import re
+
+    response = client.get("/compare")
+    assert response.status_code == 200
+    text = response.text
+
+    assert re.search(r'<form method="get"[^>]*id="pf-slider-form"', text)
+    assert re.search(
+        r'<input\s+type="range"[^>]*id="pf-start-index"[^>]*name="start_index"', text
+    )
+    assert '<button type="submit"' in text
+
+
+def test_slider_options_embedded_as_a_date_lookup_not_a_computed_figure():
+    """The JSON block `compare.js` reads to label the slider live is a
+    plain, server-rendered date lookup — index, quarter, year, label,
+    calendar date — never a cost figure."""
+    import json
+    import re
+
+    response = client.get("/compare")
+    assert response.status_code == 200
+    block = re.search(
+        r'<script type="application/json" id="pf-slider-options">(.*?)</script>',
+        response.text,
+        re.DOTALL,
+    )
+    assert block, "expected an embedded pf-slider-options JSON block"
+
+    options = json.loads(block.group(1))
+    assert len(options) == len(SLIDER_QUARTERS)
+    for option in options:
+        assert set(option.keys()) == {"index", "start_quarter", "start_year", "label", "date"}

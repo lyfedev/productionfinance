@@ -1,5 +1,31 @@
 {% extends "base.html" %}
 {% block title %}Compare candidate cities — ProductionFinance{% endblock %}
+
+{# Every non-date, non-selection input this page prices carries forward as
+   a hidden field on BOTH the slider form and the gap-picker form below —
+   dragging the slider or picking two cities never drops the rest of the
+   comparison (UI-03's own no-JS requirement: a plain form control that
+   submits and returns a correctly re-ranked, server-rendered page). #}
+{% macro carry_forward_inputs() %}
+<input type="hidden" name="production_type" value="{{ comparison.inputs.production_type }}">
+<input type="hidden" name="shoot_days_stage" value="{{ comparison.inputs.shoot_days_stage }}">
+<input type="hidden" name="shoot_days_location" value="{{ comparison.inputs.shoot_days_location }}">
+{% if comparison.inputs.crew_size is not none %}
+<input type="hidden" name="crew_size" value="{{ comparison.inputs.crew_size }}">
+{% endif %}
+{% if comparison.inputs.crew_tier %}
+<input type="hidden" name="crew_tier" value="{{ comparison.inputs.crew_tier }}">
+{% endif %}
+<input type="hidden" name="principal_cast_count" value="{{ comparison.inputs.principal_cast_count }}">
+<input type="hidden" name="principal_cast_imported_count" value="{{ comparison.inputs.principal_cast_imported_count }}">
+<input type="hidden" name="crew_imported_count" value="{{ comparison.inputs.crew_imported_count }}">
+<input type="hidden" name="crew_hired_locally_count" value="{{ comparison.inputs.crew_hired_locally_count }}">
+{% for city in comparison.inputs.candidate_cities %}
+<input type="hidden" name="candidate_cities" value="{{ city }}">
+{% endfor %}
+<input type="hidden" name="reporting_currency" value="{{ comparison.inputs.reporting_currency }}">
+{% endmacro %}
+
 {% block content %}
 
 <link rel="stylesheet" href="{{ public_path }}/static/prodfin.css">
@@ -30,6 +56,49 @@
   </table>
 </section>
 
+<section class="pf-slider-section" aria-labelledby="pf-slider-heading">
+  <h2 id="pf-slider-heading">Start date</h2>
+  <form method="get" action="{{ public_path }}/compare" id="pf-slider-form">
+    {{ carry_forward_inputs() }}
+    {% if comparison.gap_selection.city_a_id %}
+    <input type="hidden" name="gap_city_a" value="{{ comparison.gap_selection.city_a_id }}">
+    {% endif %}
+    {% if comparison.gap_selection.city_b_id %}
+    <input type="hidden" name="gap_city_b" value="{{ comparison.gap_selection.city_b_id }}">
+    {% endif %}
+
+    <label for="pf-start-index">
+      Start quarter —
+      <span id="pf-start-index-label">
+        {% if comparison.slider_current_index is not none %}
+          {{ comparison.slider_options[comparison.slider_current_index].label }}
+        {% else %}
+          {{ comparison.inputs.start_quarter }} {{ comparison.inputs.start_year }}
+        {% endif %}
+      </span>
+    </label>
+    <br>
+    <input
+      type="range"
+      id="pf-start-index"
+      name="start_index"
+      min="0"
+      max="{{ comparison.slider_options | length - 1 }}"
+      step="1"
+      value="{{ comparison.slider_current_index if comparison.slider_current_index is not none else 2 }}">
+    <button type="submit" class="pf-slider-submit">Update ranking for this start date</button>
+    <script type="application/json" id="pf-slider-options">{{ comparison.slider_options | tojson }}</script>
+    <p class="pf-slider-note">
+      Every position on this slider is priced by a fresh server-side
+      calculation for that exact quarter — dragging the marker never
+      computes a figure inside this page's own script. Only the quarters
+      shown are available: a genuinely sourced monthly rate exists for
+      each one, and the model's own real resolution is a quarter, not a
+      day.
+    </p>
+  </form>
+</section>
+
 <section class="pf-map-section" aria-labelledby="pf-map-heading">
   <h2 id="pf-map-heading">Where these cities land</h2>
   <div id="map" class="pf-map" data-style-url="https://tiles.openfreemap.org/styles/liberty">
@@ -49,7 +118,71 @@
   </p>
 </section>
 
+<div id="pf-ranked-list-container">
 {% include "_ranked_list.html" %}
+</div>
+
+<section class="pf-gap-section" aria-labelledby="pf-gap-heading">
+  <h2 id="pf-gap-heading">Compare two cities</h2>
+  <form method="get" action="{{ public_path }}/compare" id="pf-gap-form">
+    {{ carry_forward_inputs() }}
+    <input type="hidden" name="start_quarter" value="{{ comparison.inputs.start_quarter }}">
+    <input type="hidden" name="start_year" value="{{ comparison.inputs.start_year }}">
+
+    <label for="pf-gap-city-a">First city</label>
+    <select id="pf-gap-city-a" name="gap_city_a">
+      {% for option in comparison.gap_selection.options %}
+      <option value="{{ option.city_id }}" {% if option.city_id == comparison.gap_selection.city_a_id %}selected{% endif %}>
+        {{ option.label }} — {% if option.band == "net_ranked" %}ranked on net landed cost{% else %}no incentive modelled{% endif %}
+      </option>
+      {% endfor %}
+    </select>
+
+    <label for="pf-gap-city-b">Second city</label>
+    <select id="pf-gap-city-b" name="gap_city_b">
+      {% for option in comparison.gap_selection.options %}
+      <option value="{{ option.city_id }}" {% if option.city_id == comparison.gap_selection.city_b_id %}selected{% endif %}>
+        {{ option.label }} — {% if option.band == "net_ranked" %}ranked on net landed cost{% else %}no incentive modelled{% endif %}
+      </option>
+      {% endfor %}
+    </select>
+
+    <button type="submit">Compare these two cities</button>
+  </form>
+
+  {% if comparison.gap_selection.refusal %}
+  <p class="pf-gap-refusal" data-gap-refusal>{{ comparison.gap_selection.refusal }}</p>
+  {% elif comparison.gap_selection.decomposition %}
+  {% set decomposition = comparison.gap_selection.decomposition %}
+  <p class="pf-gap-note">
+    Priced for {{ comparison.inputs.start_quarter }} {{ comparison.inputs.start_year }}.
+    {{ decomposition.sign_convention }}
+  </p>
+  <table class="pf-money-table" data-gap-table>
+    <thead>
+      <tr><th>Component</th><th>Delta</th></tr>
+    </thead>
+    <tbody>
+      {% for component in decomposition.components %}
+      <tr>
+        <td>{{ component.label }}</td>
+        <td class="pf-money">{% if component.value >= 0 %}+{% endif %}{{ component.value }} {{ component.unit }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <th>Headline gap</th>
+        <td class="pf-money">
+          <strong>
+            {% if decomposition.headline_gap.value >= 0 %}+{% endif %}{{ decomposition.headline_gap.value }} {{ decomposition.headline_gap.unit }}
+          </strong>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+  {% endif %}
+</section>
 
 {% if comparison.live_programme_checks %}
 <section class="pf-live-checks" aria-labelledby="pf-live-checks-heading">
