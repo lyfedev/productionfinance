@@ -68,8 +68,8 @@ Resolve before modelling. Wrong inputs produce confidently wrong outputs, and th
 - [x] **PRV-03**: Every computed figure carries its derivation reason as readable text (e.g. "only $500K of the $2M lead qualifies — Georgia per-person ceiling")
 - [x] **PRV-04**: A consolidated, printable assumptions panel lists every rate used, each with its own source and date
 - [x] **PRV-05**: A persistent in-product methodology page explains how figures are computed and is linkable
-- [ ] **PRV-06**: The running validation-loop accuracy figure is visible inside Accounts itself, on the hosted page — not only in Balances
-- [ ] **PRV-07**: Conflicting authoritative sources are surfaced as an unresolved conflict rather than silently resolved to one value
+- [x] **PRV-06**: The running validation-loop accuracy figure is visible inside Accounts itself, on the hosted page — not only in Balances
+- [x] **PRV-07**: Conflicting authoritative sources are surfaced as an unresolved conflict rather than silently resolved to one value
 
 ### Curated Jurisdictions
 
@@ -103,7 +103,7 @@ The four where per-production government disclosure exists, so every model is pr
 - [ ] **UI-04**: A ranked list shows net cost, incentive value, and when the cash arrives
 - [x] **UI-05**: Selecting any two cities shows the decomposed gap between them
 - [x] **UI-06**: Every number on screen is clickable through to its rule, source and date checked
-- [ ] **UI-07**: A proof panel shows a reproduced government figure alongside the government document
+- [x] **UI-07**: A proof panel shows a reproduced government figure alongside the government document
 - [ ] **UI-08**: A comparison can be shared as a permalink URL encoding its inputs — the only persistence mechanism, since there is no login
 - [ ] **UI-09**: A comparison can be exported as a document a producer can hand upward
 - [ ] **UI-10**: Live research shows informative progress and terminal error states, never a silent spinner that can time out
@@ -133,7 +133,7 @@ Stage One judging is pass/fail and partly automated. Each of these is a gate, no
 
 Four beats the brief requires the system to be able to show.
 
-- [ ] **DMO-01**: Open on validation — reproduce a published government award figure exactly, with the government document alongside it
+- [x] **DMO-01**: Open on validation — reproduce a published government award figure exactly, with the government document alongside it
 - [ ] **DMO-02**: Show a case where naive percentage arithmetic is badly wrong (the £18M UK example overstates by 44%)
 - [ ] **DMO-03**: Show a ranking that inverts once net cash and timing replace headline rate
 - [ ] **DMO-04**: Show a city with no curated model being researched live and priced, labelled unvalidated
@@ -234,8 +234,8 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | PRV-03 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
 | PRV-04 | Phase 6 — The Interface | 1 — Accounts | Complete |
 | PRV-05 | Phase 6 — The Interface | 1 — Accounts | Complete |
-| PRV-06 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
-| PRV-07 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| PRV-06 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Complete |
+| PRV-07 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Complete |
 | JUR-01 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
 | JUR-02 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Complete |
 | JUR-03 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Complete |
@@ -258,7 +258,7 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | UI-04 | Phase 6 — The Interface | 1 — Accounts | Pending |
 | UI-05 | Phase 6 — The Interface | 1 — Accounts | Complete |
 | UI-06 | Phase 6 — The Interface | 1 — Accounts | Complete |
-| UI-07 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| UI-07 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Complete |
 | UI-08 | Phase 6 — The Interface | 1 — Accounts | Pending |
 | UI-09 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
 | UI-10 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |
@@ -278,7 +278,7 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | SHP-12 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
 | SHP-13 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
 | SHP-14 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
-| DMO-01 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
+| DMO-01 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Complete |
 | DMO-02 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
 | DMO-03 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
 | DMO-04 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |

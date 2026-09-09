@@ -4,15 +4,15 @@ current_phase: 05
 current_phase_name: Curated Breadth & the Validation Loop
 status: executing
 stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-09-09T14:07:28.222Z"
+last_updated: "2026-09-09T14:49:49.291Z"
 last_activity: 2026-09-09
 last_activity_desc: Phase 05 plan 01 executed — SHP-05/SHP-06 eligibility spine
-state_head: d96db11528e3954a568ee999b3f9f724cb94d46d
+state_head: 8fd4ebd52f8543e99358ce27f042821219e2d069
 progress:
   total_phases: 11
   completed_phases: 3
   total_plans: 49
-  completed_plans: 44
+  completed_plans: 45
   percent: 27
 ---
 
@@ -108,6 +108,7 @@ human sets `PARALLEL_API_KEY` and `GEMINI_API_KEY`/`GOOGLE_API_KEY` per
 | Phase 07 P05 | 65min | 3 tasks | 6 files |
 | Phase 06 P03 | 70min | 3 tasks | 9 files |
 | Phase 06 P02 | 70 min | 3 tasks | 7 files |
+| Phase 08 P01 | 45min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -170,6 +171,10 @@ Recent decisions affecting current work:
 - [Phase 05]: Widened RULESET_PATH_BY_JURISDICTION to all four curated jurisdictions (NY, CA, NJ, CT) in app/services/_paths.py, the single dict app.services.spec and app.services.validate both import. — JUR-02/JUR-03/JUR-04 require a validated model reachable from the hosted /validate surface, not just a rule file in the repo; the honest-refusal path (WINDOWS.md #3) proved to fire for real committed NJ/CT pairs rather than staying hypothetical.
 - [Phase 06]: SLIDER_QUARTERS scoped to 3 real, sourced quarters (Q4 2025/Q1 2026/Q2 2026), excluding Q3 2026 after discovering it triggers a pre-existing, uncaught ValueError in engine.sensitivity.sensitivity_rows (WINDOWS #34) rather than routing around it silently. — The bug is out of this plan's files_modified (engine/sensitivity.py); recorded to WINDOWS instead of fixed.
 - [Phase 06]: UI-05's band-honesty refusal is a new policy layer in app/services/compare.py (resolve_gap_selection), not a change to engine.gap.decompose_gap, which stays band-agnostic to preserve app/services/spec.py's existing golden NY-vs-LA gap. — The new two-city picker is a different UX (visitor-selectable pair) than /spec's fixed first-two-cities gap, so it gets its own gate rather than widening decompose_gap's contract.
+- [Phase 08]: Phase 08-01 proof panel compares disclosed vs. GROSS credit (compute_qualifying_base + compute_gross_credit directly), never through price_jurisdiction's net-cash-inclusive pipeline — price_jurisdiction unconditionally converts to net cash, which refuses on NJ/CT's undeclared transfer_discount range — an unrelated question to what a disclosure actually reports (the gross credit).
+- [Phase 08]: PRV-06's accuracy figure is computed by running agent.taxonomy.classify() over every selectable validation pair against agent/variance_rules.yaml, not by replaying a live Job 1 extraction run — No runs/job1/ evidence is committed (Parallel/Gemini credentials absent, D-101); this measurement is a distinct, always-available, 100% real computation, honestly labelled as such.
+- [Phase 08]: Real bucket counts today: 5 exact_match / 0 explained_variance / 5 unexplained of 10 selectable pairs — nj_joker's fully-prose-explained $122,665 residue is not covered by either named predicate in agent/variance_rules.yaml (both NY-specific) and is shown honestly as unexplained rather than silently upgraded
+- [Phase 08]: Added data/source_conflicts.yaml as the committed (currently empty) data source for PRV-07's conflict surface — No schema existed to ever record a real conflict; both candidate conflicts this project investigated (NY $700M/$800M, GA loan-out withholding) were already closed against a primary source, so the file stays empty rather than seeded with a manufactured entry.
 
 ### Pending Todos
 

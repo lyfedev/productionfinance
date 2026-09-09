@@ -318,6 +318,11 @@ Plans:
   5. A demo video of 3 minutes or under lands the pain in its first 15 seconds, a written description covers features, technologies, data sources and findings, and the hosted URL is verified working from a fully logged-out browser on a different network than the development machine as the literal final pre-submission step
 
 **Plans**: TBD
+
+- [x] 08-01-PLAN.md
+- [ ] 08-02-PLAN.md
+- [ ] 08-03-PLAN.md
+
 **UI hint**: yes
 **Re-verification sweep** (not new requirements — re-running gates armed earlier): re-prove SHP-14's validation suite non-vacuous by breaking a rule value; grep production logs for at least one real Gemini call (SHP-05) and one real Parallel call (SHP-06) fired by a live logged-out session within 24 hours of submission; re-confirm the lockfile is clean (SHP-07) and the About-section licence is detectable (SHP-08).
 
@@ -397,7 +402,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 5. Curated Breadth & the Validation Loop | 1 — Accounts | 8/8 | In Progress|  |
 | 6. The Interface | 1 — Accounts | 3/4 | In Progress|  |
 | 7. Live Research, Caching & Durable Jobs | 1 — Accounts | 5/6 | In Progress|  |
-| 8. Demo Proof, Export & Submission | 1 — Accounts | 0/TBD | Not started | - |
+| 8. Demo Proof, Export & Submission | 1 — Accounts | 1/3 | In Progress|  |
 | 9. Reference Production & Scheduled Index Runs | 2 — Balances | 0/TBD | Not started | - |
 | 10. The Published Index | 2 — Balances | 0/TBD | Not started | - |
 | 11. Reverse Mode & Chart-of-Accounts Depth | 2 — Balances | 0/TBD | Not started | - |
