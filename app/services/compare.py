@@ -186,6 +186,21 @@ class CompareInputs(BaseModel):
         default_factory=lambda: list(_DEFAULT_CANDIDATE_CITIES)
     )
     reporting_currency: Literal["USD"] = "USD"
+    # UI-11 (plan 06-04): a PURE display-layer choice — never fed into
+    # pricing (`build_comparison` never reads it), never widening
+    # `reporting_currency` above (that stays the engine-level constant
+    # 06-01 deliberately left alone). Bounded to
+    # `engine.fx.SUPPORTED_CURRENCY_CODES` — the only pairs a committed
+    # fallback snapshot could ever exist for
+    # (`app.services.currency_display.DISPLAY_CURRENCIES` re-exports the
+    # same tuple, single source of truth). Carried on `CompareInputs`
+    # (rather than as a router-only parameter) so it round-trips through
+    # a permalink (plan 06-04's own UI-08) and survives the settled-
+    # slider's JS-collected POST body the same way `reporting_currency`
+    # already does, with zero changes to `app/static/compare.js` (a
+    # hidden field carries it; `compare.js`'s own `FormData` collection
+    # is already generic over whatever fields a form declares).
+    display_currency: Literal["USD", "GBP"] = "USD"
     # UI-05: the two-city gap picker's own selection. `None` (the default)
     # resolves to the first two selectable cities in rank order — see
     # `resolve_gap_selection`. An unrecognised id is never a 422 here; it

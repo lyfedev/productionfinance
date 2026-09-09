@@ -20,10 +20,12 @@ research path must not read from cache" made structural rather than
 aspirational: `agent/job2.py` calls `assert_live(DataClass.uncurated_city_research)`
 before its first Search call, and that call raises if this table is ever
 mutated to class that data class as cached. Plan 07-04 extends the same
-discipline to the other three live classes: `app/services/spec.py` (and
-nothing else) calls `resolve_fx`/`resolve_cap_consumption`/
-`resolve_programme_status` — never `httpx`, `engine.fx.load_fx_snapshot`,
-or `agent.live_checks` directly — so this module stays the one place the
+discipline to the other three live classes: `app/services/spec.py` calls
+`resolve_fx`/`resolve_cap_consumption`/`resolve_programme_status` for the
+priced-total path, and plan 06-04's `app/services/currency_display.py`
+calls `resolve_fx` for its own, separate display-layer conversion — but
+NEVER `httpx`, `engine.fx.load_fx_snapshot`, or `agent.live_checks`
+directly from any consumer — so this module stays the one place the
 cached-versus-live decision is made for all five data classes.
 """
 
