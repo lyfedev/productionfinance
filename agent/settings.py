@@ -62,7 +62,7 @@ JOB2_MAX_CHARS_PER_SEARCH = 60_000
 
 
 def _default_gemini_model() -> str:
-    return os.environ.get(GEMINI_MODEL_VAR) or "gemini-2.5-flash"
+    return os.environ.get(GEMINI_MODEL_VAR) or "gemini-3.6-flash"
 
 
 GEMINI_MODEL: str = _default_gemini_model()

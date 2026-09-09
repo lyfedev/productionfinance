@@ -44,7 +44,11 @@ from agent.enactment import EnactmentVerdict, classify_enactment
 from agent.gemini_client import ExtractionResult, extract_awards
 from agent.groundedness import check_grounded
 from agent.numbers import UnparseableFigureError, parse_money
-from agent.parallel_client import DisclosureDocument, extract_document, search_for_disclosure
+from agent.parallel_client import (
+    DisclosureDocument,
+    extract_document,
+    search_for_disclosure_candidates,
+)
 from agent.schema import ExtractedAward
 from agent.settings import integration_status
 from agent.taxonomy import (
@@ -295,6 +299,24 @@ def _price_and_classify_award(
     )
 
 
+_MAX_DISCLOSURE_CANDIDATES = 3
+
+
+def _disclosure_candidates(search: object) -> tuple[str, ...]:
+    """Normalize a search seam's return into a candidate tuple.
+
+    `search_for_disclosure_candidates` returns a tuple; the older
+    single-URL seam (and every injected test fake) returns one URL or None.
+    Both shapes are accepted so existing fakes keep working unchanged.
+    """
+    result = search()  # type: ignore[operator]
+    if result is None:
+        return ()
+    if isinstance(result, str):
+        return (result,)
+    return tuple(result)
+
+
 def run_job1(
     limit: int | None = None,
     *,
@@ -319,7 +341,7 @@ def run_job1(
     Task 3) never needs a key, since it never reaches an SDK call.
     """
     using_real_seams = search_fn is None and extract_fn is None and extract_awards_fn is None
-    search = search_fn or search_for_disclosure
+    search = search_fn or search_for_disclosure_candidates
     extract = extract_fn or extract_document
     do_extract_awards = extract_awards_fn or extract_awards
 
@@ -345,8 +367,16 @@ def run_job1(
 
     with collecting(sdk_calls):
         _stage("searching")
-        url = search()
-        if url is None:
+        # Rank order does not predict which report carries per-production
+        # data. Not every ESD quarterly report does — the Q3 2023 report
+        # gives only aggregate totals and monthly application counts, and a
+        # live run against it correctly extracted zero awards. So try the
+        # ranked candidates in order and keep the first that yields a usable
+        # document with at least one award. The extraction is the test; no
+        # heuristic guesses at document shape. Bounded by
+        # _MAX_DISCLOSURE_CANDIDATES so a poor search cannot fan out.
+        candidates = _disclosure_candidates(search)
+        if not candidates:
             return Job1Run(
                 run_mode=run_mode,
                 terminal_reason=TerminalReason.no_primary_source_found,
@@ -355,12 +385,25 @@ def run_job1(
             )
 
         _stage("extracting")
-        document = extract(url)
+        url = candidates[0]
+        document = None
+        extraction = None
+        for candidate in candidates[:_MAX_DISCLOSURE_CANDIDATES]:
+            candidate_document = extract(candidate)
+            if candidate_document is None:
+                continue
+            if document is None:
+                url, document = candidate, candidate_document
+            candidate_extraction = do_extract_awards(candidate_document.markdown)
+            if candidate_extraction.award_set.awards:
+                url, document, extraction = candidate, candidate_document, candidate_extraction
+                break
+
         if document is None:
             return Job1Run(
                 run_mode=run_mode,
                 terminal_reason=TerminalReason.document_extract_failed,
-                message="Extract returned no usable content for the search result",
+                message="Extract returned no usable content for any search result",
                 search_url=url,
                 sdk_calls=tuple(sdk_calls),
             )
@@ -372,7 +415,10 @@ def run_job1(
         source_enactment = classify_enactment(document.url, document.markdown)
 
         _stage("reading")
-        extraction = do_extract_awards(document.markdown)
+        # The candidate loop above already read this document; reuse that
+        # result rather than paying for a second identical Gemini call.
+        if extraction is None:
+            extraction = do_extract_awards(document.markdown)
 
     awards = extraction.award_set.awards
     if not awards:

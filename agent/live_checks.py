@@ -60,7 +60,7 @@ __all__ = [
 # (agent/job2.py's JOB2_WALL_CLOCK_CEILING_SECONDS is a different budget
 # entirely, for a different shape of question).
 _LIVE_CHECK_SEARCH_TIMEOUT_SECONDS = 12.0
-_LIVE_CHECK_MODEL = "gemini-2.5-flash"
+_LIVE_CHECK_MODEL = "gemini-3.6-flash"
 
 
 def _utc_now_iso() -> str:

@@ -1,0 +1,910 @@
+{
+  "run_mode": "live",
+  "terminal_reason": "ok",
+  "message": null,
+  "search_url": "https://esd.ny.gov/sites/default/files/media/document/Q3-Film-Report-2024.pdf",
+  "document_sha256": "0f259835da2f5e16f11520dc0cfa0f9458701a61e67f565f9f0ce58f2445ab24",
+  "document_char_count": 15602,
+  "truncated": false,
+  "gemini_model": "gemini-3.6-flash",
+  "report_title": "FILM TAX CREDIT \u2013 QUARTERLY REPORT CALENDAR YEAR 2024: THIRD QUARTER",
+  "report_period": "THIRD QUARTER 2024",
+  "raw_award_count": 49,
+  "source_enactment": {
+    "status": "unknown",
+    "matched_markers": [],
+    "evidence": []
+  },
+  "accuracy": {
+    "awards_extracted": 49,
+    "exact_match": 0,
+    "explained_variance": 0,
+    "unexplained": 49,
+    "extraction_failures": 0
+  },
+  "awards": [
+    {
+      "production_title": "The Adults",
+      "disclosed": "227320",
+      "computed": "203896",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 815584 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 815584 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 203896"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "The Adults Good Odds Inc NY Kings $815,584 $1,093,233 173 13,690 $282,374 $227,320 $1,142"
+    },
+    {
+      "production_title": "The Calling-S1",
+      "disclosed": "10409331",
+      "computed": "10461639",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 41846557 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 41846557 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 10461639"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "The Calling-S1 NBCU Universal Television LLC NY New York $41,846,557 $51,151,532 2,745 371,274 $19,150,908 $10,409,331 $52,308"
+    },
+    {
+      "production_title": "Farewell Amor",
+      "disclosed": "195436",
+      "computed": "163682",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 654727 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 654727 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 163682"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Farewell Amor Farewell Amor Film, Inc NY New York $654,727 $884,787 295 15,070 $353,271 $195,436 $982"
+    },
+    {
+      "production_title": "FBI-S3",
+      "disclosed": "20589575",
+      "computed": "17244200",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 68976800 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 68976800 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 17244200"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "FBI-S3 NBCU Universal Television LLC NY New York $68,976,800 $95,692,130 2,564 595,663 $32,380,525 $20,589,575 $103,465"
+    },
+    {
+      "production_title": "Funny Pages",
+      "disclosed": "581150",
+      "computed": "482611",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 1930442 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 1930442 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 482611"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Funny Pages Apple Talk Later LLC DE $1,930,442 $2,753,163 326 32,572 $788,058 $581,150 $2,920"
+    },
+    {
+      "production_title": "Gossip Girl-S2",
+      "disclosed": "22573860",
+      "computed": "22685281",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 90741123 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 90741123 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 22685281"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Gossip Girl-S2 Warner Bros North Center Productions, Inc. GA $90,741,123 $106,997,214 3,794 696,225 $36,759,043 $22,573,860 $113,436"
+    },
+    {
+      "production_title": "Heather",
+      "disclosed": "63893",
+      "computed": "53512",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 214047 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 214047 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 53512"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Heather Heather The Movie LLC NJ $214,047 $257,412 45 6,050 $151,564 $63,893 $321"
+    },
+    {
+      "production_title": "The Last OG- S4",
+      "disclosed": "7550854",
+      "computed": "6323998",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 25295993 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 25295993 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 6323998"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "The Last OG- S4 Warner Bros Turner North Center Productions, Inc. GA $25,295,993 $32,094,915 1,545 236,857 $12,380,977 $7,550,854 $37,944"
+    },
+    {
+      "production_title": "On The Rocks",
+      "disclosed": "4237807",
+      "computed": "3549253",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 14197012 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 14197012 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 3549253"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "On The Rocks Apple On the Rocks LLC DE $14,197,012 $20,489,009 1,448 133,500 $7,201,267 $4,237,807 $21,296"
+    },
+    {
+      "production_title": "Paranormal Activity Next of Kin",
+      "disclosed": "4135787",
+      "computed": "3331793",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 13327173 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 13327173 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 3331793"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Paranormal Activity Next of Kin Paramount Global Paramount Pictures Corporation DE $13,327,173 $20,088,428 377 113,971 $6,973,685 $4,135,787 $20,783"
+    },
+    {
+      "production_title": "Partner Track- S1",
+      "disclosed": "12408688",
+      "computed": "12471043",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 49884172 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 49884172 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 12471043"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Partner Track- S1 Netflix Jury Box LLC NY New York $49,884,172 $65,227,228 2,257 379,391 $19,195,964 $12,408,688 $62,355"
+    },
+    {
+      "production_title": "Past Lives",
+      "disclosed": "2117174",
+      "computed": "2078631",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 8314522 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 8314522 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 2078631"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Past Lives Apple Twenty Years LLC DE $8,314,522 $10,503,146 585 73,563 $3,289,053 $2,117,174 $10,639"
+    },
+    {
+      "production_title": "Pose-S3",
+      "disclosed": "23844395",
+      "computed": "19970180",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 79880719 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 79880719 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 19970180"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Pose-S3 Fox Pacific 2.1 Entertainment Group, Inc. CA $79,880,719 $97,537,779 2,701 674,699 $37,417,672 $23,844,395 $119,821"
+    },
+    {
+      "production_title": "Problemista",
+      "disclosed": "2747715",
+      "computed": "2761523",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 11046091 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 11046091 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 2761523"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Problemista Apple Freezecorp LLC DE $11,046,091 $12,741,979 683 94,067 $4,541,264 $2,747,715 $13,808"
+    },
+    {
+      "production_title": "Queen of Knives",
+      "disclosed": "734058",
+      "computed": "737747",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 2950987 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 2950987 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 737747"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Queen of Knives KOK2 The Film LLC NY Kings $2,950,987 $3,540,323 328 34,614 $1,258,166 $734,058 $3,689"
+    },
+    {
+      "production_title": "Rachael Ray- S16",
+      "disclosed": "3082133",
+      "computed": "3094688",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 12378750 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 12378750 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 3094688"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Rachael Ray- S16 CBS KWP Studios Inc. CA $12,378,750 $20,964,048 346 104,678 $5,035,630 $3,082,133 $15,488"
+    },
+    {
+      "production_title": "Reality",
+      "disclosed": "337697",
+      "computed": "339394",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 1357575 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 1357575 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 339394"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Reality Battle Row Group, Inc. NY New York $1,357,575 $1,880,781 226 16,411 $417,631 $337,697 $1,697"
+    },
+    {
+      "production_title": "Run the World-S2",
+      "disclosed": "8443369",
+      "computed": "8485798",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 33943192 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 33943192 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 8485798"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Run the World-S2 Lionsgate World Productions, Inc. NY New York $33,943,192 $40,792,486 1,834 629,026 $30,642,651 $8,443,369 $42,429"
+    },
+    {
+      "production_title": "Shortcomings",
+      "disclosed": "1234049",
+      "computed": "1250302",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 5001209 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 5001209 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 1250302"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Shortcomings Shortcomings Film Production NJ $5,001,209 $6,662,413 566 50,530 $1,948,823 $1,234,049 $6,201"
+    },
+    {
+      "production_title": "The Time Traveler's Wife, The-S1",
+      "disclosed": "26136875",
+      "computed": "21890180",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 87560720 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 87560720 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 21890180"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "The Time Traveler's Wife, The-S1 Warner Bros Cooler Waters Productions, LLC DE $87,560,720 $97,431,746 2,756 617,516 $34,715,692 $26,136,875 $131,341"
+    },
+    {
+      "production_title": "To Have And To Kill",
+      "disclosed": "213552",
+      "computed": "172595",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 690380 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 690380 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 172595"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "To Have And To Kill Serial Spouses LLC NY Orange $690,380 $904,047 122 12,992 $297,460 $213,552 $1,073"
+    },
+    {
+      "production_title": "Wonderama TV-S3",
+      "disclosed": "490964",
+      "computed": "411192",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 1644769 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 1644769 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 411192"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Wonderama TV-S3 Wonderama Holdings 3 NY New York $1,644,769 $3,217,626 118 6,030 $574,809 $490,964 $2,467"
+    },
+    {
+      "production_title": "Zoo",
+      "disclosed": "321648",
+      "computed": "323265",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 1293058 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 1293058 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 323265"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Zoo Zoo Productions LLC NY New York $1,293,058 $1,549,571 390 22,220 $446,966 $321,648 $1,616"
+    },
+    {
+      "production_title": "All Fun & Games",
+      "disclosed": "43545",
+      "computed": "36470",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 145880 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 145880 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 36470"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "All Fun & Games All Fun 2022 Inc. N/A $145,880 $145,880 0 0 0 $43,545 $219"
+    },
+    {
+      "production_title": "Assassin Club",
+      "disclosed": "64675",
+      "computed": "65000",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 260000 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 260000 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 65000"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Assassin Club AC Film Holdings LLC WY $260,000 $260,000 0 0 0 $64,675 $325"
+    },
+    {
+      "production_title": "The Border- Pilot",
+      "disclosed": "245481",
+      "computed": "246715",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 986858 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 986858 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 246715"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "The Border- Pilot Disney Minim Productions, Inc. CA $986,858 $998,934 7 6,344 $368,710 $245,481 $1,234"
+    },
+    {
+      "production_title": "Bottoms",
+      "disclosed": "321047",
+      "computed": "322660",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 1290641 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 1290641 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 322660"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Bottoms MGM Bottoms Productions LLC LA $1,290,641 $1,564,311 6 11,898 $475,533 $321,047 $1,613"
+    },
+    {
+      "production_title": "Bull Street",
+      "disclosed": "56365",
+      "computed": "56648",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 226591 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 226591 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 56648"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Bull Street Bull Street The Movie LLC SC $226,591 $258,753 15 1,932 $68,408 $56,365 $283"
+    },
+    {
+      "production_title": "The Changeling- S1",
+      "disclosed": "555927",
+      "computed": "558721",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 2234884 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 2234884 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 558721"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "The Changeling- S1 Improbable Valetine Inc. NY New York $2,234,884 $2,234,884 0 0 0 $555,927 $2,794"
+    },
+    {
+      "production_title": "Dreamin' Wild",
+      "disclosed": "291955",
+      "computed": "293422",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 1173687 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 1173687 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 293422"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Dreamin' Wild Fruitland, LLC MN $1,173,687 $1,246,790 6 7,496 $353,613 $291,955 $1,467"
+    },
+    {
+      "production_title": "Drive Away Dolls",
+      "disclosed": "569457",
+      "computed": "547925",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 2191701 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 2191701 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 547925"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Drive Away Dolls Plastercast Post Inc. NY New York $2,191,701 $3,286,665 20 7,772 $569,401 $569,457 $2,862"
+    },
+    {
+      "production_title": "Dumb Money",
+      "disclosed": "572804",
+      "computed": "575682",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 2302729 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 2302729 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 575682"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Dumb Money BBP Antisocial Post Inc. NY New York $2,302,729 $4,464,688 13 10,711 $651,539 $572,804 $2,878"
+    },
+    {
+      "production_title": "Harriet The Spy",
+      "disclosed": "1174573",
+      "computed": "1180475",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 4721899 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 4721899 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 1180475"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Harriet The Spy TM Project Silver LLC NY New York $4,721,899 $5,116,339 43 89,488 $3,547,264 $1,174,573 $5,902"
+    },
+    {
+      "production_title": "How to Blow Up A Pipeline",
+      "disclosed": "75298",
+      "computed": "75676",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 302702 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 302702 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 75676"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "How to Blow Up A Pipeline Wild West Film LLC CA $302,702 $331,406 10 2,140 $85,658 $75,298 $378"
+    },
+    {
+      "production_title": "Landscape with Invisible Hand",
+      "disclosed": "492921",
+      "computed": "495398",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 1981592 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 1981592 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 495398"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Landscape with Invisible Hand MGM Kelsa Productions LLC CA $1,981,592 $2,078,161 12 16,156 $1,160,688 $492,921 $2,477"
+    },
+    {
+      "production_title": "Leopard Skin",
+      "disclosed": "241829",
+      "computed": "243044",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 972177 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 972177 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 243044"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Leopard Skin Skinny Leopard LLC CA $972,177 $1,265,528 10 5,224 $415,100 $241,829 $1,215"
+    },
+    {
+      "production_title": "Love Me",
+      "disclosed": "261981",
+      "computed": "219415",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 877658 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 877658 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 219415"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Love Me Love Me NY LLC NY New York $877,658 $877,658 0 0 0 $261,981 $1,316"
+    },
+    {
+      "production_title": "Mr. Mayor-S2",
+      "disclosed": "358935",
+      "computed": "360739",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 1442957 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 1442957 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 360739"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Mr. Mayor-S2 NBCU Universal Television LLC NY New York $1,442,957 $1,673,375 6 6,244 $384,505 $358,935 $1,804"
+    },
+    {
+      "production_title": "NYAD",
+      "disclosed": "1497921",
+      "computed": "1505448",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 6021792 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 6021792 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 1505448"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "NYAD Netflix Coastline Productions, LLC DE $6,021,792 $8,486,024 22 31,682 $2,735,010 $1,497,921 $7,527"
+    },
+    {
+      "production_title": "On The Count Of Three",
+      "disclosed": "221026",
+      "computed": "185114",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 740455 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 740455 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 185114"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "On The Count Of Three On Three Pictures Inc CA $740,455 $1,176,644 8 2,708 $106,290 $221,026 $1,111"
+    },
+    {
+      "production_title": "The Perfect Murder-S5",
+      "disclosed": "235093",
+      "computed": "196895",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 787580 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 787580 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 196895"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "The Perfect Murder-S5 IMAM Productions, LLC NY New York $787,580 $855,889 7 10,440 $627,840 $235,093 $1,181"
+    },
+    {
+      "production_title": "Power Book IV: Force-S2",
+      "disclosed": "499282",
+      "computed": "501791",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 2007163 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 2007163 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 501791"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Power Book IV: Force-S2 Lionsgate Power Force Productions, Inc. NY New York $2,007,163 $2,007,163 0 0 0 $499,282 $2,509"
+    },
+    {
+      "production_title": "Queer As Folk-S1",
+      "disclosed": "236562",
+      "computed": "237751",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 951005 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 951005 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 237751"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Queer As Folk-S1 NBCU Universal Content Productions, LLC DE $951,005 $951,005 0 0 0 $236,562 $1,189"
+    },
+    {
+      "production_title": "Shotgun Wedding",
+      "disclosed": "901892",
+      "computed": "906424",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 3625694 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 3625694 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 906424"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Shotgun Wedding Lionsgate Shotgun Wedding Productions, LLC CA $3,625,694 $4,888,140 8 25,350 $1,473,868 $901,892 $4,532"
+    },
+    {
+      "production_title": "Ted K",
+      "disclosed": "75575",
+      "computed": "47774",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 191095 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 191095 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 47774"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Ted K Ten By Twelve Productions NY Columbia $191,095 $207,108 2 4,660 $144,405 $75,575 $380"
+    },
+    {
+      "production_title": "Teenage Euthanasia-S2",
+      "disclosed": "314016",
+      "computed": "315594",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 1262375 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 1262375 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 315594"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Teenage Euthanasia-S2 Warner Bros Corn on the Fun I NY New York $1,262,375 $4,809,365 155 12,485 $669,769 $314,016 $1,578"
+    },
+    {
+      "production_title": "Tooning Out the News-S3",
+      "disclosed": "1468529",
+      "computed": "1475909",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 5903637 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 5903637 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 1475909"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "Tooning Out the News-S3 CBS Late Night Cartoons Inc. CA $5,903,637 $12,333,269 150 14,182 $4,448,351 $1,468,529 $7,380"
+    },
+    {
+      "production_title": "WASP 2022",
+      "disclosed": "483567",
+      "computed": "485997",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 1943988 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 1943988 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 485997"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "WASP 2022 Perdido Productions, Inc. NY New York $1,943,988 $2,402,733 12 9,284 $578,846 $483,567 $2,430"
+    },
+    {
+      "production_title": "White Noise",
+      "disclosed": "1410811",
+      "computed": "1417900",
+      "match_class": "unexplained",
+      "explanation": null,
+      "derivation": [
+        "starting base: 5671598 USD (from Qualifying base)",
+        "no per-person ceiling applies in this jurisdiction \u2014 FY2026 budget removed New York's $500,000 above-the-line compensation cap",
+        "no uplift stacking rules are declared for this programme",
+        "flat rate 0.25 applied to base 5671598 USD \u2014 25% confirmed by two issued-stage disclosures (Anora, Succession S4) in the same ESD Q3 2025 batch \u2014 see tests/fixtures/validation_pairs/ny_anora.yaml and ny_succession_s4.yaml",
+        "no per-project cap is declared for this programme",
+        "annual programme cap of 700000000 USD (calendar_year) declared \u2014 declared consumption-check method: live_research \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+        "gross credit quantized to whole dollars: 1417900"
+      ],
+      "corroborates_committed_fixture": false,
+      "source_row_text": "White Noise Netflix Netflix Productions, LLC DE $5,671,598 $7,577,784 34 26,080 $1,816,843 $1,410,811 $7,090"
+    }
+  ],
+  "extraction_failures": []
+}
