@@ -19,9 +19,9 @@ from __future__ import annotations
 import logging
 import sys
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import datetime, timezone
-from typing import Iterator
+from datetime import UTC, datetime
 
 __all__ = ["SDK_CALL_LOG_PREFIX", "sdk_call"]
 
@@ -44,7 +44,7 @@ if not _logger.handlers:
 
 
 def _utc_now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    return datetime.now(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 @contextmanager
