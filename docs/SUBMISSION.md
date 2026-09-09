@@ -192,16 +192,26 @@ including this document's own product surfaces beyond `/spec`, `/compare`
 until a deploy happens. This is `.planning/SHIP-CHECKLIST.md` item 2, a
 human action.
 
-**A genuine crash, not a graceful refusal, exists in one narrow window.**
-`engine/sensitivity.py::sensitivity_rows()`'s `_price_pair` does not
-catch `ValueError` the way `app/services/spec.py::_quarter_invariance_for_city`
-does, so New York's known camera-craft rate-successor gap (no
-2026-2027 rate row past 2026-08-01 — `WINDOWS.md` #9) is an uncaught
-crash rather than a graceful refusal for any `/spec` or `/compare`
-request whose start-date-plus-one-quarter sensitivity mutation crosses
-that boundary. `/compare`'s own start-date slider works around it by
-excluding that specific quarter from its selectable range rather than
-fixing the underlying function. Tracked as `WINDOWS.md` #34.
+**A rate-window boundary is disclosed rather than crossed.** A
+sensitivity run perturbs the shoot's start date, so from a late start it
+reaches past the window the committed union-rate snapshots cover. The
+engine refuses to price there — "no union rate row covers region='us-ny'
+craft='camera' on 2026-10-01 — no fallback to the nearest row or the
+newest row is performed" — which is the same refusal discipline as an
+unsourced transfer discount, and is the intended behaviour.
+
+That refusal is caught at the application boundary
+(`app/services/spec.py`) and reported through the existing
+`sensitivity_reason` channel: the comparison still prices, only the
+perturbation rows are withheld, and the reason says so in plain words.
+An earlier revision of `/compare` had removed the affected quarter from
+the slider's selectable range to avoid triggering the raise; that
+workaround was reverted, because narrowing the product's offered range
+to hide a data boundary is a worse answer than stating it. Q3 2026 is
+selectable, and `tests/test_sensitivity_refusal.py` guards both halves —
+that the engine's refusal is real and specific to the boundary rather
+than blanket, and that every offered slider position returns 200. The
+guard is mutation-tested: removing the handler makes that position fail.
 
 **A number of underlying data points remain `basis: estimated` or
 `basis: modelling_assumption` rather than `basis: sourced`** — general
