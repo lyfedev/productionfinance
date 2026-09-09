@@ -54,6 +54,9 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Literal
 
+from pydantic import ValidationError
+
+from agent.numbers import UnparseableFigureError, parse_money
 from agent.research_runs import SCHEMA_VERSION, append_round, boot_id, save_run
 from agent.research_schema import (
     FieldFinding,
@@ -61,6 +64,14 @@ from agent.research_schema import (
     SufficiencyField,
     SufficiencyVerdict,
     research_response_schema,
+)
+from agent.rule_coercion import (
+    RuleCoercionError,
+    build_rule_document,
+    cited_source_urls,
+    neutral_default_disclosures,
+    serialize_priced_jurisdiction,
+    write_rule_file,
 )
 from agent.settings import (
     GEMINI_MODEL,
@@ -73,6 +84,8 @@ from agent.settings import (
 )
 from agent.telemetry import collecting, sdk_call
 from app.services.cache_policy import CacheBoundaryViolation, DataClass, assert_live
+from engine.models import load_ruleset
+from engine.pipeline import price_jurisdiction
 
 __all__ = [
     "InvalidCityInputError",
@@ -108,9 +121,15 @@ class TerminalReason(str, Enum):
     also has to capture failures the model's own decision cannot express: a
     self-contradicting claim, a missing jurisdiction identity, an exhausted
     wall-clock budget, a cache-boundary policy violation, missing
-    configuration, or an SDK-level failure. Exactly nine members — adding a
-    tenth later is cheap; renaming one is not (this vocabulary is rendered
-    by the UI and quoted in the written submission)."""
+    configuration, or an SDK-level failure. Plan 07-05 adds two more —
+    `pricing_refused` (the engine's own refusal to convert to net cash,
+    e.g. a transferable programme with no sourced discount range) and
+    `rule_schema_violation` (the coerced document failed schema
+    validation, or the visitor's qualified-spend string could not be
+    parsed) — both additions to this closed set, never replacements.
+    Eleven members total — adding a twelfth later is cheap; renaming one
+    is not (this vocabulary is rendered by the UI and quoted in the
+    written submission)."""
 
     sufficient = "sufficient"
     agent_gave_up = "agent_gave_up"
@@ -121,6 +140,8 @@ class TerminalReason(str, Enum):
     cache_boundary_violation = "cache_boundary_violation"
     not_configured = "not_configured"
     sdk_error = "sdk_error"
+    pricing_refused = "pricing_refused"
+    rule_schema_violation = "rule_schema_violation"
 
 
 class InvalidCityInputError(ValueError):
@@ -452,6 +473,109 @@ def _real_judge(
     return SufficiencyVerdict.model_validate_json(response.text)
 
 
+# ---------------------------------------------------------------------------
+# Plan 07-05: findings -> a rule document -> the curated loader -> the
+# curated pricing call (AGT-07), only ever attempted on the `sufficient`
+# path. `agent/rule_coercion.py` never imports engine/ at all; the two
+# sanctioned names (`load_ruleset`, `price_jurisdiction`) are called HERE,
+# the one place this plan's AST gate already covers.
+# ---------------------------------------------------------------------------
+
+_EFFECTIVE_DATE_CONFIRMATION_DISCLOSURE = (
+    "The rule model's effective-from date is set to today, the date the programme's "
+    "current availability was confirmed in force by this research — not the date the "
+    "programme's rules originally took effect, which was not separately determined."
+)
+
+_NO_SPEND_SUPPLIED_DISCLOSURE = (
+    "No qualified spend was supplied for this run, so the rule model was built and "
+    "loaded but not priced against a dollar figure."
+)
+
+
+def _attempt_coercion_and_pricing(
+    job_id: str,
+    qualified_spend_input: str | None,
+    merged: dict[SufficiencyField, FieldFinding],
+    identity: JurisdictionIdentity,
+    original_message: str,
+) -> tuple[TerminalReason, str, str | None, dict | None, list[str]]:
+    """Only called once the driver has already accepted a `sufficient`
+    verdict (D-91's five fields determined, identity complete). Returns
+    `(reason, message, ruleset_path, priced, extra_disclosures)`.
+
+    `reason` stays `TerminalReason.sufficient` unless one of Task 2's
+    three named refusals fires, in which case it becomes
+    `rule_schema_violation` (a schema violation, or an unparseable
+    non-empty qualified-spend string) or `pricing_refused` (the engine's
+    own refusal to convert to net cash — e.g. `engine.net_cash
+    .transferable` with no sourced discount range). Never raises: every
+    refusal this function can name is caught here so the caller can
+    always write a durable terminal record without a background-thread
+    crash (T-07-01)."""
+    disclosures = neutral_default_disclosures(merged) + [_EFFECTIVE_DATE_CONFIRMATION_DISCLOSURE]
+
+    sources = cited_source_urls(merged)
+    try:
+        document = build_rule_document(job_id, identity, merged, sources)
+    except RuleCoercionError as exc:
+        # RuleCoercionError's UnslugableIdentityError subclass (a
+        # researched name that cannot be turned into a usable id) is
+        # caught by this same clause — both are "the document could not
+        # be built without inventing a value", the substance
+        # rule_schema_violation exists to name.
+        return TerminalReason.rule_schema_violation, str(exc), None, None, []
+
+    try:
+        path = write_rule_file(job_id, document)
+    except RuleCoercionError as exc:
+        return TerminalReason.rule_schema_violation, str(exc), None, None, []
+
+    try:
+        ruleset = load_ruleset(path)
+    except ValidationError as exc:
+        return (
+            TerminalReason.rule_schema_violation,
+            f"the coerced rule document failed schema validation: {exc}",
+            None,
+            None,
+            [],
+        )
+
+    if not qualified_spend_input or not qualified_spend_input.strip():
+        return (
+            TerminalReason.sufficient,
+            original_message,
+            str(path),
+            None,
+            [*disclosures, _NO_SPEND_SUPPLIED_DISCLOSURE],
+        )
+
+    try:
+        spend_value = parse_money(qualified_spend_input)
+    except UnparseableFigureError as exc:
+        return (
+            TerminalReason.rule_schema_violation,
+            f"the qualified spend {qualified_spend_input!r} could not be parsed: {exc}",
+            str(path),
+            None,
+            disclosures,
+        )
+
+    try:
+        priced = price_jurisdiction(ruleset, spend_value, spend_confidence="researched")
+    except ValueError as exc:
+        return TerminalReason.pricing_refused, str(exc), str(path), None, disclosures
+
+    return (
+        TerminalReason.sufficient,
+        original_message,
+        str(path),
+        serialize_priced_jurisdiction(priced),
+        disclosures,
+    )
+
+
 def run_job2(
     city_input: str,
     qualified_spend_input: str | None,
@@ -570,15 +694,21 @@ def run_job2(
         message: str,
         merged: dict[SufficiencyField, FieldFinding],
         identity: JurisdictionIdentity | None,
+        *,
+        ruleset_path: str | None = None,
+        priced: dict | None = None,
+        extra_disclosures: Sequence[str] = (),
     ) -> ResearchRun:
         unmet = unmet_fields(merged)
         record["status"] = "terminal"
         record["terminal_reason"] = reason.value
         record["message"] = message
         record["findings"] = [v.model_dump(mode="json") for v in merged.values()]
-        record["undetermined_disclosures"] = [f.value.replace("_", " ") for f in unmet]
-        record["ruleset_path"] = None
-        record["priced"] = None
+        disclosures = [f.value.replace("_", " ") for f in unmet]
+        disclosures.extend(extra_disclosures)
+        record["undetermined_disclosures"] = disclosures
+        record["ruleset_path"] = ruleset_path
+        record["priced"] = priced
         if identity is not None:
             record["identity"] = identity.model_dump(mode="json")
         record["updated_at"] = _utc_now_iso()
@@ -659,6 +789,35 @@ def run_job2(
             terminal = _terminal_for_decision(verdict, merged, unmet, identity)
             if terminal is not None:
                 reason, message = terminal
+                if reason == TerminalReason.sufficient:
+                    assert identity is not None  # guaranteed by _terminal_for_decision
+                    try:
+                        (
+                            reason,
+                            message,
+                            ruleset_path,
+                            priced,
+                            extra_disclosures,
+                        ) = _attempt_coercion_and_pricing(
+                            job_id, qualified_spend_input, merged, identity, message
+                        )
+                    except Exception as exc:  # noqa: BLE001 — an unexpected coercion bug
+                        # must still durably terminate, never crash the background
+                        # thread (T-07-01/T-07-34).
+                        reason = TerminalReason.rule_schema_violation
+                        message = (
+                            f"unexpected error while pricing the researched jurisdiction: {exc}"
+                        )
+                        ruleset_path, priced, extra_disclosures = None, None, []
+                    return _write_terminal(
+                        reason,
+                        message,
+                        merged,
+                        identity,
+                        ruleset_path=ruleset_path,
+                        priced=priced,
+                        extra_disclosures=extra_disclosures,
+                    )
                 return _write_terminal(reason, message, merged, identity)
 
             save_run(record)
