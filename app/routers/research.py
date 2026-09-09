@@ -181,9 +181,7 @@ def get_research_form(request: Request, city: str | None = None) -> HTMLResponse
     if not (status.parallel_configured and status.gemini_configured):
         context["not_configured_message"] = status.not_configured_message()
 
-    return templates.TemplateResponse(
-        request=request, name="research_result.html", context=context
-    )
+    return templates.TemplateResponse(request=request, name="research_result.html", context=context)
 
 
 @router.post("/research", response_class=HTMLResponse)
@@ -195,9 +193,7 @@ def post_research(
     outcome = _start_job(city, qualified_spend or None)
 
     if outcome["kind"] == "started":
-        return RedirectResponse(
-            url=f"{PUBLIC_PATH}/research/{outcome['job_id']}", status_code=303
-        )
+        return RedirectResponse(url=f"{PUBLIC_PATH}/research/{outcome['job_id']}", status_code=303)
 
     context = _base_context(public_path=PUBLIC_PATH, show_form=True, city_prefill=city[:120])
     if outcome["kind"] == "not_configured":
@@ -211,9 +207,7 @@ def post_research(
             f"Please wait {outcome['retry_after_seconds']}s before starting another run "
             f"(minimum interval: {int(MIN_SECONDS_BETWEEN_RUNS)}s)."
         )
-    return templates.TemplateResponse(
-        request=request, name="research_result.html", context=context
-    )
+    return templates.TemplateResponse(request=request, name="research_result.html", context=context)
 
 
 @router.post("/api/v1/research")
@@ -251,9 +245,7 @@ def get_research_job_html(request: Request, job_id: str) -> HTMLResponse:
         context["record"] = record
         context["in_flight"] = record.get("status") == "running"
 
-    return templates.TemplateResponse(
-        request=request, name="research_result.html", context=context
-    )
+    return templates.TemplateResponse(request=request, name="research_result.html", context=context)
 
 
 @router.get("/api/v1/research/{job_id}")

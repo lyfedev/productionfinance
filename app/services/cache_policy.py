@@ -53,8 +53,7 @@ POLICY: dict[DataClass, PolicyEntry] = {
     DataClass.curated_rule_model: PolicyEntry(
         verdict="cached",
         rationale=(
-            "Committed YAML under jurisdictions/ whose git history is already "
-            "the audit trail."
+            "Committed YAML under jurisdictions/ whose git history is already the audit trail."
         ),
     ),
     DataClass.cap_consumption: PolicyEntry(

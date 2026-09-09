@@ -214,9 +214,7 @@ def _real_search(
             max_chars_total=max_chars_total,
             timeout=timeout,
         )
-    return [
-        {"url": r.url, "title": r.title, "excerpts": list(r.excerpts)} for r in result.results
-    ]
+    return [{"url": r.url, "title": r.title, "excerpts": list(r.excerpts)} for r in result.results]
 
 
 def _real_judge(
@@ -359,9 +357,7 @@ def run_job2(
                 "objective": objective,
                 "search_queries": list(queries),
                 "mode": mode,
-                "results": [
-                    {"url": r.get("url"), "title": r.get("title")} for r in results
-                ],
+                "results": [{"url": r.get("url"), "title": r.get("title")} for r in results],
                 "decision": verdict.decision,
                 "findings": [f.model_dump(mode="json") for f in verdict.findings],
                 "summary": verdict.summary,

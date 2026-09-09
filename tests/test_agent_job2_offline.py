@@ -370,9 +370,7 @@ def test_app_serves_every_route_with_no_keys_present():
         response = client.get(path)
         assert response.status_code == 200, path
 
-    post_response = client.post(
-        "/research", data={"city": "Nowhereville", "qualified_spend": ""}
-    )
+    post_response = client.post("/research", data={"city": "Nowhereville", "qualified_spend": ""})
     assert post_response.status_code == 200
     assert "PARALLEL_API_KEY" in post_response.text
 
