@@ -87,9 +87,9 @@ The four where per-production government disclosure exists, so every model is pr
 - [x] **AGT-02**: Job 1 re-runs the model against each extracted pair and reports accuracy
 - [ ] **AGT-03**: Job 1 reproduces at least three published government award figures exactly
 - [x] **AGT-04**: Job 1 classifies every result into an explicit mismatch taxonomy — exact match, explained variance, or unexplained — built in from the start rather than retrofitted
-- [ ] **AGT-05**: Job 2 researches a city with no curated model live, builds a model on the fly, prices it, and labels the result unvalidated
+- [x] **AGT-05**: Job 2 researches a city with no curated model live, builds a model on the fly, prices it, and labels the result unvalidated
 - [ ] **AGT-06**: Job 2 returns "no programme found" as a legitimate result rather than inventing one
-- [ ] **AGT-07**: Job 2 coerces live-researched jurisdictions into the same schema as curated ones
+- [x] **AGT-07**: Job 2 coerces live-researched jurisdictions into the same schema as curated ones
 - [x] **AGT-08**: Extraction guardrails are enforced — groundedness checks on extracted quotes, preference for primary government domains over secondary summaries, locale-aware number parsing, and classification of proposed bills versus enacted law
 - [x] **AGT-09**: All document and PDF extraction runs through the permitted Google SDK — never AWS Textract or any other non-permitted AI service
 - [ ] **AGT-10**: The caching boundary is enforced at a single point: curated rules cached, while cap consumption, programme open/closed status, FX and uncurated-city research are live
@@ -245,9 +245,9 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | AGT-02 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Complete |
 | AGT-03 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Pending |
 | AGT-04 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Complete |
-| AGT-05 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |
+| AGT-05 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Complete |
 | AGT-06 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |
-| AGT-07 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |
+| AGT-07 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Complete |
 | AGT-08 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Complete |
 | AGT-09 | Phase 5 — Curated Breadth & the Validation Loop | 1 — Accounts | Complete |
 | AGT-10 | Phase 7 — Live Research, Caching & Durable Jobs | 1 — Accounts | Pending |

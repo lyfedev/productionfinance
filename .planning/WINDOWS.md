@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 32
+open_count: 33
 waived_count: 0
 fixed_count: 0
-total_count: 32
-last_updated: 2026-09-09T08:57:57.190Z
+total_count: 33
+last_updated: 2026-09-09T09:49:07.809Z
 ---
 
 # Broken Windows Ledger
@@ -47,6 +47,7 @@ last_updated: 2026-09-09T08:57:57.190Z
 | 30 | 05 | lint-warning | tests/test_jurisdiction_us_nj.py |  | Plan 05-05 adds 3 new FURB157 (verbose Decimal("N") constructor) findings in the new New Jersey test module -- same established RD-01 quoted-Decimal convention already present hundreds of times pre-existing across engine/tests (see WINDOWS entries 2, 4, 5, 11, 14, 17, 23, 24, 25, 27, 29 for the identical accepted pattern in every prior phase). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-09-09T08:57:28.982Z |  |
 | 31 | 05 | unmet-truth | jurisdictions/us-nj.yaml |  | JUR-03: jurisdictions/us-nj.yaml's transfer_discount.typical_rate_low is sourced (0.75, N.J.A.C. 19:31T-1.10(b), P.L. 2018 c.56 Section 1(e), and NJEDA's own transfer-application form all independently confirm the identical floor), but typical_rate_high is null -- no New Jersey government document located this session states a ceiling on what a transferred credit actually sells for above that floor. engine.net_cash.transferable correctly refuses to convert at a partially-sourced discount range rather than invent a ceiling (D-87), so price_jurisdiction raises ValueError for every active New Jersey pair -- both fixtures reproduce their disclosed credit exactly/near-exactly through the direct base-then-credit path (see tests/test_jurisdiction_us_nj.py) but NOT through price_jurisdiction. Documented in test_price_jurisdiction_refuses_unsourced_transfer_discount; resolves automatically if us-nj.yaml is ever sourced with a real discount ceiling. Mirrors WINDOWS entry 3's identical pattern for Connecticut. | open |  | 2026-09-09T08:57:38.249Z |  |
 | 32 | 07 | stub | runs/job2/README.md |  | runs/job2/ holds only the README; no human-verified live Job 2 run artifact has been copied in yet — PARALLEL_API_KEY/GEMINI_API_KEY are unset in this environment (07-03) | open |  | 2026-09-09T08:57:57.190Z |  |
+| 33 | 07 | lint-warning | agent/rule_coercion.py |  | Plan 07-05 adds 8 new FURB157 (verbose Decimal("N") constructor, RD-01 quoted-Decimal convention) findings in _SCALE_MULTIPLIERS -- same established pattern already present hundreds of times pre-existing across engine/tests (see WINDOWS entries 2,4,5,11,14,17,23,24,25,27,29,30 for the identical accepted pattern in every prior phase). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-09-09T09:49:07.809Z |  |
 
 ````json
 [
@@ -432,6 +433,18 @@ last_updated: 2026-09-09T08:57:57.190Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-09T08:57:57.190Z",
+    "resolved_at": null
+  },
+  {
+    "id": 33,
+    "kind": "lint-warning",
+    "phase": "07",
+    "file": "agent/rule_coercion.py",
+    "line": null,
+    "description": "Plan 07-05 adds 8 new FURB157 (verbose Decimal(\"N\") constructor, RD-01 quoted-Decimal convention) findings in _SCALE_MULTIPLIERS -- same established pattern already present hundreds of times pre-existing across engine/tests (see WINDOWS entries 2,4,5,11,14,17,23,24,25,27,29,30 for the identical accepted pattern in every prior phase). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-09T09:49:07.809Z",
     "resolved_at": null
   }
 ]
