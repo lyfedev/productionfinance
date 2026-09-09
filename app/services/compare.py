@@ -101,6 +101,7 @@ SLIDER_QUARTERS: tuple[tuple[str, int], ...] = (
     ("Q4", 2025),
     ("Q1", 2026),
     ("Q2", 2026),
+    ("Q3", 2026),
 )
 
 

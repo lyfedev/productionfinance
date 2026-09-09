@@ -52,6 +52,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "NO_GAP_SENSITIVITY_REASON",
+    "SENSITIVITY_BEYOND_RATE_DATA_REASON",
     "REFUSAL_REASON",
     "REPORTING_CURRENCY",
     "REPO_ROOT",
@@ -113,6 +114,19 @@ NO_GAP_SENSITIVITY_REASON = (
     "Sensitivity requires two candidate cities that both produced a priced "
     "total — fewer than two priced cities were submitted, so no gap exists "
     "to perturb."
+)
+
+# A sensitivity run shifts the shoot's start date, so it can reach past the
+# window the committed union-rate and per-diem snapshots cover. The engine
+# refuses to price beyond that window rather than falling back to the nearest
+# or newest row (the same refusal discipline as an unsourced transfer
+# discount), and that refusal surfaces here as a stated reason instead of an
+# uncaught error. The comparison itself is unaffected — only the perturbation
+# rows are withheld.
+SENSITIVITY_BEYOND_RATE_DATA_REASON = (
+    "Sensitivity is not shown for this start date. Perturbing it reaches "
+    "past the last date the committed rate data covers, and no rate is "
+    "carried forward from an expired row."
 )
 
 _RULE_TERM_BASIS = "quoted verbatim from the curated rule file; not a computed figure"
@@ -335,11 +349,20 @@ def handle_spec_submission(raw: SpecFormSubmission) -> SpecResult | RefusalResul
         sensitivity_reason = NO_GAP_SENSITIVITY_REASON
         most_moving_sensitivity_row: SensitivityRow | None = None
     else:
-        sensitivity = sensitivity_rows(
-            spec, gap.city_a_id, gap.city_b_id, reporting_currency=REPORTING_CURRENCY
-        )
-        sensitivity_reason = SENSITIVITY_STEPS_NOT_COMPARABLE_NOTE
-        most_moving_sensitivity_row = most_moving_row(sensitivity) if sensitivity else None
+        try:
+            sensitivity = sensitivity_rows(
+                spec, gap.city_a_id, gap.city_b_id, reporting_currency=REPORTING_CURRENCY
+            )
+        except ValueError as exc:
+            # The engine declined to price a perturbed date beyond its
+            # committed rate window. Report the refusal; do not widen the
+            # window, and do not narrow the offered start dates to hide it.
+            sensitivity = ()
+            sensitivity_reason = f"{SENSITIVITY_BEYOND_RATE_DATA_REASON} ({exc})"
+            most_moving_sensitivity_row = None
+        else:
+            sensitivity_reason = SENSITIVITY_STEPS_NOT_COMPARABLE_NOTE
+            most_moving_sensitivity_row = most_moving_row(sensitivity) if sensitivity else None
 
     assumptions = _compute_assumptions(spec, crew_headcount, ranked_cities, profile_by_city_id)
 
