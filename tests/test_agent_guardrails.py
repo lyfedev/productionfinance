@@ -23,18 +23,28 @@ unnoticed.
 
 from __future__ import annotations
 
+from decimal import Decimal
+
+import pytest
+
 from agent.enactment import EnactmentStatus, classify_enactment
 from agent.groundedness import check_grounded
 from agent.job1 import ExtractionFailure, run_job1
+from agent.numbers import UnparseableFigureError, parse_money
+from agent.parallel_client import is_primary_government_url
 from agent.schema import ExtractedAward
 
 # ---------------------------------------------------------------------------
-# The registry — see module docstring. Filled in incrementally as each
-# guardrail's coverage lands; the assertion in
-# test_every_guardrail_has_a_firing_test only checks the ids present here.
+# The registry — see module docstring. All four guardrail identifiers;
+# test_every_guardrail_has_a_firing_test asserts each is covered.
 # ---------------------------------------------------------------------------
 
-GUARDRAIL_IDS: tuple[str, ...] = ("groundedness", "enactment")
+GUARDRAIL_IDS: tuple[str, ...] = (
+    "groundedness",
+    "primary_domain",
+    "locale_aware_parsing",
+    "enactment",
+)
 
 
 def test_every_guardrail_has_a_firing_test() -> None:
@@ -159,6 +169,117 @@ def test_run_job1_rejects_ungrounded_award_as_extraction_failure() -> None:
     assert run.accuracy.exact_match == 0
     assert run.accuracy.explained_variance == 0
     assert run.accuracy.unexplained == 0
+
+
+# ---------------------------------------------------------------------------
+# Guardrail 2: preference for primary government domains (pre-existing —
+# agent.parallel_client.is_primary_government_url and the ranked-result
+# loop inside search_for_disclosure — but previously untested anywhere in
+# this suite. agent/parallel_client.py is NOT modified to close this gap.
+# ---------------------------------------------------------------------------
+
+
+def test_primary_domain_run_job1_prefers_a_government_result_over_a_higher_ranked_one() -> None:
+    """`search_for_disclosure`'s own ranked-result loop lives inside the
+    real Parallel client call and is not reachable offline, so this drives
+    the guardrail through `run_job1`'s `search_fn` seam with a fake that
+    reproduces the loop's own contract: given a ranked list whose top
+    result is on a non-government host and a lower one is on a government
+    host, only the government URL is ever returned to the rest of the
+    pipeline."""
+    ranked_results = [
+        "https://filmnews.example.com/esd-report-summary",  # non-government, ranked first
+        "https://esd.ny.gov/real-report.pdf",  # government, ranked lower
+    ]
+
+    def _search_preferring_government() -> str | None:
+        for url in ranked_results:
+            if is_primary_government_url(url):
+                return url
+        return None
+
+    from agent.gemini_client import ExtractionResult
+    from agent.parallel_client import DisclosureDocument
+    from agent.schema import ExtractedAwardSet
+
+    captured_urls: list[str] = []
+
+    def _fake_extract(url: str) -> DisclosureDocument:
+        captured_urls.append(url)
+        return DisclosureDocument(
+            url=url, markdown=_DOC_TEXT, sha256="x", char_count=len(_DOC_TEXT)
+        )
+
+    def _fake_extract_awards(_markdown: str) -> ExtractionResult:
+        return ExtractionResult(
+            award_set=ExtractedAwardSet(awards=[]), truncated=False, model="t"
+        )
+
+    run = run_job1(
+        search_fn=_search_preferring_government,
+        extract_fn=_fake_extract,
+        extract_awards_fn=_fake_extract_awards,
+    )
+
+    assert run.search_url == "https://esd.ny.gov/real-report.pdf"
+    assert captured_urls == ["https://esd.ny.gov/real-report.pdf"]
+
+
+def test_primary_domain_run_job1_terminates_with_no_primary_source_when_none_qualify() -> None:
+    """No result in the ranked list is government — the run must terminate
+    with the no-primary-source reason and an empty award list, never fall
+    back to the top-ranked non-government result (D-87: no fallback)."""
+    ranked_results = [
+        "https://filmnews.example.com/esd-report-summary",
+        "https://blog.example.org/ny-tax-credits",
+    ]
+
+    def _search_no_government_result() -> str | None:
+        for url in ranked_results:
+            if is_primary_government_url(url):
+                return url
+        return None
+
+    def _must_not_be_called(*_args, **_kwargs):
+        raise AssertionError("extract/extract_awards must not be called past the search gate")
+
+    run = run_job1(
+        search_fn=_search_no_government_result,
+        extract_fn=_must_not_be_called,
+        extract_awards_fn=_must_not_be_called,
+    )
+
+    assert run.terminal_reason.value == "no_primary_source_found"
+    assert run.awards == ()
+
+
+def test_primary_domain_rejects_government_looking_string_in_path_not_host() -> None:
+    """T-05-29/T-05-01: the check is on the PARSED HOSTNAME, never a
+    substring of the whole URL — a government-looking string sitting in
+    the path or query of an attacker-controlled host must be rejected."""
+    assert is_primary_government_url("https://attacker.example/?redirect=esd.ny.gov") is False
+    assert is_primary_government_url("https://attacker.example/esd.ny.gov/report.pdf") is False
+    assert is_primary_government_url("https://esd.ny.gov.attacker.example/report.pdf") is False
+    # Sanity: the real government host still passes.
+    assert is_primary_government_url("https://esd.ny.gov/report.pdf") is True
+
+
+# ---------------------------------------------------------------------------
+# Guardrail 3: locale-aware number parsing (pre-existing, fully proven in
+# tests/test_agent_numbers.py — this is the AGT-08 entry point only, never
+# a re-derivation of that case set. agent/numbers.py is NOT modified here.)
+# ---------------------------------------------------------------------------
+
+
+def test_locale_aware_parsing_ambiguous_figure_raises_rather_than_guessing() -> None:
+    with pytest.raises(UnparseableFigureError):
+        parse_money("1,2345")
+
+
+def test_locale_aware_parsing_both_grouping_conventions_parse_to_the_same_decimal() -> None:
+    us_convention = parse_money("3,964,760.00")
+    european_convention = parse_money("3.964.760,00")
+    assert us_convention == european_convention == Decimal("3964760.00")
 
 
 # ---------------------------------------------------------------------------

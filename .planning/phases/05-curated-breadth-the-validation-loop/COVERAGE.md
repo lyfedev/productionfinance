@@ -29,3 +29,19 @@ CI gate that both SDK imports sit inside a function body on the real call
 path, that the D-84 `PRODFIN_SDK_CALL` log line is unconditional at both
 call sites, and that the app keeps serving every pre-existing route with no
 keys present.
+
+## AGT-08 guardrails
+
+D-97 reverses D-88: nothing in AGT-08 is deferred. All four extraction
+guardrails are enforced on the real Job 1 path, and each one has a test
+that fails if the guardrail is removed (`tests/test_agent_guardrails.py`,
+the single standing gate — its own `test_every_guardrail_has_a_firing_test`
+proves this by introspection). This table distinguishes work newly built
+in plan 05-07 from a guardrail whose implementation predated this plan.
+
+| AGT-08 clause | Implementing module/function | New here or pre-existing | Firing test | Test new here or pre-existing |
+|---|---|---|---|---|
+| groundedness checks on extracted quotes | `agent.groundedness.check_grounded`, wired into `agent.job1._price_and_classify_award` | **New** (plan 05-07, Task 1) | `test_groundedness_*`, `test_run_job1_rejects_ungrounded_award_as_extraction_failure`, `tests/test_agent_job1_offline.py::test_offline_loop_rejects_an_ungrounded_award_alongside_the_grounded_rows` | **New** |
+| preference for primary government domains | `agent.parallel_client.is_primary_government_url` and the ranked-result loop in `agent.parallel_client.search_for_disclosure` | **Pre-existing** (plan 05-02) — `agent/parallel_client.py` is not modified by plan 05-07 (file ownership) | `test_primary_domain_*` | **New** (plan 05-07, Task 3) — a suite-wide search before this plan found zero references to `is_primary_government_url` or `search_for_disclosure` anywhere in `tests/` |
+| locale-aware number parsing | `agent.numbers.parse_money` | **Pre-existing** (plan 05-02) | `tests/test_agent_numbers.py` (full case set); `test_locale_aware_parsing_*` in `tests/test_agent_guardrails.py` is the AGT-08 entry point only — two assertions, never a re-derivation of the full case set | **Pre-existing** (`tests/test_agent_numbers.py`); the two entry-point assertions are new here |
+| proposed bill vs. enacted law classification | `agent.enactment.classify_enactment`, persisted on `Job1Run.source_enactment`, rendered on `/job1` | **New** (plan 05-07, Task 2) | `test_enactment_*` (all four branches: enacted, proposed, unknown, both-with-precedence); `tests/test_app_job1_route.py::test_get_job1_with_persisted_proposed_verdict_renders_proposed_not_enacted` | **New** |
