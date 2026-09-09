@@ -21,7 +21,9 @@ from typing import Any
 
 from app.services._paths import RULESET_PATH_BY_JURISDICTION
 from engine.figure_serialize import figure_to_dict
+from engine.credit import compute_gross_credit
 from engine.models import load_ruleset
+from engine.qualifying_base import SpendBreakdown, compute_qualifying_base
 from engine.pipeline import price_jurisdiction
 
 __all__ = [
@@ -107,18 +109,41 @@ def price_from_request(request: IntegrationRequest) -> dict[str, Any]:
             ruleset, spend, spend_confidence=request.spend_confidence  # type: ignore[arg-type]
         )
     except ValueError as exc:
-        # The engine's own refusal. Surfaced verbatim — an integrator needs
-        # the reason, not a generic failure.
+        # price_jurisdiction runs the whole chain and raises on the first step
+        # it cannot honour — for a transferable credit that is the net-cash
+        # conversion, which needs a transfer discount the state does not
+        # publish. The credit itself is still computable, and it is the figure
+        # a producer actually asked for, so it is returned rather than lost
+        # with the refusal. Only the cash conversion is reported as unknown.
+        gross = None
+        try:
+            programme = ruleset.programmes[0]
+            base = compute_qualifying_base(
+                programme,
+                SpendBreakdown.from_total(spend),
+                currency=ruleset.jurisdiction.currency,
+                confidence=request.spend_confidence,  # type: ignore[arg-type]
+            )
+            credit = compute_gross_credit(programme, base, annual_cap_remaining=None)
+            gross = {
+                "value": str(credit.value),
+                "unit": credit.unit,
+                "confidence": credit.confidence,
+                "derivation_tree": figure_to_dict(credit),
+            }
+        except (ValueError, IndexError):
+            gross = None
         return {
             "status": "cannot_be_computed",
             "jurisdiction_id": request.jurisdiction_id,
             "jurisdiction": {
-            "id": ruleset.jurisdiction.id,
-            "country_code": ruleset.jurisdiction.country_code,
-            "currency": ruleset.jurisdiction.currency,
-            "level": ruleset.jurisdiction.level,
-        },
+                "id": ruleset.jurisdiction.id,
+                "country_code": ruleset.jurisdiction.country_code,
+                "currency": ruleset.jurisdiction.currency,
+                "level": ruleset.jurisdiction.level,
+            },
             "qualified_spend": str(spend),
+            "gross_credit": gross,
             "computed": None,
             "refusal_reason": str(exc),
         }

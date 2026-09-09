@@ -172,11 +172,45 @@ def index(
             )
         )
         ctx["result"] = result
+        # The engine's own refusal names schema fields, which is right for an
+        # integrator reading the API and wrong for someone pricing a shoot.
+        # The plain sentence leads; the exact engine text stays available
+        # underneath, unedited.
+        PLAIN_REFUSAL = {
+            "us-nj": (
+                "New Jersey pays this credit as a certificate you sell on to "
+                "another company. The state does not publish what those "
+                "certificates sell for, so we can't tell you what it turns "
+                "into in cash — and we won't guess at a number your financing "
+                "would rest on."
+            ),
+            "us-ct": (
+                "Connecticut pays this credit as a certificate you sell on to "
+                "another company. The state does not publish what those "
+                "certificates sell for, so we can't tell you what it turns "
+                "into in cash — and we won't guess at a number your financing "
+                "would rest on."
+            ),
+        }
+        ctx["plain_reason"] = PLAIN_REFUSAL.get(
+            ctx["selected"],
+            "We can't produce this figure from the rules the state publishes, "
+            "and we won't estimate one.",
+        )
         raw = str(result.get("qualified_spend") or qualified_spend).split(".")[0]
         try:
             ctx["pretty_spend"] = f"{int(raw.replace(',', '')):,}"
         except ValueError:
             ctx["pretty_spend"] = qualified_spend
+
+        # A transferable-credit state still earns a credit; only its cash
+        # conversion is unknown. Show the figure the producer asked for.
+        if result["status"] == "cannot_be_computed" and result.get("gross_credit"):
+            ctx["gross"] = f"{int(result['gross_credit']['value']):,}"
+            ctx["steps"] = [
+                {"text": t, "applied": not t.lstrip().lower().startswith("no ")}
+                for t in result["gross_credit"]["derivation_tree"]["derivation"]
+            ]
 
         if result["status"] == "ok" and result["programmes"]:
             prog = result["programmes"][0]

@@ -26,17 +26,13 @@
         <div class="field">
           <label for="qualified_spend">What will it spend there?</label>
           <input class="amount" id="qualified_spend" name="qualified_spend"
-                 value="{{ spend }}" inputmode="decimal" placeholder="10,000,000">
+                 value="{{ spend }}" inputmode="decimal" placeholder="e.g. 10,000,000">
         </div>
         <div>
           <button class="go" type="submit" name="go" value="1">Calculate</button>
         </div>
       </div>
-      <p class="examples">
-        Not sure what to enter? Use
-        <button type="button" data-fill='{"jurisdiction_id":"us-ny","qualified_spend":"3964760"}'>the numbers from <em>Anora</em></button>,
-        which shot in New York.
-      </p>
+
     </form>
 
     <div class="result{% if not result %} result-empty{% endif %}">
@@ -47,14 +43,15 @@
     {% elif result.status == 'cannot_be_computed' %}
       <table class="rows">
         <tr><td>You spend in the state</td><td class="amt">{{ pretty_spend }}</td></tr>
-        <tr class="settle"><td>You get back</td><td class="amt unresolved">cannot be computed</td></tr>
+        {% if gross %}<tr class="total"><td>Credit you earn</td><td class="amt">{{ gross }}</td></tr>{% endif %}
+        <tr class="settle"><td>What that is worth in cash<span class="why">this state pays in certificates, not cash</span></td>
+            <td class="amt unresolved">we can't say</td></tr>
       </table>
-      <p class="verdict no">{{ result.refusal_reason }}</p>
-      <p class="verdict">
-        New Jersey pays this credit as a certificate you sell to another
-        company, and the state does not publish what those certificates sell
-        for. We won't guess at a number your financing would depend on.
-      </p>
+      <p class="verdict no">{{ plain_reason }}</p>
+      <details class="steps">
+        <summary>The technical reason</summary>
+        <ol><li class="applied">{{ result.refusal_reason }}</li></ol>
+      </details>
     {% else %}
       <table class="rows">
         <tr><td>You spend in the state</td><td class="amt">{{ pretty_spend }}</td></tr>
