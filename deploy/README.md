@@ -577,3 +577,54 @@ ssh -i "$PRODFIN_SSH_KEY" "$PRODFIN_SSH_USER@$PRODFIN_STATIC_IP"
 # Process supervision status (run on the box, after 01-08)
 systemctl is-active "$PRODFIN_SERVICE"
 ```
+
+## Phase 5 — agent credentials (SHP-05 / SHP-06)
+
+Job 1 (`agent/job1.py`) calls two AI services at runtime — Parallel Search
+plus Extract, and `google-genai` structured extraction — to satisfy the two
+hard eligibility requirements SHP-05 and SHP-06. Both are gated behind
+process-environment credentials only:
+
+| Variable | Required for | Source |
+|---|---|---|
+| `PARALLEL_API_KEY` | Parallel Search + Extract (SHP-06) | Parallel dashboard (platform.parallel.ai) -> API keys |
+| `GEMINI_API_KEY` (or `GOOGLE_API_KEY` as an accepted alias) | `google-genai` structured extraction (SHP-05) | Google AI Studio (aistudio.google.com) -> Get API key |
+| `PRODFIN_GEMINI_MODEL` (optional) | Overrides the default `gemini-2.5-flash` model id | n/a — set only to pin a different model |
+
+**These are read from the process environment only and are never
+committed.** `agent/settings.py` reads them via `os.environ` at the call
+site; no default literal, no file, and no code path anywhere in `agent/`
+formats, logs, or returns a key value — only booleans and variable names
+(`agent.settings.integration_status()`).
+
+**On the Lightsail box**, the three variables above belong in
+`/opt/prodfin/.env`, which `deploy/prodfin.service` already loads via its
+optional `EnvironmentFile=-/opt/prodfin/.env` line. That file must be owned
+by the `prodfin` user with mode `600` — the same access discipline as any
+other secret on this host. After creating or editing it, restart the
+service:
+
+```bash
+sudo systemctl restart prodfin
+```
+
+**Obtaining and installing both keys is a human action no agent can
+perform.** Until it happens, `agent/job1.py` degrades legibly — it names
+both missing variables and exits 0 (or 2, if invoked with
+`--require-live`) rather than crashing — and every pre-existing route
+(`/`, `/spec`, `/validate`, `/health`) keeps serving exactly as before,
+because both SDKs are imported lazily and neither import touches the
+process at module load time. **SHP-05 and SHP-06 therefore cannot be
+verified in production until a human sets these two variables on the box
+and restarts the service.** Once set, verify with:
+
+```bash
+uv run --frozen python -m agent.job1 --limit 1 --require-live
+```
+
+A successful run prints one production title read live from the NY ESD
+disclosure, its disclosed credit, and the engine-computed credit, plus one
+`PRODFIN_SDK_CALL sdk=parallel-web` line and one
+`PRODFIN_SDK_CALL sdk=google-genai` line on stdout (D-84) — the greppable
+production-log evidence Phase 8's re-verification sweep looks for.
+```
