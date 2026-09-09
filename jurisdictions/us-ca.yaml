@@ -1,0 +1,214 @@
+# California — Film & Television Tax Credit Program 4.0 (curated, validated)
+#
+# Every numeric value below is a quoted YAML string (RD-01: PyYAML parses an
+# unquoted decimal like 0.35 as a native float, which corrupts through naive
+# Decimal() conversion — engine/models.py types every such field Decimal and
+# requires the quoted-string convention).
+#
+# This file models ONE of California Program 4.0's three rate tracks: the
+# "Feature Film, New TV Series, Mini-Series, Pilots" (non-independent, non-
+# relocating) track — the only track either committed California validation
+# pair (Clueless S1, Disney's Hexed — both classified "Non-Independent" in
+# the CA Film Commission's own approved-projects disclosure) needs. It
+# deliberately does NOT model:
+#   - The "Relocating TV Series" track (40% first CA season, reduced to 35%
+#     for the second and subsequent seasons). A single rule-file programme
+#     cannot express a rate that depends on which numbered season a specific
+#     production is in — RateStructure has no "season count" input anywhere
+#     in engine/models.py or engine/credit.py. Encoding it here would need a
+#     schema extension (a new dispatch dimension keyed on
+#     production-specific season data), which is out of this plan's
+#     files_modified. Left unmodeled, not silently guessed.
+#   - The "Independent Films" track (35%, min budget $1,000,000, credit
+#     capped at the first $20,000,000 of qualified expenditures, AND — per
+#     RTC 17053.98.1(c) — sellable once to one unrelated party, in addition
+#     to the same elective partial-refund option every track carries). This
+#     track's real mechanism is genuinely dual (sell OR elect the partial
+#     refund, producer's choice) in a way this schema's single-value
+#     `mechanism` Literal cannot express without picking one and silently
+#     hiding the other. Left unmodeled rather than guessed at.
+#   - The Out-of-Zone Filming (+5%), Visual Effects (+5%) and Local Hire
+#     Labor (+10%/+5%) uplifts. All three are real, sourced, additive rates
+#     (sources/ca/2026-09-09-film-ca-gov-tax-credit-the-basics-4-0.html) —
+#     but `engine.credit._apply_uplift_stacking` applies every declared
+#     stackable uplift UNCONDITIONALLY to every production priced through
+#     this programme, and neither committed fixture's disclosure itemizes
+#     which uplift categories (if any) Clueless S1 or Disney's Hexed
+#     claimed. Declaring them here would silently apply an unclaimed uplift
+#     to every future production priced against this file. Not declared —
+#     see rate_structure.source_note below, and see the two fixtures'
+#     assertion.variance_reason for the same residue named on the data side.
+#
+# Two sources back the rate-and-cap figures in this file:
+#   1. film.ca.gov's own "The Basics 4.0" page
+#      (sources/ca/2026-09-09-film-ca-gov-tax-credit-the-basics-4-0.html) —
+#      the administering agency's live, current program summary.
+#   2. California Revenue and Taxation Code Section 17053.98.1 (Personal
+#      Income Tax Law mirror) and Section 23698.1 (Corporation Tax Law
+#      mirror — the statute a corporate qualified taxpayer, which both
+#      fixtures' productions are, actually claims the credit under),
+#      fetched directly from leginfo.legislature.ca.gov
+#      (sources/ca/2026-09-09-leginfo-rtc-17053-98-1.html and
+#      sources/ca/2026-09-09-leginfo-rtc-23698-1.html) — the codified law
+#      itself, independently confirming every figure film.ca.gov states.
+#
+# RESOLVED SOURCE CONFLICT (styled on SOURCE-TRUTH.md SRC-01's precedent for
+# a stale-vs-current tension): this session's FIRST fetch, of RTC 17053.98
+# alone (the statute this plan's own Task 1 text names), states an
+# "applicable credit percentage" of 20 percent or 25 percent — Program 3.0's
+# rate structure, not Program 4.0's. Reading further, RTC 17053.98
+# subdivision (k) (a DIFFERENT provision — the Soundstage Filming Tax Credit
+# for productions at a certified studio-construction project) itself points
+# to "Section 17053.98.1" for credits allocated on or after July 1, 2025.
+# RTC 17053.98.1 is the correct, current, general Program 4.0 statute: it
+# states "35 or 40 percent" directly, in force "for taxable years beginning
+# on or after January 1, 2025" with credits allowed "in no instance prior to
+# July 1, 2025" — exactly matching both fixtures' Credit Allocation Dates
+# (6/22/2026 and 7/27/2026) and film.ca.gov's live-page rates. RTC 17053.98.1
+# is what this file cites; RTC 17053.98 alone would have been the wrong,
+# superseded statute for a 2026 allocation.
+#
+# Also disclosed rather than guessed: California's REAL mechanism is not a
+# clean match for any single value in this schema's closed `mechanism`
+# Literal. RTC 17053.98.1(a) makes the credit a NONREFUNDABLE credit against
+# "net tax" by default, with an 8-year carryover (subdivision (c)(3)). A
+# qualified taxpayer MAY separately elect (subdivision (k), a one-time,
+# irrevocable election) to be paid a partial refund: 20 percent of a "total
+# refundable amount" — itself 90 percent of the credit's excess over net tax
+# in the first refundable year — per year, across a 5-year "refundable
+# period". That is neither this schema's `refundable` (a single, complete
+# cash conversion) nor its `transferable` (an open-market sale — reserved,
+# per RTC 17053.98.1(c)(1), to the Independent Films track only, which this
+# file does not model) — it is a nonrefundable credit against tax liability
+# with a slower, partial, elective cash-out option. `mechanism:
+# nonrefundable_credit` is the closest of the four Literal values to that
+# reality and is what this file declares; `engine.net_cash.nonrefundable_credit`
+# deducts the (here, undeclared/zero) audit fee and, since `taxable: false`,
+# converts the remainder to net cash directly — which describes the
+# straightforward carryover-credit-against-liability case, not the slower
+# elective 5-year partial refund a real producer might actually choose. This
+# is a real simplification, disclosed here rather than a silent one.
+
+jurisdiction:
+  id: us-ca
+  name: California
+  country_code: US
+  level: state
+  parent_id: null
+  currency: USD
+  status: curated_validated
+  effective_dates:
+    rule_version_effective_from: "2025-07-01"
+    rule_version_effective_to: "2030-06-30"
+    source_checked_date: "2026-09-09"
+  sources:
+    - url: "https://film.ca.gov/tax-credit/the-basics-4-0/"
+      title: "The Basics — California Film & Television Tax Credit Program 4.0 (California Film Commission)"
+      accessed_date: "2026-09-09"
+      confidence: HIGH
+    - url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=RTC&sectionNum=17053.98.1"
+      title: "California Revenue and Taxation Code Section 17053.98.1 (Personal Income Tax Law) — Film and Television Tax Credit Program 4.0"
+      accessed_date: "2026-09-09"
+      confidence: HIGH
+    - url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=RTC&sectionNum=23698.1"
+      title: "California Revenue and Taxation Code Section 23698.1 (Corporation Tax Law) — Film and Television Tax Credit Program 4.0"
+      accessed_date: "2026-09-09"
+      confidence: HIGH
+
+programmes:
+  - id: ca-film-television-tax-credit-program
+    name: "California Film & Television Tax Credit Program 4.0 — Feature Film, New TV Series, Mini-Series, Pilots"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: nonrefundable_credit
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: total_qualified_spend
+      pct_core_cap: null
+      excluded_line_items:
+        - "RTC 17053.98.1(a)(22)(B)(iv): above-the-line wages paid per person per production for writers, directors, music directors, music composers, music supervisors, producers, and performers (other than background actors with no scripted lines) are excluded from 'qualified wages' entirely — a categorical role-based exclusion built into the statutory definition of qualified expenditures itself, NOT the PerPersonCeiling schema's W-2-cap-with-loan-out-exemption model (same class of schema mismatch as jurisdictions/us-ct.yaml's star-talent exclusion — see per_person_ceiling.note below)."
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "The categorical writer/director/producer/performer wage exclusion (RTC 17053.98.1(a)(22)(B)(iv)) is recorded in base_definition.excluded_line_items above, not here — it excludes named roles from qualified wages entirely rather than capping any one person's compensation, so it is not this schema's W-2-cap-with-loan-out-exemption PerPersonCeiling model."
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.35"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: >
+        35% confirmed directly and identically by two independent primary
+        sources: film.ca.gov's own "The Basics 4.0" page (rendered via a
+        client-side Divi "number counter" widget, data-number-value="35",
+        paired with the "Feature Film, New TV Series, Mini-Series, Pilots"
+        toggle) and RTC 17053.98.1(a)(4)(A)/(C) ("Thirty-five percent of the
+        qualified expenditures attributable to the production of a
+        qualified motion picture in California... [or] that is an
+        independent film"). Re-derived against both committed fixtures:
+        Clueless S1 ($46,522,000 qualified spend x 0.35 = $16,282,700
+        against a disclosed $16,335,000 — residue $52,300, 11.24 bps of
+        disclosed spend) and Disney's Hexed ($47,538,000 x 0.35 =
+        $16,638,300 against a disclosed $16,638,000 — residue $300, 0.06
+        bps) — both comfortably inside each fixture's declared
+        tolerance_bps of 50. The small residues are consistent with the
+        uplift categories this file deliberately does NOT declare (see the
+        file's header comment) applying to an unknown, unitemized fraction
+        of each production's spend, not with the base rate being wrong.
+
+    minimum_spend:
+      value: "1000000"
+      currency: USD
+
+    caps:
+      per_project_cap:
+        value: "120000000"
+        currency: USD
+      annual_programme_cap:
+        amount:
+          value: "750000000"
+          currency: USD
+        period: fiscal_year
+        escalator_schedule: null
+      cap_consumption_check:
+        method: live_research
+        source_url: null
+
+    audit:
+      mandatory: true
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "RTC 17053.98.1(a) makes this a nonrefundable credit against 'net tax' with an 8-year carryover (subdivision (c)(3)) by default — no statutory cash-arrival lag applies to the default path. A qualified taxpayer may separately elect (subdivision (k), one-time, irrevocable) a partial refund paid at 20% of a 'total refundable amount' (itself 90% of the excess over net tax) per year across a 5-year refundable period; no single typical_days figure describes either path honestly, so this stays an explicit null rather than an invented number."
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: false
+      typical_rate_low: null
+      typical_rate_high: null
+      source_note: "This programme's mechanism is nonrefundable_credit, not transferable — RTC 17053.98.1(c)(1) reserves credit sale to the Independent Films track, which this file does not model (see header comment)."
+
+    residency_rules: null
+
+    validation:
+      validated: true
+      validation_pair_fixture_glob: "tests/fixtures/validation_pairs/ca_*.yaml"
+      mean_error_pct: null
+      last_checked_against_disclosure: "2026-09-09"
