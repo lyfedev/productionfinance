@@ -50,6 +50,7 @@ from agent.settings import (
     parallel_api_key,
 )
 from agent.telemetry import collecting, sdk_call
+from app.services.cache_policy import CacheBoundaryViolation, DataClass, assert_live
 
 __all__ = [
     "InvalidCityInputError",
@@ -293,6 +294,14 @@ def run_job2(
         clean_city = validate_city_input(city_input)
     except InvalidCityInputError as exc:
         return _run_from_record(_terminal_record("invalid_input", str(exc)))
+
+    # D-89/AGT-10, made structural: the live research path must not read
+    # from cache. This is asserted BEFORE the first Search call — a
+    # `CacheBoundaryViolation` here means no Search ever fires.
+    try:
+        assert_live(DataClass.uncurated_city_research)
+    except CacheBoundaryViolation as exc:
+        return _run_from_record(_terminal_record("cache_boundary_violation", str(exc)))
 
     search = search_fn or _real_search
     judge = judge_fn or _real_judge
