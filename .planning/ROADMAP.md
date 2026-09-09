@@ -272,12 +272,12 @@ Plans:
   4. The visitor sees informative progress and reaches a legible terminal state within the documented ceiling — never a silent spinner that can time out
   5. Curated rules are served from cache while cap consumption, programme open/closed status, FX and uncurated-city research go live, enforced at a single point; a restarted process resumes or reclassifies in-flight research jobs instead of hanging
 
-**Plans**: 6 plans in 4 waves
+**Plans**: 1/6 plans executed in 4 waves
 
 Plans:
 **Wave 1**
 
-- [ ] 07-01-PLAN.md — Tracer: an anonymous `POST /research` runs a real Parallel Search and a real google-genai sufficiency judgment inside the request, persists the round, and renders it (AGT-05, SHP-06, UI-10, AGT-10) (wave 1)
+- [x] 07-01-PLAN.md — Tracer: an anonymous `POST /research` runs a real Parallel Search and a real google-genai sufficiency judgment inside the request, persists the round, and renders it (AGT-05, SHP-06, UI-10, AGT-10) (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -390,7 +390,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 7/7 | In Progress|  |
 | 5. Curated Breadth & the Validation Loop | 1 — Accounts | 3/3 | In Progress|  |
 | 6. The Interface | 1 — Accounts | 0/TBD | Not started | - |
-| 7. Live Research, Caching & Durable Jobs | 1 — Accounts | 0/TBD | Not started | - |
+| 7. Live Research, Caching & Durable Jobs | 1 — Accounts | 1/6 | In Progress|  |
 | 8. Demo Proof, Export & Submission | 1 — Accounts | 0/TBD | Not started | - |
 | 9. Reference Production & Scheduled Index Runs | 2 — Balances | 0/TBD | Not started | - |
 | 10. The Published Index | 2 — Balances | 0/TBD | Not started | - |

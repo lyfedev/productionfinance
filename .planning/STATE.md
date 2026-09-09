@@ -4,15 +4,15 @@ current_phase: 05
 current_phase_name: Curated Breadth & the Validation Loop
 status: executing
 stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-09-09T07:54:29.597Z"
+last_updated: "2026-09-09T08:27:23.820Z"
 last_activity: 2026-09-09
 last_activity_desc: Phase 05 plan 01 executed — SHP-05/SHP-06 eligibility spine
-state_head: 4caed018d1c5e5aa53dc081a979ed7544b9847e9
+state_head: 09b495e2f7b39c08aea8b254c3277617065f6f74
 progress:
   total_phases: 11
   completed_phases: 3
-  total_plans: 32
-  completed_plans: 29
+  total_plans: 42
+  completed_plans: 31
   percent: 27
 ---
 
@@ -98,6 +98,7 @@ human sets `PARALLEL_API_KEY` and `GEMINI_API_KEY`/`GOOGLE_API_KEY` per
 | Phase 05 P01 | 55min | 3 tasks | 12 files |
 | Phase 05 P02 | 55min | 3 tasks | 10 files |
 | Phase 05 P03 | 30 min | 3 tasks | 12 files |
+| Phase 07 P01 | 55min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -151,6 +152,7 @@ Recent decisions affecting current work:
 - [Phase 05]: Job 1's SDK-call evidence block reuses agent.telemetry.sdk_call via an ambient contextvars collector (agent.telemetry.collecting), not a signature change at the existing parallel_client.py/gemini_client.py call sites -- the D-84 log line and the on-page evidence are provably the same record.
 - [Phase 05]: The non-live rendering guard (T-05-15) is enforced in app/routers/job1.py itself, not only in the template: for a non-live run, awards/accuracy are never placed in the Jinja2 context at all, so a template rewrite cannot leak an accuracy figure for data it was never handed.
 - [Phase 05]: Deployed to vockell.com/finance (git_sha 9af46b0) with no API keys on the box (Path B). SHP-05 and SHP-06 were left Pending in REQUIREMENTS.md despite the mechanical shared-ID gate reporting them ready, because both are live-outcome claims that remain false; only AGT-02 (a mechanism claim, already proven) was marked complete. WINDOWS.md entry 28 records the exact human action needed.
+- [Phase 07]: 07-01 (tracer): agent/job2.py lands the D-90 self-terminating research loop — while True: driven only by SufficiencyVerdict.decision, no round counter, proven by an AST gate plus scripted 1/2/5-round tests. One session_id threads every round's Search call; app/services/cache_policy.py is the single AGT-10 choke point, asserted before the first Search (mutation-tested). var/job2/{job_id}.json persists each round atomically before the next round starts (D-92). No API key is present in this environment — every claim is proven offline (24 new tests); the live Parallel/Gemini call pair remains unverified pending keys, same as 05-01's SHP-05/SHP-06 gap.
 
 ### Pending Todos
 
