@@ -20,6 +20,15 @@ jobs:
       - name: Scan resolved lockfile for forbidden packages
         run: bash .github/scripts/lockfile-scan.sh
 
+  sdk-call-sites:
+    name: sdk-call-sites (D-96)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Every search-SDK call site must sit on a request handler
+        run: uv run --frozen python scripts/audit_sdk_call_sites.py --check
+
   vendor-scan:
     name: vendor-scan (D-28)
     runs-on: ubuntu-latest
