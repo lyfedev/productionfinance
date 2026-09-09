@@ -54,8 +54,15 @@ from agent.taxonomy import (
     summarize,
 )
 from app.services._paths import REPO_ROOT
-from engine.models import JurisdictionRuleSet, load_ruleset
+from engine.models import load_ruleset
 from engine.pipeline import price_jurisdiction
+
+# `JurisdictionRuleSet` (the return type of `load_ruleset`, and the type of
+# `_price_and_classify_award`'s `ruleset` parameter below) is deliberately
+# NOT imported here — D-85's gate is that `agent/` imports nothing from
+# `engine/` except `load_ruleset` and `price_jurisdiction` themselves, so
+# the parameter below is left unannotated rather than adding a third
+# engine import purely for a type hint.
 
 __all__ = [
     "ExtractionFailure",
@@ -200,7 +207,7 @@ def _corroborates_committed_fixture(
 
 def _price_and_classify_award(
     award: ExtractedAward,
-    ruleset: JurisdictionRuleSet,
+    ruleset,  # engine.models.JurisdictionRuleSet — unannotated, see D-85 note above
     rules: Sequence[VarianceRule],
 ) -> AwardResult | ExtractionFailure:
     """Parse and price one extracted award through the existing engine
@@ -263,6 +270,11 @@ def run_job1(
     `limit` bounds how many extracted awards are priced (default: `None`
     — every row the document lists, AGT-01). `search_fn`/`extract_fn`/
     `extract_awards_fn` are test seams; a test double is never a default.
+
+    The `PARALLEL_API_KEY`/`GEMINI_API_KEY` configuration check below only
+    applies when using the REAL client functions — a caller driving the
+    pipeline entirely from injected fakes (the offline CI path, plan 05-02
+    Task 3) never needs a key, since it never reaches an SDK call.
     """
     using_real_seams = search_fn is None and extract_fn is None and extract_awards_fn is None
     search = search_fn or search_for_disclosure
@@ -276,7 +288,7 @@ def run_job1(
         else "replay"
     )
 
-    if not status.parallel_configured or not status.gemini_configured:
+    if using_real_seams and (not status.parallel_configured or not status.gemini_configured):
         return Job1Run(
             run_mode=run_mode,
             terminal_reason=TerminalReason.not_configured,
