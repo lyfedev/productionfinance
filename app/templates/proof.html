@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% import "_conflict.html" as conflib %}
+{% block title %}
+  {%- if result -%}
+    Proof: {{ result.production_title }}
+  {%- else -%}
+    Proof panel
+  {%- endif -%}
+{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ public_path }}/static/prodfin.css">
+<link rel="stylesheet" href="{{ public_path }}/static/proof.css">
+
+<p><a href="{{ public_path }}/">&larr; Back to ProductionFinance</a></p>
+
+<h1>Proof panel</h1>
+<p>
+  A reproduced government award figure shown alongside the government
+  document it came from &mdash; not a citation of it, the byte-archived
+  artifact itself, with its sha256 hash computed from the file on disk at
+  the moment this page rendered.
+</p>
+
+<section class="pf-proof-accuracy" data-testid="proof-accuracy">
+  <h2>Accuracy &mdash; honest bucket counts</h2>
+  <p>
+    Every currently selectable validation pair below, classified by
+    running the real disclosed-vs-computed comparison through
+    <code>agent.taxonomy.classify()</code> against the committed,
+    named-and-sourced rule set in <code>agent/variance_rules.yaml</code>.
+    These are counts, not a blended figure &mdash; a mismatch this
+    classifier's closed rule set does not (yet) name a reason for is
+    reported as unexplained, never folded into an average.
+  </p>
+  <table>
+    <tr><th>Exact match</th><td>{{ accuracy.exact_match }} / {{ accuracy.awards_extracted }}</td></tr>
+    <tr><th>Explained variance</th><td>{{ accuracy.explained_variance }} / {{ accuracy.awards_extracted }}</td></tr>
+    <tr><th>Unexplained</th><td>{{ accuracy.unexplained }} / {{ accuracy.awards_extracted }}</td></tr>
+    <tr><th>Could not be computed</th><td>{{ accuracy.extraction_failures }} / {{ accuracy.awards_extracted }}</td></tr>
+  </table>
+</section>
+
+<section class="pf-proof-conflicts" data-testid="proof-conflicts">
+  <h2>Unresolved source conflicts</h2>
+  {% if conflicts %}
+    {% for conflict in conflicts %}
+      {{ conflib.render_conflict(conflict) }}
+    {% endfor %}
+  {% else %}
+    <p>
+      No unresolved source conflict is currently recorded in
+      <code>data/source_conflicts.yaml</code>. This section renders only a
+      real recorded disagreement between authoritative sources &mdash; it is
+      never populated to demonstrate the feature.
+    </p>
+  {% endif %}
+</section>
+
+<section class="pf-proof-pairs">
+  <h2>Choose a validation pair</h2>
+  <ul>
+    {% for pair in pairs %}
+    <li{% if not pair.selectable %} class="unselectable"{% endif %}>
+      {% if pair.selectable %}
+        <a href="{{ public_path }}/proof/{{ pair.pair_id }}">{{ pair.production_title }}</a>
+        ({{ pair.jurisdiction_id }}) &mdash; disclosure stage: {{ pair.disclosure_stage or "not recorded" }}
+      {% else %}
+        {{ pair.production_title }} ({{ pair.jurisdiction_id }})
+        &mdash; not selectable: {{ pair.unselectable_reason }}
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+
+{% if result %}
+<section class="pf-proof-detail" data-testid="proof-detail">
+  <h2>{{ result.production_title }} ({{ result.jurisdiction_id }})</h2>
+  <p>
+    Disclosure stage: <strong>{{ result.disclosure_stage or "not recorded" }}</strong>
+    {% if result.report_period %}&mdash; report period {{ result.report_period }}{% endif %}
+  </p>
+
+  <h3>Disclosed (government-published) vs. computed (this engine)</h3>
+  <table>
+    <tr><th>Qualified spend</th><td>{{ "{:,}".format(result.disclosed_qualified_spend) }}</td></tr>
+    <tr><th>Disclosed credit</th><td>{{ "{:,}".format(result.disclosed_credit) }}</td></tr>
+    <tr>
+      <th>Computed credit</th>
+      <td>
+        {% if result.computed_credit is not none %}
+          {{ "{:,}".format(result.computed_credit.value) }} {{ result.computed_credit.unit }}
+        {% else %}
+          cannot be computed: {{ result.refusal_reason }}
+        {% endif %}
+      </td>
+    </tr>
+    {% if result.residue is not none %}
+    <tr>
+      <th>Exact difference (disclosed &minus; computed)</th>
+      <td data-testid="proof-residue">{{ "{:,}".format(result.residue) }}</td>
+    </tr>
+    {% endif %}
+  </table>
+
+  {% if result.residue is not none %}
+    {% if result.residue == 0 %}
+    <p><strong>This figure reproduces exactly &mdash; zero residue.</strong></p>
+    {% else %}
+    <p>
+      <strong>This figure does not reproduce exactly.</strong> The residue
+      shown above is exact, in Decimal, never rounded.
+      {% if result.residue_explanation %}
+      <br>{{ result.residue_explanation }}
+      {% else %}
+      No sourced explanation for this residue is recorded for this pair.
+      {% endif %}
+    </p>
+    {% endif %}
+    <p class="pf-proof-match-class">
+      <code>agent.taxonomy.classify()</code> verdict:
+      <strong>{{ result.match_class.value }}</strong>
+      {% if result.match_class.value == "unexplained" and result.residue_explanation %}
+      &mdash; this classifier's closed, named rule set does not cover the
+      explanation above; the residue is nonetheless fully explained in
+      prose, shown honestly as unexplained by this narrower classifier
+      rather than silently counted as a match.
+      {% endif %}
+    </p>
+  {% endif %}
+
+  <h3>The government document itself</h3>
+  {% if result.document %}
+    <p>
+      <code>{{ result.document.repo_relative_path }}</code>
+      {% if result.document.document_title %} &mdash; {{ result.document.document_title }}{% endif %}
+    </p>
+    {% if result.document.exists_on_disk %}
+    <p>
+      <a href="{{ public_path }}/proof/{{ result.pair_id }}/document">View the archived document</a>
+      ({{ result.document.media_type }})
+    </p>
+    <table>
+      <tr><th>sha256 recorded in the fixture</th><td data-testid="proof-sha-recorded"><code>{{ result.document.recorded_sha256 or "not recorded" }}</code></td></tr>
+      <tr><th>sha256 computed from the file on disk right now</th><td data-testid="proof-sha-live"><code>{{ result.document.live_sha256 or "file unreadable" }}</code></td></tr>
+      <tr>
+        <th>Match</th>
+        <td data-testid="proof-sha-match">
+          {% if result.document.sha256_matches %}
+            the archived bytes match the recorded hash exactly
+          {% else %}
+            MISMATCH &mdash; the file on disk does not match the recorded hash
+          {% endif %}
+        </td>
+      </tr>
+      {% if result.document.retrieved_at %}
+      <tr><th>Retrieved</th><td>{{ result.document.retrieved_at }}</td></tr>
+      {% endif %}
+    </table>
+    {% if result.document.manifest_url %}
+    <p>
+      Live government link (a courtesy only &mdash; the archived document
+      above, not this link, is the proof):
+      <a href="{{ result.document.manifest_url }}">{{ result.document.manifest_url }}</a>
+    </p>
+    {% endif %}
+    {% else %}
+    <p>The archived document is recorded but not readable on this host.</p>
+    {% endif %}
+  {% else %}
+    <p>No archived source document is recorded for this pair.</p>
+  {% endif %}
+
+  {% if result.source_url %}
+  <p>
+    Disclosure source:
+    <a href="{{ result.source_url }}">{{ result.source_url }}</a>
+    {% if result.date_checked %}&mdash; checked {{ result.date_checked }}{% endif %}
+  </p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,81 @@
+/* proof.css — styling for the proof panel this plan owns
+   (app/templates/proof.html, app/templates/_conflict.html). A sibling
+   plan owns prodfin.css this wave, so this is a SEPARATE stylesheet
+   loaded alongside it, reusing prodfin.css's own custom properties
+   (--pf-ink, --pf-space-*, --pf-font-*, etc.) rather than redefining
+   them — the identical pattern app/static/provenance.css already
+   established.
+
+   Vocabulary discipline: this file is covered by the D-70 gate over
+   app/static/ — no class name or comment here names the product's
+   prescriptive-vocabulary list. Every word choice below is descriptive,
+   never prescriptive. */
+
+.pf-proof-accuracy,
+.pf-proof-conflicts,
+.pf-proof-pairs,
+.pf-proof-detail {
+  margin: var(--pf-space-6, 2rem) 0;
+  padding: var(--pf-space-4, 1rem);
+  border: 1px solid var(--pf-line, #d8dbe0);
+  border-radius: var(--pf-radius, 10px);
+  background: var(--pf-paper, #fff);
+}
+
+.pf-conflict {
+  margin: var(--pf-space-3, 0.75rem) 0;
+  padding: var(--pf-space-3, 0.75rem);
+  border: 1px solid var(--pf-ramp-high, #a4133c);
+  border-radius: var(--pf-radius, 10px);
+  background: var(--pf-paper-sunk, #f6f7f9);
+}
+
+.pf-conflict-topic {
+  color: var(--pf-ramp-high, #a4133c);
+}
+
+.pf-conflict-sources {
+  list-style: none;
+  margin: var(--pf-space-2, 0.5rem) 0;
+  padding: 0;
+}
+
+.pf-conflict-source {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: var(--pf-space-2, 0.5rem) 0;
+  border-top: 1px solid var(--pf-line-soft, #e9ebee);
+}
+
+.pf-conflict-source:first-child {
+  border-top: none;
+}
+
+.pf-conflict-source-label {
+  font-weight: 600;
+}
+
+.pf-conflict-source-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-proof-match-class code {
+  font-family: var(--pf-font-mono, monospace);
+}
+
+table {
+  border-collapse: collapse;
+  margin: var(--pf-space-2, 0.5rem) 0;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid var(--pf-line, #ccc);
+  padding: 0.35rem 0.6rem;
+  text-align: left;
+}
+
+.unselectable {
+  color: var(--pf-ink-soft, #777);
+}
