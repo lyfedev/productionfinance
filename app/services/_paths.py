@@ -21,9 +21,16 @@ __all__ = ["REPO_ROOT", "RULESET_PATH_BY_JURISDICTION"]
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-# New York only in Phase 3 — every other jurisdiction_id a fixture may
-# declare (us-ct, us-ma, us-ca, us-nj, us-pa) is real data but has no
-# curated rule model wired into either route yet.
+# The four curated jurisdictions (JUR-01..04 — New York, California, New
+# Jersey, Connecticut), each wired to the rule file its own plan committed
+# under jurisdictions/. Two other fixture-declared jurisdiction_ids
+# (us-ma, us-pa) are real data with no curated rule model in this phase —
+# a fixture naming either stays reported (never dropped) but unselectable,
+# per app.services.validate.selectable_pairs()'s own no-curated-rule-model
+# branch.
 RULESET_PATH_BY_JURISDICTION: dict[str, Path] = {
     "us-ny": REPO_ROOT / "jurisdictions" / "us-ny.yaml",
+    "us-ca": REPO_ROOT / "jurisdictions" / "us-ca.yaml",
+    "us-nj": REPO_ROOT / "jurisdictions" / "us-nj.yaml",
+    "us-ct": REPO_ROOT / "jurisdictions" / "us-ct.yaml",
 }

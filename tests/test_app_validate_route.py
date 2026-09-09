@@ -138,6 +138,48 @@ def test_bounded_pair_never_claims_exact_match():
     assert "10" in body["verdict"]
 
 
+def test_reproduce_disclosure_completes_for_a_pair_from_each_curated_jurisdiction():
+    # 05-08: all four curated jurisdictions are wired into
+    # RULESET_PATH_BY_JURISDICTION now — reproduce_disclosure must run end
+    # to end (no exception escaping) for a real active pair from each,
+    # whether it lands on a computed verdict (NY, CA) or on the honest
+    # refusal verdict (NJ, CT — both transferable with an unsourced
+    # transfer_discount ceiling).
+    for pair_id, jurisdiction_id in (
+        ("ny_anora", "us-ny"),
+        ("ca_clueless_s1", "us-ca"),
+        ("nj_joker", "us-nj"),
+        ("ct_christmas_always", "us-ct"),
+    ):
+        result = validate_service.reproduce_disclosure(pair_id)
+        assert result.jurisdiction_id == jurisdiction_id
+        assert result.verdict
+
+
+def test_new_jersey_and_connecticut_pairs_honestly_refuse_via_the_route():
+    # T-05-35: price_jurisdiction's ValueError (an unsourced
+    # transfer_discount range on a transferable programme) is caught and
+    # returned as a readable refusal — never a 500, never an invented
+    # rate. Proven here for real committed pairs, not hypothetically.
+    for pair_id in ("nj_joker", "nj_trial_of_the_chicago_7", "ct_christmas_always"):
+        result = validate_service.reproduce_disclosure(pair_id)
+        assert result.computed_credit is None
+        assert result.verdict == "cannot be computed"
+        assert result.refusal_reason
+        assert "transfer_discount" in result.refusal_reason
+
+        response = client.get(f"/api/v1/validate/{pair_id}")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["verdict"] == "cannot be computed"
+        assert body["computed_credit"] is None
+        assert "transfer_discount" in body["refusal_reason"]
+
+        html_response = client.get(f"/validate/{pair_id}")
+        assert html_response.status_code == 200
+        assert "cannot be computed" in html_response.text
+
+
 def test_health_contract_unchanged():
     response = client.get("/health")
     assert response.status_code == 200
@@ -166,9 +208,13 @@ def test_post_validate_reproduces_anora_via_form():
 
 
 def test_post_validate_with_unselectable_pair_names_it_and_states_reason_not_500():
-    response = client.post("/validate", data={"pair_id": "ct_christmas_always"})
+    # ct_christmas_always was the unselectable example before Connecticut
+    # was wired into RULESET_PATH_BY_JURISDICTION — it is selectable now
+    # (05-08). ma_dont_look_up stays genuinely unselectable: us-ma has no
+    # curated rule model, and its own status is "blocked" besides.
+    response = client.post("/validate", data={"pair_id": "ma_dont_look_up"})
     assert response.status_code != 500
-    assert "ct_christmas_always" in response.text
+    assert "ma_dont_look_up" in response.text
 
 
 def test_malformed_fixture_missing_assertion_returns_500_not_a_crash(monkeypatch):
