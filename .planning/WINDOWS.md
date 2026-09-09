@@ -1,9 +1,9 @@
 ---
 schema_version: 1
-open_count: 35
+open_count: 36
 waived_count: 0
 fixed_count: 0
-total_count: 35
+total_count: 36
 last_updated: 2026-09-09T15:31:20.219Z
 ---
 
@@ -50,6 +50,7 @@ last_updated: 2026-09-09T15:31:20.219Z
 | 33 | 07 | lint-warning | agent/rule_coercion.py |  | Plan 07-05 adds 8 new FURB157 (verbose Decimal("N") constructor, RD-01 quoted-Decimal convention) findings in _SCALE_MULTIPLIERS -- same established pattern already present hundreds of times pre-existing across engine/tests (see WINDOWS entries 2,4,5,11,14,17,23,24,25,27,29,30 for the identical accepted pattern in every prior phase). No new rule categories introduced. Out of scope per executor scope-boundary rule; repo-wide ruff cleanup remains open, tracked in entry 2. | open |  | 2026-09-09T09:49:07.809Z |  |
 | 34 | 06 | deviation | engine/sensitivity.py |  | sensitivity_rows()'s _price_pair does not catch ValueError the way app/services/spec.py::_quarter_invariance_for_city does — WINDOWS #9's documented us-ny camera-craft successor-row gap (no 2026-2027 rate row past 2026-08-01) is therefore an UNCAUGHT crash, not a graceful refusal, for any /spec or /compare request whose start_quarter+1 perturbation crosses that boundary (start_quarter=Q3, start_year=2026 specifically). Reproduced on plain main before 06-02's changes via SpecFormSubmission(start_quarter='Q3', start_year=2026). 06-02's own start-date slider works around it by excluding Q3 2026 from SLIDER_QUARTERS (documented inline) rather than fixing engine/sensitivity.py, which is out of this plan's files_modified. The underlying fix belongs in _price_pair: catch ValueError and exclude that mutation row the same way _quarter_invariance_for_city already does. | open |  | 2026-09-09T14:04:46.395Z |  |
 | 35 | 08 | unmet-truth | docs/sdk-call-sites.md |  | Re-running scripts/audit_sdk_call_sites.py --check (D-96) at 08-03's pre-submission sweep found genuine drift: 08-02's new GET /export route also reaches agent/live_checks.py:119's _search_excerpts (via the same CompareInputs/search path /compare and /spec already use), so the committed table's endpoint list for call site #2 is stale by one endpoint. Verdict for every call site remains PASS (still reachable, still 0 failing) -- this is a missing endpoint in the reachability list, not a new unreachable call site. Regenerating is a mechanical 'uv run --frozen python scripts/audit_sdk_call_sites.py --write' + commit, out of 08-03's files_modified (owns docs/SUBMISSION.md, docs/DEMO-SCRIPT.md, .planning/SHIP-CHECKLIST.md, scripts/pre_submission_check.sh only), left for whoever next touches app/routers/export.py or runs a repo-wide gate sweep. | open |  | 2026-09-09T15:31:20.219Z |  |
+| 36 | 08 | unmet-truth | deploy/hosting.env |  | SHP-01 (resize the vockell.com Lightsail instance to 2 GB) deliberately NOT performed. The requirement was written from a prediction that 472 MB could not hold FastAPI plus the Google SDK alongside Apache and MySQL. Measured on the live box 2026-09-09 at git_sha 1f28e71 while it served all 11 routes: 472 MB total, 300 MB available, prodfin.service active at MemoryCurrent 56.3 MB. SDK imports are lazy (a test enforces it), so the AI dependency costs nothing resident until a run fires. The predicted pressure has not materialised. The resize path is snapshot-and-restore, which requires detaching the static IP from the running box and reattaching it to a new one - real downtime for the owner's own website to fix a problem that is not occurring. Owner accepted the recommendation to skip the cutover. Snapshot vockell-preresize-20260909-1026 was taken and retained, so the resize remains a one-command option if pressure appears. | open |  | 2026-09-09T17:30:00.000Z |  |
 
 ````json
 [
