@@ -1,0 +1,696 @@
+{
+  "schema_version": 1,
+  "job_id": "b9efe95dda2347a4a0f6280aa47bf156",
+  "city_input": "Santa Fe, New Mexico",
+  "qualified_spend_input": "10000000",
+  "session_id": "2a69cd5e88fb4dd995e34a7639e90617",
+  "status": "terminal",
+  "terminal_reason": "sufficient",
+  "message": "Sufficient evidence found to build a cost model for the New Mexico Film Production Tax Credit covering Santa Fe.",
+  "rounds": [
+    {
+      "round_number": 1,
+      "objective": "Determine whether Santa Fe, New Mexico (or the jurisdiction it is in) has an active film/TV production incentive programme, and if so, find enough about it to build a cost model: rate, qualifying base definition, caps, payout mechanism, current availability.",
+      "search_queries": [
+        "Santa Fe, New Mexico film tax incentive",
+        "Santa Fe, New Mexico production incentive programme"
+      ],
+      "queries_normalized": false,
+      "mode": "fast",
+      "mode_normalized": false,
+      "results": [
+        {
+          "url": "https://edd.newmexico.gov/wp-content/uploads/2026/03/HB547.pdf",
+          "title": "New Mexico Film Office celebrates expanded film incentive legislation to further grow the state\u2019s thriving film and television industry"
+        },
+        {
+          "url": "https://tax.newmexico.gov/tax-professionals/tax-credits-overview-forms/film-production-tax-credit",
+          "title": "Film Production Tax Credit : Tax Professionals"
+        },
+        {
+          "url": "http://nmfilm.com/incentives/eligibility",
+          "title": "Eligibility | New Mexico Film Office"
+        },
+        {
+          "url": "http://www.santafebiz.org/new-mexico-25-film-production-tax-rebate",
+          "title": "Santa Fe, NM Economic Development \u2013 Incentives, Financing ..."
+        },
+        {
+          "url": "https://www.edd.newmexico.gov/press_releases_tag/tax",
+          "title": "tax Archives - NM Economic Development Department"
+        },
+        {
+          "url": "https://edd.newmexico.gov/press-releases/new-mexico-film-office-celebrates-expanded-film-incentive-legislation-to-further-grow-the-states-thriving-film-and-television-industry",
+          "title": "New Mexico Film Office celebrates expanded film incentive legislation to further grow the state\u2019s thriving film and television industry - NM Economic Development Department"
+        },
+        {
+          "url": "http://nmfilm.com/incentives",
+          "title": "New Mexico Film Office"
+        },
+        {
+          "url": "https://realfile.tax.newmexico.gov/FYI-370.pdf",
+          "title": "FYI-370 Information Regarding Film Production Tax Credits"
+        },
+        {
+          "url": "https://nmfilm.com/assets/uploads/NM-Film-2025-Report-Final.pdf",
+          "title": "ECONOMIC IMPACT OF THE NEW MEXICO FILM PRODUCTION TAX CREDIT"
+        },
+        {
+          "url": "https://santafenm.film/why-santa-fe/incentives",
+          "title": "Incentives - Santa Fe Film Office"
+        }
+      ],
+      "decision": "sufficient",
+      "findings": [
+        {
+          "field": "rate",
+          "determined": true,
+          "value_text": "25% base refundable credit on qualifying New Mexico expenditures",
+          "evidence_quote": "25% base refundable credit on qualifying New Mexico expenditures",
+          "source_url": "http://nmfilm.com/incentives",
+          "base_rate_percent": "25",
+          "uplifts_not_modelled": [
+            "10% rural uplift",
+            "5% pilot / TV series uplift"
+          ],
+          "base_definition_kind": null
+        },
+        {
+          "field": "qualifying_base_definition",
+          "determined": true,
+          "value_text": "Direct production and postproduction expenditures made in New Mexico that are subject to taxation by the state of New Mexico",
+          "evidence_quote": "direct production and postproduction expenditures made in New Mexico that are subject to taxation by the state of New Mexico",
+          "source_url": "https://realfile.tax.newmexico.gov/FYI-370.pdf",
+          "base_rate_percent": null,
+          "uplifts_not_modelled": [],
+          "base_definition_kind": "total_qualified_spend"
+        },
+        {
+          "field": "caps",
+          "determined": true,
+          "value_text": "Annual state fund cap of $140 million for FY26 (increasing to $160 million in FY28), with New Mexico Film Partners exempt from the annual fund cap",
+          "evidence_quote": "The Allowable Fiscal Year 2026 Film Fund Cap is $140,000,000.00. Partner Film Production Tax Credit is not subject to a fund cap",
+          "source_url": "https://tax.newmexico.gov/tax-professionals/tax-credits-overview-forms/film-production-tax-credit",
+          "base_rate_percent": null,
+          "uplifts_not_modelled": [],
+          "base_definition_kind": null
+        },
+        {
+          "field": "payout_mechanism",
+          "determined": true,
+          "value_text": "Refundable tax credit against personal or corporate income tax with lump sum payout",
+          "evidence_quote": "credit against personal or corporate income tax is available for 25% of direct production and postproduction expenditures",
+          "source_url": "https://realfile.tax.newmexico.gov/FYI-370.pdf",
+          "base_rate_percent": null,
+          "uplifts_not_modelled": [],
+          "base_definition_kind": null
+        },
+        {
+          "field": "current_availability",
+          "determined": true,
+          "value_text": "Active with year-round project registration and $54,480,338.05 remaining under the FY26 cap",
+          "evidence_quote": "Film Production Tax Credits Remaining is $54,480,338.05. Partner Film Production Tax Credit is not subject to a fund cap",
+          "source_url": "https://tax.newmexico.gov/tax-professionals/tax-credits-overview-forms/film-production-tax-credit",
+          "base_rate_percent": null,
+          "uplifts_not_modelled": [],
+          "base_definition_kind": null
+        }
+      ],
+      "summary": "Sufficient evidence found to build a cost model for the New Mexico Film Production Tax Credit covering Santa Fe.",
+      "newly_determined": [
+        "rate",
+        "qualifying_base_definition",
+        "caps",
+        "payout_mechanism",
+        "current_availability"
+      ],
+      "unmet_fields": [],
+      "discarded_fields": [],
+      "at": "2026-09-09T18:16:42.430Z"
+    }
+  ],
+  "sdk_calls": [
+    {
+      "sdk": "parallel-web",
+      "op": "search",
+      "target": "job2-round-1",
+      "elapsed_ms": 1063,
+      "outcome": "ok",
+      "at": "2026-09-09T18:16:31.037Z"
+    },
+    {
+      "sdk": "google-genai",
+      "op": "generate_content",
+      "target": "gemini-3.6-flash",
+      "elapsed_ms": 11260,
+      "outcome": "ok",
+      "at": "2026-09-09T18:16:42.428Z"
+    }
+  ],
+  "started_at": "2026-09-09T18:16:29.906Z",
+  "updated_at": "2026-09-09T18:16:42.510Z",
+  "ceiling_seconds": 240.0,
+  "boot_id": "7c0369f5a43e474fadc9495188acda02",
+  "round_count": 1,
+  "findings": [
+    {
+      "field": "rate",
+      "determined": true,
+      "value_text": "25% base refundable credit on qualifying New Mexico expenditures",
+      "evidence_quote": "25% base refundable credit on qualifying New Mexico expenditures",
+      "source_url": "http://nmfilm.com/incentives",
+      "base_rate_percent": "25",
+      "uplifts_not_modelled": [
+        "10% rural uplift",
+        "5% pilot / TV series uplift"
+      ],
+      "base_definition_kind": null
+    },
+    {
+      "field": "qualifying_base_definition",
+      "determined": true,
+      "value_text": "Direct production and postproduction expenditures made in New Mexico that are subject to taxation by the state of New Mexico",
+      "evidence_quote": "direct production and postproduction expenditures made in New Mexico that are subject to taxation by the state of New Mexico",
+      "source_url": "https://realfile.tax.newmexico.gov/FYI-370.pdf",
+      "base_rate_percent": null,
+      "uplifts_not_modelled": [],
+      "base_definition_kind": "total_qualified_spend"
+    },
+    {
+      "field": "caps",
+      "determined": true,
+      "value_text": "Annual state fund cap of $140 million for FY26 (increasing to $160 million in FY28), with New Mexico Film Partners exempt from the annual fund cap",
+      "evidence_quote": "The Allowable Fiscal Year 2026 Film Fund Cap is $140,000,000.00. Partner Film Production Tax Credit is not subject to a fund cap",
+      "source_url": "https://tax.newmexico.gov/tax-professionals/tax-credits-overview-forms/film-production-tax-credit",
+      "base_rate_percent": null,
+      "uplifts_not_modelled": [],
+      "base_definition_kind": null
+    },
+    {
+      "field": "payout_mechanism",
+      "determined": true,
+      "value_text": "Refundable tax credit against personal or corporate income tax with lump sum payout",
+      "evidence_quote": "credit against personal or corporate income tax is available for 25% of direct production and postproduction expenditures",
+      "source_url": "https://realfile.tax.newmexico.gov/FYI-370.pdf",
+      "base_rate_percent": null,
+      "uplifts_not_modelled": [],
+      "base_definition_kind": null
+    },
+    {
+      "field": "current_availability",
+      "determined": true,
+      "value_text": "Active with year-round project registration and $54,480,338.05 remaining under the FY26 cap",
+      "evidence_quote": "Film Production Tax Credits Remaining is $54,480,338.05. Partner Film Production Tax Credit is not subject to a fund cap",
+      "source_url": "https://tax.newmexico.gov/tax-professionals/tax-credits-overview-forms/film-production-tax-credit",
+      "base_rate_percent": null,
+      "uplifts_not_modelled": [],
+      "base_definition_kind": null
+    }
+  ],
+  "undetermined_disclosures": [
+    "Whether this credit is subject to corporation tax was not determined by research; priced as non-taxable. If the real programme is taxable, the true net cash figure would be LOWER than shown here.",
+    "Whether an independent audit is mandatory, and any audit fee schedule, was not determined by research; priced with no audit fee deducted. If the real programme requires a paid audit, the true net cash figure would be LOWER than shown here.",
+    "Whether an above-the-line per-person compensation ceiling applies was not determined by research; priced with no per-person ceiling. If the real programme caps individual compensation, the true net cash figure would be LOWER than shown here.",
+    "When this programme's terms lock (application, start of principal photography, or completion) was not determined by research; assumed at completion for display purposes only \u2014 this does not change the computed dollar figure.",
+    "The rule model's effective-from date is set to today, the date the programme's current availability was confirmed in force by this research \u2014 not the date the programme's rules originally took effect, which was not separately determined."
+  ],
+  "ruleset_path": "/Volumes/VM3/vockelldev/cinemachallenge/prodfin/var/job2/b9efe95dda2347a4a0f6280aa47bf156.ruleset.yaml",
+  "priced": {
+    "jurisdiction_id": "new-mexico",
+    "total_net_cash": {
+      "figure_id": "c7af22ccb55b41c0b11312290b4ce939",
+      "value": "2500000",
+      "unit": "USD",
+      "label": "Total landed net cash across all programmes",
+      "derivation": [
+        "summed 1 of 1 declared programme(s)' independent net-cash output(s) (never summed rates)",
+        "no mutually-exclusive programme pairs are declared in this ruleset"
+      ],
+      "source_url": null,
+      "date_checked": null,
+      "confidence": "researched",
+      "basis": null,
+      "caveat": null,
+      "live_fetched_this_run": false,
+      "inputs": [
+        {
+          "figure_id": "e55761bc57e240d68a1489572a332f6c",
+          "value": "2500000",
+          "unit": "USD",
+          "label": "Gross credit",
+          "derivation": [
+            "starting base: 10000000 USD (from Qualifying base)",
+            "no per-person ceiling applies in this jurisdiction",
+            "no uplift stacking rules are declared for this programme",
+            "flat rate 0.25 applied to base 10000000 USD \u2014 25% base refundable credit on qualifying New Mexico expenditures",
+            "no per-project cap is declared for this programme",
+            "annual programme cap of 140000000 USD (calendar_year) declared \u2014 declared consumption-check method: manual \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+            "gross credit quantized to whole dollars: 2500000",
+            "no audit fee schedule is declared for this programme \u2014 $0 deducted",
+            "refundable mechanism: net cash equals gross credit less audit fee, no further conversion",
+            "net cash quantized: 2500000 USD"
+          ],
+          "source_url": "http://nmfilm.com/incentives",
+          "date_checked": "2026-09-09",
+          "confidence": "researched",
+          "basis": null,
+          "caveat": null,
+          "live_fetched_this_run": false,
+          "inputs": [
+            {
+              "figure_id": "159caa920c104154a6d56f3b72cfeedf",
+              "value": "10000000",
+              "unit": "USD",
+              "label": "Qualifying base",
+              "derivation": [
+                "base type: total_qualified_spend \u2014 New Mexico production incentive (live-researched) counts total qualified spend",
+                "no minimum-spend threshold is declared for this programme"
+              ],
+              "source_url": "http://nmfilm.com/incentives",
+              "date_checked": "2026-09-09",
+              "confidence": "researched",
+              "basis": null,
+              "caveat": null,
+              "live_fetched_this_run": false,
+              "inputs": [
+                {
+                  "figure_id": "70b1b7f0f72145578c0a1210f2d0a73e",
+                  "value": "10000000",
+                  "unit": "USD",
+                  "label": "Core expenditure (pre-cap)",
+                  "derivation": [
+                    "core expenditure recorded before any percentage cap applies"
+                  ],
+                  "source_url": "http://nmfilm.com/incentives",
+                  "date_checked": "2026-09-09",
+                  "confidence": "researched",
+                  "basis": null,
+                  "caveat": null,
+                  "live_fetched_this_run": false,
+                  "inputs": []
+                },
+                {
+                  "figure_id": "2d8a1307416d4483947f36f67aaaa823",
+                  "value": "0",
+                  "unit": "USD",
+                  "label": "Excluded line items total",
+                  "derivation": [
+                    "0 excluded line item(s) declared on this programme; total subtracted: 0 USD"
+                  ],
+                  "source_url": "http://nmfilm.com/incentives",
+                  "date_checked": "2026-09-09",
+                  "confidence": "researched",
+                  "basis": null,
+                  "caveat": null,
+                  "live_fetched_this_run": false,
+                  "inputs": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "programmes": [
+      {
+        "programme_id": "new-mexico-researched-programme",
+        "qualifying_base": {
+          "figure_id": "159caa920c104154a6d56f3b72cfeedf",
+          "value": "10000000",
+          "unit": "USD",
+          "label": "Qualifying base",
+          "derivation": [
+            "base type: total_qualified_spend \u2014 New Mexico production incentive (live-researched) counts total qualified spend",
+            "no minimum-spend threshold is declared for this programme"
+          ],
+          "source_url": "http://nmfilm.com/incentives",
+          "date_checked": "2026-09-09",
+          "confidence": "researched",
+          "basis": null,
+          "caveat": null,
+          "live_fetched_this_run": false,
+          "inputs": [
+            {
+              "figure_id": "70b1b7f0f72145578c0a1210f2d0a73e",
+              "value": "10000000",
+              "unit": "USD",
+              "label": "Core expenditure (pre-cap)",
+              "derivation": [
+                "core expenditure recorded before any percentage cap applies"
+              ],
+              "source_url": "http://nmfilm.com/incentives",
+              "date_checked": "2026-09-09",
+              "confidence": "researched",
+              "basis": null,
+              "caveat": null,
+              "live_fetched_this_run": false,
+              "inputs": []
+            },
+            {
+              "figure_id": "2d8a1307416d4483947f36f67aaaa823",
+              "value": "0",
+              "unit": "USD",
+              "label": "Excluded line items total",
+              "derivation": [
+                "0 excluded line item(s) declared on this programme; total subtracted: 0 USD"
+              ],
+              "source_url": "http://nmfilm.com/incentives",
+              "date_checked": "2026-09-09",
+              "confidence": "researched",
+              "basis": null,
+              "caveat": null,
+              "live_fetched_this_run": false,
+              "inputs": []
+            }
+          ]
+        },
+        "gross_credit": {
+          "figure_id": "864de1806dfd4a74a8347be596b24967",
+          "value": "2500000",
+          "unit": "USD",
+          "label": "Gross credit",
+          "derivation": [
+            "starting base: 10000000 USD (from Qualifying base)",
+            "no per-person ceiling applies in this jurisdiction",
+            "no uplift stacking rules are declared for this programme",
+            "flat rate 0.25 applied to base 10000000 USD \u2014 25% base refundable credit on qualifying New Mexico expenditures",
+            "no per-project cap is declared for this programme",
+            "annual programme cap of 140000000 USD (calendar_year) declared \u2014 declared consumption-check method: manual \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+            "gross credit quantized to whole dollars: 2500000"
+          ],
+          "source_url": "http://nmfilm.com/incentives",
+          "date_checked": "2026-09-09",
+          "confidence": "researched",
+          "basis": null,
+          "caveat": null,
+          "live_fetched_this_run": false,
+          "inputs": [
+            {
+              "figure_id": "159caa920c104154a6d56f3b72cfeedf",
+              "value": "10000000",
+              "unit": "USD",
+              "label": "Qualifying base",
+              "derivation": [
+                "base type: total_qualified_spend \u2014 New Mexico production incentive (live-researched) counts total qualified spend",
+                "no minimum-spend threshold is declared for this programme"
+              ],
+              "source_url": "http://nmfilm.com/incentives",
+              "date_checked": "2026-09-09",
+              "confidence": "researched",
+              "basis": null,
+              "caveat": null,
+              "live_fetched_this_run": false,
+              "inputs": [
+                {
+                  "figure_id": "70b1b7f0f72145578c0a1210f2d0a73e",
+                  "value": "10000000",
+                  "unit": "USD",
+                  "label": "Core expenditure (pre-cap)",
+                  "derivation": [
+                    "core expenditure recorded before any percentage cap applies"
+                  ],
+                  "source_url": "http://nmfilm.com/incentives",
+                  "date_checked": "2026-09-09",
+                  "confidence": "researched",
+                  "basis": null,
+                  "caveat": null,
+                  "live_fetched_this_run": false,
+                  "inputs": []
+                },
+                {
+                  "figure_id": "2d8a1307416d4483947f36f67aaaa823",
+                  "value": "0",
+                  "unit": "USD",
+                  "label": "Excluded line items total",
+                  "derivation": [
+                    "0 excluded line item(s) declared on this programme; total subtracted: 0 USD"
+                  ],
+                  "source_url": "http://nmfilm.com/incentives",
+                  "date_checked": "2026-09-09",
+                  "confidence": "researched",
+                  "basis": null,
+                  "caveat": null,
+                  "live_fetched_this_run": false,
+                  "inputs": []
+                }
+              ]
+            }
+          ]
+        },
+        "net_cash": {
+          "low": {
+            "figure_id": "e55761bc57e240d68a1489572a332f6c",
+            "value": "2500000",
+            "unit": "USD",
+            "label": "Gross credit",
+            "derivation": [
+              "starting base: 10000000 USD (from Qualifying base)",
+              "no per-person ceiling applies in this jurisdiction",
+              "no uplift stacking rules are declared for this programme",
+              "flat rate 0.25 applied to base 10000000 USD \u2014 25% base refundable credit on qualifying New Mexico expenditures",
+              "no per-project cap is declared for this programme",
+              "annual programme cap of 140000000 USD (calendar_year) declared \u2014 declared consumption-check method: manual \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+              "gross credit quantized to whole dollars: 2500000",
+              "no audit fee schedule is declared for this programme \u2014 $0 deducted",
+              "refundable mechanism: net cash equals gross credit less audit fee, no further conversion",
+              "net cash quantized: 2500000 USD"
+            ],
+            "source_url": "http://nmfilm.com/incentives",
+            "date_checked": "2026-09-09",
+            "confidence": "researched",
+            "basis": null,
+            "caveat": null,
+            "live_fetched_this_run": false,
+            "inputs": [
+              {
+                "figure_id": "159caa920c104154a6d56f3b72cfeedf",
+                "value": "10000000",
+                "unit": "USD",
+                "label": "Qualifying base",
+                "derivation": [
+                  "base type: total_qualified_spend \u2014 New Mexico production incentive (live-researched) counts total qualified spend",
+                  "no minimum-spend threshold is declared for this programme"
+                ],
+                "source_url": "http://nmfilm.com/incentives",
+                "date_checked": "2026-09-09",
+                "confidence": "researched",
+                "basis": null,
+                "caveat": null,
+                "live_fetched_this_run": false,
+                "inputs": [
+                  {
+                    "figure_id": "70b1b7f0f72145578c0a1210f2d0a73e",
+                    "value": "10000000",
+                    "unit": "USD",
+                    "label": "Core expenditure (pre-cap)",
+                    "derivation": [
+                      "core expenditure recorded before any percentage cap applies"
+                    ],
+                    "source_url": "http://nmfilm.com/incentives",
+                    "date_checked": "2026-09-09",
+                    "confidence": "researched",
+                    "basis": null,
+                    "caveat": null,
+                    "live_fetched_this_run": false,
+                    "inputs": []
+                  },
+                  {
+                    "figure_id": "2d8a1307416d4483947f36f67aaaa823",
+                    "value": "0",
+                    "unit": "USD",
+                    "label": "Excluded line items total",
+                    "derivation": [
+                      "0 excluded line item(s) declared on this programme; total subtracted: 0 USD"
+                    ],
+                    "source_url": "http://nmfilm.com/incentives",
+                    "date_checked": "2026-09-09",
+                    "confidence": "researched",
+                    "basis": null,
+                    "caveat": null,
+                    "live_fetched_this_run": false,
+                    "inputs": []
+                  }
+                ]
+              }
+            ]
+          },
+          "high": {
+            "figure_id": "e55761bc57e240d68a1489572a332f6c",
+            "value": "2500000",
+            "unit": "USD",
+            "label": "Gross credit",
+            "derivation": [
+              "starting base: 10000000 USD (from Qualifying base)",
+              "no per-person ceiling applies in this jurisdiction",
+              "no uplift stacking rules are declared for this programme",
+              "flat rate 0.25 applied to base 10000000 USD \u2014 25% base refundable credit on qualifying New Mexico expenditures",
+              "no per-project cap is declared for this programme",
+              "annual programme cap of 140000000 USD (calendar_year) declared \u2014 declared consumption-check method: manual \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+              "gross credit quantized to whole dollars: 2500000",
+              "no audit fee schedule is declared for this programme \u2014 $0 deducted",
+              "refundable mechanism: net cash equals gross credit less audit fee, no further conversion",
+              "net cash quantized: 2500000 USD"
+            ],
+            "source_url": "http://nmfilm.com/incentives",
+            "date_checked": "2026-09-09",
+            "confidence": "researched",
+            "basis": null,
+            "caveat": null,
+            "live_fetched_this_run": false,
+            "inputs": [
+              {
+                "figure_id": "159caa920c104154a6d56f3b72cfeedf",
+                "value": "10000000",
+                "unit": "USD",
+                "label": "Qualifying base",
+                "derivation": [
+                  "base type: total_qualified_spend \u2014 New Mexico production incentive (live-researched) counts total qualified spend",
+                  "no minimum-spend threshold is declared for this programme"
+                ],
+                "source_url": "http://nmfilm.com/incentives",
+                "date_checked": "2026-09-09",
+                "confidence": "researched",
+                "basis": null,
+                "caveat": null,
+                "live_fetched_this_run": false,
+                "inputs": [
+                  {
+                    "figure_id": "70b1b7f0f72145578c0a1210f2d0a73e",
+                    "value": "10000000",
+                    "unit": "USD",
+                    "label": "Core expenditure (pre-cap)",
+                    "derivation": [
+                      "core expenditure recorded before any percentage cap applies"
+                    ],
+                    "source_url": "http://nmfilm.com/incentives",
+                    "date_checked": "2026-09-09",
+                    "confidence": "researched",
+                    "basis": null,
+                    "caveat": null,
+                    "live_fetched_this_run": false,
+                    "inputs": []
+                  },
+                  {
+                    "figure_id": "2d8a1307416d4483947f36f67aaaa823",
+                    "value": "0",
+                    "unit": "USD",
+                    "label": "Excluded line items total",
+                    "derivation": [
+                      "0 excluded line item(s) declared on this programme; total subtracted: 0 USD"
+                    ],
+                    "source_url": "http://nmfilm.com/incentives",
+                    "date_checked": "2026-09-09",
+                    "confidence": "researched",
+                    "basis": null,
+                    "caveat": null,
+                    "live_fetched_this_run": false,
+                    "inputs": []
+                  }
+                ]
+              }
+            ]
+          },
+          "point": {
+            "figure_id": "e55761bc57e240d68a1489572a332f6c",
+            "value": "2500000",
+            "unit": "USD",
+            "label": "Gross credit",
+            "derivation": [
+              "starting base: 10000000 USD (from Qualifying base)",
+              "no per-person ceiling applies in this jurisdiction",
+              "no uplift stacking rules are declared for this programme",
+              "flat rate 0.25 applied to base 10000000 USD \u2014 25% base refundable credit on qualifying New Mexico expenditures",
+              "no per-project cap is declared for this programme",
+              "annual programme cap of 140000000 USD (calendar_year) declared \u2014 declared consumption-check method: manual \u2014 cap existence recorded; the remaining-allocation figure (if supplied) feeds assess_availability, which is assessed separately (RD-04) and never reduces this gross credit value",
+              "gross credit quantized to whole dollars: 2500000",
+              "no audit fee schedule is declared for this programme \u2014 $0 deducted",
+              "refundable mechanism: net cash equals gross credit less audit fee, no further conversion",
+              "net cash quantized: 2500000 USD"
+            ],
+            "source_url": "http://nmfilm.com/incentives",
+            "date_checked": "2026-09-09",
+            "confidence": "researched",
+            "basis": null,
+            "caveat": null,
+            "live_fetched_this_run": false,
+            "inputs": [
+              {
+                "figure_id": "159caa920c104154a6d56f3b72cfeedf",
+                "value": "10000000",
+                "unit": "USD",
+                "label": "Qualifying base",
+                "derivation": [
+                  "base type: total_qualified_spend \u2014 New Mexico production incentive (live-researched) counts total qualified spend",
+                  "no minimum-spend threshold is declared for this programme"
+                ],
+                "source_url": "http://nmfilm.com/incentives",
+                "date_checked": "2026-09-09",
+                "confidence": "researched",
+                "basis": null,
+                "caveat": null,
+                "live_fetched_this_run": false,
+                "inputs": [
+                  {
+                    "figure_id": "70b1b7f0f72145578c0a1210f2d0a73e",
+                    "value": "10000000",
+                    "unit": "USD",
+                    "label": "Core expenditure (pre-cap)",
+                    "derivation": [
+                      "core expenditure recorded before any percentage cap applies"
+                    ],
+                    "source_url": "http://nmfilm.com/incentives",
+                    "date_checked": "2026-09-09",
+                    "confidence": "researched",
+                    "basis": null,
+                    "caveat": null,
+                    "live_fetched_this_run": false,
+                    "inputs": []
+                  },
+                  {
+                    "figure_id": "2d8a1307416d4483947f36f67aaaa823",
+                    "value": "0",
+                    "unit": "USD",
+                    "label": "Excluded line items total",
+                    "derivation": [
+                      "0 excluded line item(s) declared on this programme; total subtracted: 0 USD"
+                    ],
+                    "source_url": "http://nmfilm.com/incentives",
+                    "date_checked": "2026-09-09",
+                    "confidence": "researched",
+                    "basis": null,
+                    "caveat": null,
+                    "live_fetched_this_run": false,
+                    "inputs": []
+                  }
+                ]
+              }
+            ]
+          },
+          "arrival": {
+            "estimated_date": null,
+            "typical_days": null,
+            "reason": "credit against personal or corporate income tax is available for 25% of direct production and postproduction expenditures"
+          }
+        },
+        "eligibility": {
+          "eligible": true,
+          "reasons": [
+            "minimum-spend threshold met (or none declared for this programme)",
+            "jurisdiction status is 'live_researched' \u2014 programme is open",
+            "no mutually-exclusive programme is declared for this programme"
+          ]
+        },
+        "availability": {
+          "available": null,
+          "reason": "no remaining-allocation figure was supplied for this run \u2014 consumption state was not fetched (Phase 7's DataFreshnessGate owns fetching it); defaulting an unknown to available would be the single most misleading simplification available in this engine"
+        }
+      }
+    ]
+  },
+  "identity": {
+    "jurisdiction_name": "New Mexico",
+    "country_code": "US",
+    "level": "state",
+    "currency": "USD"
+  }
+}

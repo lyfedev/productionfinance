@@ -1,18 +1,20 @@
-/* AI.ncentives — an accountant's ledger.
-   Black ink on white. Red is reserved, absolutely, for a figure that cannot
-   be produced: it is never used for emphasis or decoration, so its presence
-   always means the same thing. Blue marks an action. Figures are monospace
-   because columns must align. */
+/* AI.ncentives.
+   Film productions print script revisions on coloured paper in a fixed
+   order — white, then blue, then pink. This page is set on the blue pages,
+   in the navy of a production office stamp, and the leading state is marked
+   on pink. Figures are monospace because columns must align. */
 
 :root {
+  --pages:   #c3d4e8;
   --paper:   #ffffff;
-  --shade:   #f2f2f0;
-  --ink:     #000000;
-  --ink-2:   #55554f;
-  --rule:    #c9c9c4;
-  --rule-firm:#000000;
-  --unresolved:#c8102e;
-  --action:  #12307a;
+  --ink:     #0f2140;
+  --ink-2:   #4a5f7d;
+  --rule:    #9db3ce;
+  --rule-firm:#0f2140;
+  --lead:    #f2c4d4;
+  --lead-ink:#8c1d43;
+  --unresolved:#8c1d43;
+  --action:  #0f2140;
   --measure: 66ch;
 }
 
@@ -20,7 +22,7 @@
 
 body {
   margin: 0;
-  background: var(--shade);
+  background: var(--pages);
   color: var(--ink);
   font-family: "Libre Franklin", system-ui, -apple-system, sans-serif;
   font-size: 16px; line-height: 1.5;
@@ -119,3 +121,15 @@ a { color: var(--action); }
 .compare td.big { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 1.15rem; white-space: nowrap; }
 .compare tr:first-child td.big { font-weight: 600; }
 .compare .why { display: block; color: var(--ink-2); font-size: .82rem; }
+
+/* the leading state, marked on pink pages */
+.compare tbody tr:first-child { background: var(--lead); }
+.compare tbody tr:first-child td { border-bottom-color: var(--lead-ink); }
+.compare tbody tr:first-child .place-name { color: var(--lead-ink); }
+.compare tbody tr:first-child td.big { color: var(--lead-ink); }
+
+/* live figures */
+.live-note { margin: 0 0 .9rem; color: var(--ink-2); font-size: .88rem; }
+.tool { box-shadow: 0 1px 0 var(--rule); }
+.go { display: none; }
+.no-js .go { display: inline-block; }

@@ -245,6 +245,25 @@ def _classify_base_definition(text: str) -> str | None:
     return None
 
 
+def _rate_from_typed_field(finding: "FieldFinding") -> Decimal | None:
+    """The base rate as the model stated it, or None.
+
+    Refuses a value outside 0-100 rather than trusting it: a model that
+    returns 2000 for "20%" must not silently price a production at twenty
+    times the credit.
+    """
+    raw = getattr(finding, "base_rate_percent", None)
+    if not raw:
+        return None
+    try:
+        percent = Decimal(str(raw).strip().rstrip("%").strip())
+    except InvalidOperation:
+        return None
+    if percent <= 0 or percent > 100:
+        return None
+    return percent / Decimal("100")
+
+
 def _extract_single_rate_decimal(text: str) -> Decimal | None:
     """Extracts a rate ONLY when exactly one percentage figure appears in
     `text` — never a first-match/best-guess pick among several, and never
@@ -428,14 +447,32 @@ def build_rule_document(
     assert caps_finding.value_text is not None
     assert mechanism_finding.value_text is not None
 
-    rate_decimal = _extract_single_rate_decimal(rate_finding.value_text)
+    # Prefer the rate the model stated as a number. Recovering it by
+    # regexing prose refuses on "20% base plus a 10% uplift", which is how
+    # nearly every US film incentive is written — that refusal cost roughly
+    # six runs in seven. Falling back to the prose path keeps the old
+    # behaviour for a model response that omits the typed field, and the
+    # refusal below still fires when neither yields a rate.
+    rate_decimal = _rate_from_typed_field(rate_finding)
+    if rate_decimal is None:
+        rate_decimal = _extract_single_rate_decimal(rate_finding.value_text)
     if rate_decimal is None:
         raise RuleCoercionError(
             "could not extract exactly one rate figure from the rate finding's own text "
             f"({rate_finding.value_text!r}) — refusing rather than fabricate a rate"
         )
 
-    base_type = _classify_base_definition(base_finding.value_text)
+    # Prefer the value the model chose from the closed set. Keyword-matching
+
+    # the prose refused on ordinary statutory phrasing and was the blocker
+
+    # for every live run once the rate was fixed.
+
+    base_type = getattr(base_finding, "base_definition_kind", None)
+
+    if base_type is None:
+
+        base_type = _classify_base_definition(base_finding.value_text)
     if base_type is None:
         raise RuleCoercionError(
             "could not classify the qualifying base definition finding's text "

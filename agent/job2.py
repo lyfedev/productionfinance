@@ -429,7 +429,26 @@ Objective this round: {objective}
 
 For each of the five fields, report whether it was determined from the
 evidence below: the value (verbatim where possible), a short evidence
-quote, and the source URL. If you can also determine the jurisdiction's
+quote, and the source URL.
+
+For the `rate` field specifically, also set `base_rate_percent` to the BASE
+rate as a bare number — "20" for a 20% base credit. Most programmes read
+"20% base plus a 10% uplift for X"; the base rate there is 20, and the
+uplift belongs in `uplifts_not_modelled` as a short phrase, not blended
+into the base.
+
+For the `qualifying_base_definition` field, also set `base_definition_kind`
+to whichever of these the programme actually uses: `total_qualified_spend`
+(all qualifying in-state spend), `labour_only` (wages only),
+`local_hires_only` (wages of local residents only), or
+`lesser_of_pct_core_or_actual_local`. Leave it empty if the evidence does
+not say.
+
+If the programme genuinely has no single base rate — a
+sliding scale with no floor, say — leave `base_rate_percent` empty rather
+than picking one. Do not invent a rate that is not stated in the evidence.
+
+If you can also determine the jurisdiction's
 identity (name, ISO country code, level — national/state/provincial/city —
 and currency), report that too; it is required in addition to the five
 fields, not instead of any of them. Then decide:

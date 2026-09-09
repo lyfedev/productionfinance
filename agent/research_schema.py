@@ -54,6 +54,33 @@ class FieldFinding(BaseModel):
     evidence_quote: str | None = None
     source_url: str | None = None
 
+    # For the `rate` field only. Nearly every US film incentive reads
+    # "20% base plus a 10% uplift", so recovering a rate by regexing the
+    # prose and refusing whenever it finds more than one percentage refused
+    # roughly six runs in seven. The base rate is not ambiguous in that
+    # sentence — it is 20% — so the model states it as a number here, and
+    # names the uplifts separately rather than blending them in.
+    #
+    # A string, never a float: the engine is Decimal end to end (T-05-05).
+    base_rate_percent: str | None = None
+    uplifts_not_modelled: list[str] = Field(default_factory=list)
+
+    # For the `qualifying_base_definition` field only, and the same lesson as
+    # `base_rate_percent`: the engine needs one of four closed values, and
+    # recovering it by keyword-matching research prose failed on ordinary
+    # statutory phrasing ("Costs incurred from final script stage to end of
+    # postproduction..."). The model picks the value; it does not get invented
+    # from a substring.
+    base_definition_kind: (
+        Literal[
+            "total_qualified_spend",
+            "labour_only",
+            "local_hires_only",
+            "lesser_of_pct_core_or_actual_local",
+        ]
+        | None
+    ) = None
+
 
 class JurisdictionIdentity(BaseModel):
     """The four facts a rule model needs before it can be built at all —
