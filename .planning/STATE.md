@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Curated Breadth & the Validation Loop
 status: executing
-stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-09-09T08:51:02.559Z"
+stopped_at: Completed 07-03-PLAN.md
+last_updated: "2026-09-09T09:00:47.455Z"
 last_activity: 2026-09-09
 last_activity_desc: Phase 05 plan 01 executed — SHP-05/SHP-06 eligibility spine
-state_head: 52349c845e16c3bd705e40dfa863e3150ac32043
+state_head: 1372e668084c2e790263a3fb05ff45b6f825dffd
 progress:
   total_phases: 11
   completed_phases: 3
   total_plans: 42
-  completed_plans: 35
+  completed_plans: 37
   percent: 27
 ---
 
@@ -102,6 +102,8 @@ human sets `PARALLEL_API_KEY` and `GEMINI_API_KEY`/`GOOGLE_API_KEY` per
 | Phase 05 P06 | ~35min | 3 tasks | 5 files |
 | Phase 05 P04 | 25min | 3 tasks | 8 files |
 | Phase 07 P02 | 55min | 3 tasks | 6 files |
+| Phase 07 P03 | 55min | 3 tasks | 6 files |
+| Phase 05 P05 | 15min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -159,6 +161,7 @@ Recent decisions affecting current work:
 - [Phase 05]: Plan 05-06: two new Connecticut validation pairs (Colony Video 2015 Productions at 10%, Mako Games at 15%) fill the last two unexercised rate bands; the transfer-discount refusal is now asserted uniformly per-pair rather than for one pair only.
 - [Phase 05]: 05-04: California (JUR-02) modelled as one nonrefundable_credit programme at a directly-sourced 35% base rate (RTC 17053.98.1), not the 20%+uplifts guess Phase 1 assumed — RTC 17053.98 (the statute this plan's own Task 1 text names) is the superseded Program 3.0 statute; RTC 17053.98.1 is the current one, confirming 35%/40% directly and matching both fixtures within 12 bps on the bare base rate
 - [Phase 07]: 07-02 finishes the D-90 loop's shape: merge_findings/unmet_fields/build_refined_objective/normalize_queries/normalize_mode are pure functions driving refinement (a determined field is never flipped back False, an unsourced later value never overwrites a sourced one); TerminalReason is now a closed nine-value taxonomy (not a pass-through of the model's decision literal) with a "sufficient" claim cross-checked against the driver's own merged findings and a new JurisdictionIdentity block before being believed; the wall-clock guard is now enforced (time.monotonic(), checked only between rounds, never mid-call) producing budget_exhausted distinct from agent_gave_up; both SDK call sites are wrapped so an exception becomes a durable sdk_error record. tests/test_agent_job2_loop.py is the new standing AST-based gate (34 tests); both non-vacuity mutations were performed by hand, observed failing, and reverted this session. No API keys are present in this environment; every claim is proven offline, same gap 07-01 already named.
+- [Phase 07]: AGT-11 restart recovery is a boot_id comparison centralized in save_run/append_round, never a timeout — A heuristic staleness timer would either declare a slow live job dead or leave a genuinely dead job spinning — proven with a real two-process SIGKILL test plus a live uvicorn kill/restart
 
 ### Pending Todos
 
@@ -185,6 +188,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-09T08:51:02.189Z
-Stopped at: Completed 07-02-PLAN.md
+Last session: 2026-09-09T09:00:40.728Z
+Stopped at: Completed 07-03-PLAN.md
 Resume file: None
