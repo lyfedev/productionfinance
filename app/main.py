@@ -20,6 +20,7 @@ from fastapi.templating import Jinja2Templates
 from app import __version__
 from app.routers import compare as compare_router
 from app.routers import job1 as job1_router
+from app.routers import methodology as methodology_router
 from app.routers import research as research_router
 from app.routers import spec as spec_router
 from app.routers import validate as validate_router
@@ -107,6 +108,7 @@ app.include_router(validate_router.router)
 app.include_router(job1_router.router)
 app.include_router(research_router.router)
 app.include_router(compare_router.router)
+app.include_router(methodology_router.router)
 
 
 @app.get("/health")

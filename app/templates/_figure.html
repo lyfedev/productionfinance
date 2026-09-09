@@ -1,0 +1,78 @@
+{# _figure.html — UI-06: the one component every money figure on the
+   provenance surfaces (assumptions panel, methodology page) renders
+   through. A figure never renders as a bare number: the value is always
+   immediately followed by (a) its basis label, (b) its confidence
+   label — two SEPARATE elements, never merged into one badge (RD-02) —
+   and (c) either a source link with its date-checked, a "computed from
+   its own inputs" note, or an explicit "provenance unavailable"
+   statement naming what is missing (04-CONTEXT.md D-58/D-59/D-60,
+   engine/figure.py's own PRV-01/PRV-02/PRV-03 discipline).
+
+   `figure` is a real `engine.figure.Figure` instance (never a dict) —
+   `.value`, `.unit`, `.basis`, `.confidence`, `.source_url`,
+   `.date_checked`, `.derivation`, `.inputs`, `.caveat` are read
+   directly. `label` is an optional caller-supplied caption (the row
+   this figure is standing in for); when omitted, `figure.label` (the
+   engine's own name for this figure) is shown instead. #}
+{% macro render_figure(figure, label=None) %}
+<span class="pf-figure" data-figure-id="{{ figure.figure_id }}" data-basis="{{ figure.basis or 'not-applicable' }}" data-confidence="{{ figure.confidence }}">
+  <span class="pf-figure-label">{{ label or figure.label }}</span>
+  <span class="pf-figure-value">{{ figure.value }} {{ figure.unit }}</span>
+
+  {# Two distinct axes, two distinct elements — never one merged badge. #}
+  <span class="pf-figure-basis">
+    basis:
+    {% if figure.basis %}
+      {{ figure.basis }}
+    {% else %}
+      not applicable to this figure (an incentive-side figure — see methodology)
+    {% endif %}
+  </span>
+  <span class="pf-figure-confidence">confidence: {{ figure.confidence }}</span>
+
+  {% if figure.source_url %}
+    <span class="pf-figure-provenance pf-figure-source-state">
+      source:
+      <a class="pf-figure-source" href="{{ figure.source_url }}">{{ figure.source_url }}</a>
+      {% if figure.date_checked %}
+        <span class="pf-figure-date-checked">checked {{ figure.date_checked.isoformat() }}</span>
+      {% else %}
+        <span class="pf-figure-provenance-unavailable">no date-checked was recorded for this source</span>
+      {% endif %}
+    </span>
+  {% elif figure.inputs %}
+    <span class="pf-figure-provenance pf-figure-computed-from">
+      computed from {{ figure.inputs | length }} input figure(s) — expand "how this
+      was derived" below; every contributing rate carries its own source.
+    </span>
+  {% else %}
+    <span class="pf-figure-provenance pf-figure-provenance-unavailable">
+      provenance unavailable —
+      {% if figure.basis == "modelling_assumption" %}
+        this is a modelling assumption: no public source exists for it (see methodology).
+      {% else %}
+        no source citation was recorded for this figure.
+      {% endif %}
+    </span>
+  {% endif %}
+
+  {% if figure.caveat %}
+  <span class="pf-figure-caveat">{{ figure.caveat }}</span>
+  {% endif %}
+
+  <details class="pf-figure-derivation">
+    <summary>how this figure was derived</summary>
+    <ol>
+      {% for step in figure.derivation %}
+      <li>{{ step }}</li>
+      {% endfor %}
+    </ol>
+    {% if figure.inputs %}
+    <p class="pf-figure-inputs-hint">
+      built from {{ figure.inputs | length }} input figure(s):
+      {{ figure.inputs | map(attribute="label") | join(", ") }}
+    </p>
+    {% endif %}
+  </details>
+</span>
+{% endmacro %}
