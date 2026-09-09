@@ -1,0 +1,288 @@
+# New Jersey — Garden State Film and Digital Media Jobs Program (curated, validated)
+#
+# Every numeric value below is a quoted YAML string (RD-01: PyYAML parses an
+# unquoted decimal like 0.30 as a native float, which corrupts through naive
+# Decimal() conversion — engine/models.py types every such field Decimal and
+# requires the quoted-string convention).
+#
+# This file models ONE tier of the film-credit rate schedule at N.J.A.C.
+# 19:31T-1.6(a): "For completed applications received prior to January 7,
+# 2021, 30 percent of the qualified film production expenses not included
+# at (a)1 above [the South-Jersey-vendor bonus], including qualified wage
+# and salary payments." This is the ONLY tier either committed New Jersey
+# validation pair needs — both were approved well before that date (Joker,
+# 08/13/2019; The Trial of the Chicago 7, 07/14/2020) and neither
+# production's expenses were incurred through vendors in the eight South
+# Jersey counties the (a)(1) bonus names (Joker: Newark, Essex County;
+# Chicago 7: Paterson, Passaic County). It deliberately does NOT model:
+#   - The South-Jersey-vendor 35% bonus rate at N.J.A.C. 19:31T-1.6(a)(1)
+#     (a per-vendor-location rate, not a flat programme-wide one — no
+#     committed fixture's disclosure itemizes vendor location).
+#   - The CURRENT (post-July-2-2021) rate structure at N.J.A.C.
+#     19:31T-1.6(a)(4) — a genuinely different, NYC-metro-zone-dependent,
+#     studio-partner/film-lease-production-company-dependent schedule
+#     (30-40%, several sub-tiers). Neither committed fixture's application
+#     was received in this window; encoding it here would misrepresent a
+#     THIRD production's rate as though it applied to Joker or Chicago 7.
+#   - The Digital Media Content Production credit (a separate credit,
+#     20-40% depending on application date and post-production location —
+#     neither committed fixture is a digital-media production).
+#   - The post-June-30-2025 "promote New Jersey" bonus (4%, up to +5%
+#     aggregate with the diversity bonus) and the "economically
+#     disadvantaged area" bonus (4%) at N.J.A.C. 19:31T-1.6(o)(3)-(5) —
+#     both postdate either fixture's 2019/2020 approval by years and
+#     require plans/criteria no 2019/2020 application could have filed.
+#   - The highly-compensated-individual $750,000-per-person qualifying-wage
+#     ceiling at N.J.A.C. 19:31T-1.2's "Qualified film production expenses"
+#     definition, subparagraph (g). This is a categorical, tiered-by-
+#     studio-partner-status exclusion cliff (with several carve-out
+#     schedules up to $18M/$72M in additional allowed wages depending on
+#     total spend), NOT this schema's W2-cap-with-loan-out-exemption
+#     PerPersonCeiling model (same class of schema mismatch California's
+#     and Connecticut's per_person_ceiling.note already document for their
+#     own categorical wage exclusions). Neither committed fixture discloses
+#     a per-role wage breakdown to apply it against in any case.
+#   - Studio-partner and film-lease-production-company designations, their
+#     separate (larger) annual cap carve-outs, and the seven promotional
+#     criteria at N.J.A.C. 19:31T-1.6(o)(4) — neither fixture's production
+#     company (WB Studio Enterprises Inc., C7 Production Inc.) is disclosed
+#     as holding either designation.
+#
+# Also disclosed rather than guessed: the diversity-plan bonus at N.J.A.C.
+# 19:31T-1.6(o)(1) — "an amount equal to two percent of the qualified film
+# production expenses" for a completed application accompanied by an
+# approved diversity plan (15 percent minority/women hiring goal for
+# applications approved prior to February 26, 2024 — both fixtures'
+# approval dates qualify; confirmed at original enactment too, P.L. 2018,
+# c. 56, Section 4a, for privilege periods commencing July 1, 2018 through
+# June 30, 2023) — is claimed by SOME New Jersey productions and not
+# others. The Joker/Trial-of-the-Chicago-7 disclosure itself publishes it
+# as a per-row Yes/No flag (Joker: Yes; Chicago 7: No), production-specific
+# data the rule file does not and cannot carry. Declaring it as an
+# `uplifts` entry would apply engine.credit._apply_uplift_stacking's
+# unconditional stacking to every production priced through this file,
+# including ones that never claimed it — a modelling error, not
+# conservatism (the same reasoning jurisdictions/us-ca.yaml's header
+# applies to its own three unclaimed uplift categories). The base
+# percentage (0.30) is modeled in rate_structure; the diversity bonus is
+# named here, sourced, quantified, and left OUT of rate_structure.uplifts
+# so tests/test_jurisdiction_us_nj.py can assert the exact residue it
+# produces on the one committed pair that claimed it (Joker) as a Decimal
+# equality, not absorb it into a widened tolerance:
+#   Sourced bonus rate: 0.02 (two percent), N.J.A.C. 19:31T-1.6(o)(1) and
+#   P.L. 2018, c. 56 Section 4a (both independently confirm the identical
+#   figure, at enactment and in the current codified regulation).
+#
+# Three sources back the rate-and-cap figures in this file:
+#   1. N.J.A.C. Title 19, Chapter 31T — the current New Jersey
+#      Administrative Code implementing the Garden State Film and Digital
+#      Media Jobs Act, hosted by the administering agency itself
+#      (sources/nj/2026-09-09-njeda-nj-a-c-19-31t-garden-state-film-digital-media-jobs-program.pdf).
+#   2. P.L. 2018, c. 56 — the original enacting Act, fetched directly from
+#      the New Jersey Legislature's own bill-publication host
+#      (sources/nj/2026-09-09-njleg-pl2018-c56-garden-state-film-digital-media-jobs-act.pdf)
+#      — independently confirms the base rate, diversity bonus, minimum
+#      spend and transfer floor AT THE TIME both fixtures' applications
+#      were received, closing the possibility that the current codified
+#      regulation drifted from the enacting statute for this tier (it has
+#      not: every figure below is identical in both documents).
+#   3. New Jersey Division of Taxation's own Garden State Film and Digital
+#      Media Jobs Act Credit FAQ (state.nj.us), a third independent
+#      government source
+#      (sources/nj/2026-09-09-nj-treasury-division-of-taxation-film-credit-faq.html)
+#      — corroborates the annual cap, the absence of any per-project cap
+#      ("there is not an annual limit on an individual project"), the
+#      7-year carryforward, and the mandatory CPA verification report.
+#   4. NJEDA's own tax-credit-transfer application form
+#      (sources/nj/2026-09-09-njeda-film-tax-credit-transfer-app.pdf) — a
+#      fourth, plain-language restatement of the transfer floor ("Sales
+#      must be for a value of $.75 on the dollar or [above]").
+#
+# HISTORICAL CAP NOTE (disclosed, not a conflict requiring resolution,
+# styled on the CA/NY precedent for a stale-vs-current figure): P.L. 2018,
+# c. 56's original annual film-credit cap was $75,000,000/fiscal-year for
+# fiscal years 2019 through 2023 (Section 1(e)(1)) — since raised to the
+# $100,000,000/fiscal-year figure the current N.J.A.C. 19:31T-1.11(a)(1)
+# states (this file's declared figure), by a later amendment this session
+# did not need to individually date, because RD-04 makes the annual
+# programme cap never affect a per-project gross-credit computation: cap
+# EXISTENCE is rule data, cap CONSUMPTION is a separate, live concern
+# (jurisdictions/SCOPE-FREEZE.md dimension 6). Which historical figure was
+# in force on either fixture's approval date is therefore immaterial to
+# reproducing its disclosed credit; the current, live figure is what this
+# file declares.
+#
+# TRANSFER DISCOUNT (the known landmine, resolved here with a genuine
+# partial source rather than either an invented full range or a wholly
+# unsourced null pair): N.J.A.C. 19:31T-1.10(b), P.L. 2018 c. 56 Section
+# 1(e), and NJEDA's own transfer-application form all state, in three
+# independent primary documents, that a sale of the tax credit "shall not
+# be exchanged for consideration ... of less than 75 percent of the
+# transferred credit amount" — a sourced FLOOR (typical_rate_low: 0.75).
+# No document anywhere in this session's search states a CEILING — the
+# statute imposes a legal minimum price, not a full disclosed market
+# range, and no NJ government publication states what fraction of face
+# value transactions actually clear at above that floor. Inventing "1.00"
+# (par, no discount) as the ceiling would be exactly the plausible-but-
+# unsourced number D-87 forbids, even though it is definitionally the
+# maximum any credit could rationally sell for. typical_rate_high therefore
+# stays an explicit null. engine.net_cash.transferable requires BOTH bounds
+# to be non-null before it will convert, so it correctly refuses for every
+# New Jersey pair exactly as it already does for Connecticut
+# (jurisdictions/us-ct.yaml, WINDOWS.md entry #3) — this is a deliberate
+# honesty gate, not a bug, and tests/test_jurisdiction_us_nj.py asserts the
+# refusal directly rather than working around it.
+
+jurisdiction:
+  id: us-nj
+  name: New Jersey
+  country_code: US
+  level: state
+  parent_id: null
+  currency: USD
+  status: curated_validated
+  effective_dates:
+    rule_version_effective_from: "2018-07-03"
+    rule_version_effective_to: "2021-01-06"
+    source_checked_date: "2026-09-09"
+  sources:
+    - url: "https://www.njeda.gov/wp-content/uploads/2026/03/GARDEN-STATE-FILM-AND-DIGITAL-MEDIA-JOBS-PROGRAM.pdf"
+      title: "N.J.A.C. Title 19, Chapter 31T — Garden State Film and Digital Media Jobs Program (New Jersey Economic Development Authority)"
+      accessed_date: "2026-09-09"
+      confidence: HIGH
+    - url: "https://pub.njleg.gov/Bills/2018/PL18/56_.PDF"
+      title: "P.L. 2018, c. 56 — the Garden State Film and Digital Media Jobs Act (New Jersey Legislature, original enacted text)"
+      accessed_date: "2026-09-09"
+      confidence: HIGH
+    - url: "https://www.state.nj.us/treasury/taxation/digitalmediajobs.shtml"
+      title: "Garden State Film and Digital Media Jobs Act Credit FAQs (New Jersey Division of Taxation)"
+      accessed_date: "2026-09-09"
+      confidence: HIGH
+    - url: "https://www.njeda.gov/wp-content/uploads/2026/05/Film-Tax-Credit-Transfer-App-REV.3.24.pdf"
+      title: "Film Tax Credit Transfer Application (New Jersey Economic Development Authority)"
+      accessed_date: "2026-09-09"
+      confidence: HIGH
+
+programmes:
+  - id: nj-garden-state-film-digital-media-jobs-program
+    name: "New Jersey Garden State Film and Digital Media Jobs Program — Film Tax Credit (applications received prior to 2021-01-07, outside the eight South Jersey counties)"
+    requires_separate_application: false
+    stacks_with: []
+    mutually_exclusive_with: []
+
+    mechanism: nonrefundable_credit
+    taxable: false
+    corporation_tax_rate: null
+
+    base_definition:
+      type: total_qualified_spend
+      pct_core_cap: null
+      excluded_line_items: []
+      custom_handler_id: null
+
+    per_person_ceiling:
+      applies: false
+      note: "N.J.A.C. 19:31T-1.2's definition of 'Qualified film production expenses', subparagraph (g), excludes payment in excess of $750,000 to a highly compensated individual (writers, directors including music directors, producers, and performers other than background actors with no scripted lines) from qualifying expenses — with further, studio-partner-status-dependent carve-out allowances of up to an additional $18,000,000 or $72,000,000 depending on total qualified spend. This is a categorical, tiered exclusion cliff built into the statutory expense definition itself, NOT this schema's W2-cap-with-loan-out-exemption PerPersonCeiling model (the same class of schema mismatch jurisdictions/us-ca.yaml and jurisdictions/us-ct.yaml already document for their own categorical wage exclusions). Not modeled quantitatively; disclosed here in prose instead. Neither committed New Jersey fixture discloses a per-role wage breakdown in any case — only a single total qualified_spend figure."
+      w2_cap_amount: null
+      loanout_exempt: null
+      loanout_withholding_rate: null
+      loanout_withholding_confirmed: null
+      loanout_withholding_schedule: []
+
+    rate_structure:
+      type: flat
+      base_rate: "0.30"
+      tiers: []
+      uplifts: []
+      ceiling_split: null
+      headcount_scale: null
+      source_note: >
+        30% confirmed identically by two independent primary sources at
+        the tier both committed fixtures need: N.J.A.C. 19:31T-1.6(a)(2)
+        ("For completed applications received prior to January 7, 2021,
+        30 percent of the qualified film production expenses not included
+        at (a)1 above [the South-Jersey-vendor 35% bonus], including
+        qualified wage and salary payments") and P.L. 2018, c. 56 Section 1
+        (the original enacting text, identical figure, confirming the
+        codified regulation has not drifted from the enacting statute for
+        this tier). This file deliberately does NOT declare the 2 percent
+        diversity-plan bonus as an uplift here — see the file's header
+        comment and rate_structure's absence of an uplifts entry — so the
+        residue it produces on the one fixture that claimed it (Joker) is
+        asserted as an exact, named, sourced Decimal quantity in
+        tests/test_jurisdiction_us_nj.py, not silently folded into this
+        rate. Re-derived against both committed fixtures: The Trial of the
+        Chicago 7 ($17,906,613 qualified spend x 0.30 = $5,371,983.90,
+        quantized ROUND_HALF_UP to $5,371,984) reproduces the disclosed
+        Total Award of $5,371,984 EXACTLY (no diversity bonus claimed on
+        this row) — zero residue. Joker ($6,133,257 x 0.30 = $1,839,977.10,
+        quantized to $1,839,977) computed against the disclosed Total
+        Award of $1,962,642 leaves a residue of exactly $122,665 — which
+        equals quantize($6,133,257 x 0.02) = $122,665, the sourced 2
+        percent diversity bonus this fixture's Diversity Bonus flag
+        discloses as "Yes", asserted as an exact Decimal equality in
+        tests/test_jurisdiction_us_nj.py, not a tolerance.
+
+    minimum_spend:
+      value: "1000000"
+      currency: USD
+
+    caps:
+      per_project_cap: null
+      annual_programme_cap:
+        amount:
+          value: "100000000"
+          currency: USD
+        period: fiscal_year
+        escalator_schedule: null
+      cap_consumption_check:
+        method: live_research
+        source_url: null
+
+    audit:
+      mandatory: true
+      fee_schedule: []
+
+    timing:
+      terms_lock_at: application
+      application_window: null
+      decision_sla_days: null
+      payout_lag:
+        description: "N.J.A.C. 19:31T-1.6(n): unused tax credit may be carried forward, if necessary, to the seven privilege periods or taxable years following the year for which it was allowed. This is a nonrefundable-credit-against-tax-liability default (subject to the elective transfer path — see transfer_discount below), not a direct cash-arrival lag; no statutory cash-arrival day-count applies to the default carryforward path, so typical_days stays an explicit null rather than an invented number."
+        typical_days: null
+        interest_paid: null
+
+    transfer_discount:
+      applies: true
+      typical_rate_low: "0.75"
+      typical_rate_high: null
+      source_note: >
+        N.J.A.C. 19:31T-1.10(b), P.L. 2018, c. 56 Section 1(e), and
+        NJEDA's own Film Tax Credit Transfer Application form all
+        independently state that a sale or assignment of the tax credit
+        "shall not be exchanged for consideration received by the
+        approved applicant of less than 75 percent of the transferred
+        credit amount" (the application form states the identical figure
+        in plain operational terms: "Sales must be for a value of $.75 on
+        the dollar or [above]"). This is a sourced FLOOR — the legal
+        minimum a seller may accept — not a full disclosed market range.
+        No New Jersey government document located this session states a
+        ceiling; a credit's real-world sale price above the 75-cent floor
+        is not disclosed anywhere searched. Inventing "1.00" (par) as the
+        ceiling would be exactly the plausible-but-unsourced figure D-87
+        forbids, so typical_rate_high stays an explicit null.
+        engine.net_cash.transferable requires BOTH bounds declared
+        before it will convert and therefore correctly refuses to convert
+        for every New Jersey pair — this is a deliberate honesty gate, not
+        a bug, asserted directly (not routed around) by
+        tests/test_jurisdiction_us_nj.py, mirroring
+        jurisdictions/us-ct.yaml's identical, already-established pattern
+        (WINDOWS.md entry #3).
+
+    residency_rules: null
+
+    validation:
+      validated: true
+      validation_pair_fixture_glob: "tests/fixtures/validation_pairs/nj_*.yaml"
+      mean_error_pct: null
+      last_checked_against_disclosure: "2026-09-09"
