@@ -66,8 +66,8 @@ Resolve before modelling. Wrong inputs produce confidently wrong outputs, and th
 - [x] **PRV-01**: Every figure carries a source link and the date it was checked
 - [x] **PRV-02**: Every figure carries a confidence tier — validated or researched — and the two are visually distinguishable, never presented with equal weight
 - [x] **PRV-03**: Every computed figure carries its derivation reason as readable text (e.g. "only $500K of the $2M lead qualifies — Georgia per-person ceiling")
-- [ ] **PRV-04**: A consolidated, printable assumptions panel lists every rate used, each with its own source and date
-- [ ] **PRV-05**: A persistent in-product methodology page explains how figures are computed and is linkable
+- [x] **PRV-04**: A consolidated, printable assumptions panel lists every rate used, each with its own source and date
+- [x] **PRV-05**: A persistent in-product methodology page explains how figures are computed and is linkable
 - [ ] **PRV-06**: The running validation-loop accuracy figure is visible inside Accounts itself, on the hosted page — not only in Balances
 - [ ] **PRV-07**: Conflicting authoritative sources are surfaced as an unresolved conflict rather than silently resolved to one value
 
@@ -102,7 +102,7 @@ The four where per-production government disclosure exists, so every model is pr
 - [ ] **UI-03**: A start-date slider reorders the ranking live as it moves
 - [ ] **UI-04**: A ranked list shows net cost, incentive value, and when the cash arrives
 - [ ] **UI-05**: Selecting any two cities shows the decomposed gap between them
-- [ ] **UI-06**: Every number on screen is clickable through to its rule, source and date checked
+- [x] **UI-06**: Every number on screen is clickable through to its rule, source and date checked
 - [ ] **UI-07**: A proof panel shows a reproduced government figure alongside the government document
 - [ ] **UI-08**: A comparison can be shared as a permalink URL encoding its inputs — the only persistence mechanism, since there is no login
 - [ ] **UI-09**: A comparison can be exported as a document a producer can hand upward
@@ -232,8 +232,8 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | PRV-01 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
 | PRV-02 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
 | PRV-03 | Phase 2 — Engine Spine & Incentive Interpreter | 1 — Accounts | Complete |
-| PRV-04 | Phase 6 — The Interface | 1 — Accounts | Pending |
-| PRV-05 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| PRV-04 | Phase 6 — The Interface | 1 — Accounts | Complete |
+| PRV-05 | Phase 6 — The Interface | 1 — Accounts | Complete |
 | PRV-06 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
 | PRV-07 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
 | JUR-01 | Phase 3 — New York End-to-End: The Anora Proof | 1 — Accounts | Complete |
@@ -257,7 +257,7 @@ Every v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`. No orp
 | UI-03 | Phase 6 — The Interface | 1 — Accounts | Pending |
 | UI-04 | Phase 6 — The Interface | 1 — Accounts | Pending |
 | UI-05 | Phase 6 — The Interface | 1 — Accounts | Pending |
-| UI-06 | Phase 6 — The Interface | 1 — Accounts | Pending |
+| UI-06 | Phase 6 — The Interface | 1 — Accounts | Complete |
 | UI-07 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
 | UI-08 | Phase 6 — The Interface | 1 — Accounts | Pending |
 | UI-09 | Phase 8 — Demo Proof, Export & Submission | 1 — Accounts | Pending |
