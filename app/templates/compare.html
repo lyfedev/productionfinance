@@ -51,6 +51,64 @@
 
 {% include "_ranked_list.html" %}
 
+{% if comparison.live_programme_checks %}
+<section class="pf-live-checks" aria-labelledby="pf-live-checks-heading">
+  <h2 id="pf-live-checks-heading">Live programme checks</h2>
+  <p>Cap availability and programme open/closed status, both checked live
+    at request time (AGT-10). Neither line changes a priced figure above,
+    and neither is written into a jurisdiction's curated status.</p>
+  <table>
+    <tr><th>Jurisdiction</th><th>Programme</th><th>Cap availability</th><th>Programme status</th></tr>
+    {% for check in comparison.live_programme_checks %}
+    <tr>
+      <td>{{ check.jurisdiction_id }}</td>
+      <td>{{ check.programme_id }}</td>
+      <td>
+        {% if check.availability is none %}
+          not determined &mdash; {{ check.availability_reason }}
+        {% elif check.availability %}
+          available &mdash; {{ check.availability_reason }}
+        {% else %}
+          not available &mdash; {{ check.availability_reason }}
+        {% endif %}
+      </td>
+      <td>
+        {{ check.programme_status_state }} &mdash; {{ check.programme_status_reason }}
+        {% if check.programme_status_source_url %}
+          (<a href="{{ check.programme_status_source_url }}">source</a>)
+        {% endif %}
+        {% if check.programme_status_checked_at %}
+          &mdash; checked {{ check.programme_status_checked_at }}
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+{% endif %}
+
+{% if comparison.fx_resolutions %}
+<section class="pf-live-checks" aria-labelledby="pf-fx-heading">
+  <h2 id="pf-fx-heading">Live FX check</h2>
+  <p>Attempted live, at request time, for every currency pair a candidate
+    city needed converted (AGT-10). The totals above always use the
+    committed, dated, cited snapshot regardless of this check's outcome —
+    see the disclosure column for whether this particular check went live
+    or fell back.</p>
+  <table>
+    <tr><th>Pair</th><th>Rate</th><th>Origin</th><th>Disclosure</th></tr>
+    {% for fx in comparison.fx_resolutions %}
+    <tr>
+      <td>{{ fx.base }} &rarr; {{ fx.quote }}</td>
+      <td>{{ fx.rate }}</td>
+      <td>{{ fx.origin }}</td>
+      <td>{{ fx.disclosure }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+{% endif %}
+
 <script type="application/json" id="compare-geojson">{{ comparison.geojson | tojson }}</script>
 <link
   rel="modulepreload"

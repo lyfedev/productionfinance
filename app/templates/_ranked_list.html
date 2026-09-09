@@ -103,3 +103,22 @@
   <p>Every candidate city with a committed cost profile also has a modelled incentive.</p>
   {% endif %}
 </section>
+
+<section class="pf-band pf-band--unpriced" aria-labelledby="pf-unpriced-heading">
+  <h2 id="pf-unpriced-heading">Named, but not priced</h2>
+  {% if comparison.unpriced_cities %}
+  <p>Every candidate city above resolved to a committed cost profile.
+    These did not — named here exactly as typed, never dropped between
+    input and output.</p>
+  <ul class="pf-unpriced-list">
+    {% for city in comparison.unpriced_cities %}
+    <li data-unpriced-city="{{ city.name }}">
+      <strong>{{ city.name }}</strong> — {{ city.reason }}
+      <a href="{{ public_path }}/research?city={{ city.name | urlencode }}">research this city live</a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>Every candidate city named resolved to a committed cost profile.</p>
+  {% endif %}
+</section>

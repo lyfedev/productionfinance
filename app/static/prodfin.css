@@ -2,9 +2,9 @@
    /compare and every later Phase 6 surface that extends it.
 
    Vocabulary discipline: this file is covered by the D-70 gate over
-   app/static/ — no class name, token name or comment here may use
-   prescriptive language ("recommend", "should", "best", "optimal", etc.).
-   Every word choice below is descriptive, not prescriptive. */
+   app/static/ — no class name, token name or comment here names the
+   product's prescriptive-vocabulary list (see 04-CONTEXT.md § D-70) in
+   any form. Every word choice below is descriptive, never prescriptive. */
 
 :root {
   /* Spacing scale — a single ratio, used everywhere layout needs a gap. */
@@ -171,6 +171,30 @@
   font-size: 0.95rem;
   border-top: 1px solid var(--pf-line-soft);
   margin-bottom: var(--pf-space-6);
+}
+
+.pf-band--unpriced h2 {
+  font-size: 1rem;
+  color: var(--pf-ink-soft);
+}
+
+.pf-unpriced-list {
+  list-style: none;
+  margin: var(--pf-space-2) 0 0;
+  padding: 0;
+}
+
+.pf-unpriced-list li {
+  padding: var(--pf-space-2) 0;
+  border-bottom: 1px solid var(--pf-line-soft);
+}
+
+.pf-unpriced-list li:last-child {
+  border-bottom: none;
+}
+
+.pf-unpriced-list a {
+  margin-left: var(--pf-space-2);
 }
 
 .pf-incentive-unknown {

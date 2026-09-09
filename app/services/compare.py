@@ -20,19 +20,29 @@ cost-only total inside the net-ranked band. The two are kept apart from
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.services.spec import SpecFormSubmission, SpecResult, handle_spec_submission
+from app.services.spec import (
+    LiveProgrammeCheck,
+    SpecFormSubmission,
+    SpecResult,
+    handle_spec_submission,
+)
 from engine.city_geo import geo_for_city_id
+from engine.city_profile_lookup import resolve_city_to_profile_stem
 from engine.ranker import RankedCity
 from engine.spec import CrewTier
+
+if TYPE_CHECKING:
+    from app.services.live_fx import FxResolution
 
 __all__ = [
     "MAX_CANDIDATE_CITIES",
     "CompareInputs",
     "Comparison",
+    "UnpricedCity",
     "build_comparison",
     "to_geojson",
 ]
@@ -97,20 +107,39 @@ class CompareInputs(BaseModel):
 
 
 @dataclass(frozen=True)
+class UnpricedCity:
+    """A candidate city named by the visitor that resolved to no committed
+    cost profile at all — the third explicit page state (never silently
+    dropped between input and output). `name` is the visitor's own typed
+    string, echoed back exactly as `spec_result.html` already does for the
+    uncurated-jurisdiction case."""
+
+    name: str
+    reason: str
+
+
+@dataclass(frozen=True)
 class Comparison:
     """The render-ready view model for `/compare`. `net_ranked` and
     `incentive_not_modelled` are `SpecResult.ranked_cities` split into the
     two D-55 bands (in `engine.ranker.rank`'s own order within each band —
-    never re-sorted here). `geojson` is the exact `FeatureCollection`
-    MapLibre renders — computed once, here, so the router and the JSON API
-    both hand the browser the identical structure a visitor's HTML page
-    already displayed as text."""
+    never re-sorted here). `unpriced_cities` is the third explicit page
+    state (UI-01's "never silently dropped" contract). `geojson` is the
+    exact `FeatureCollection` MapLibre renders — computed once, here, so
+    the router and the JSON API both hand the browser the identical
+    structure a visitor's HTML page already displayed as text.
+    `fx_resolutions`/`live_programme_checks` are carried straight through
+    from `SpecResult` (AGT-10) — this plan renders them as their own
+    labelled disclosures; a later plan (06-05) reuses them unchanged."""
 
     inputs: CompareInputs
     spec_result: SpecResult
     net_ranked: tuple[RankedCity, ...]
     incentive_not_modelled: tuple[RankedCity, ...]
+    unpriced_cities: tuple[UnpricedCity, ...]
     geojson: dict
+    fx_resolutions: tuple[FxResolution, ...]
+    live_programme_checks: tuple[LiveProgrammeCheck, ...]
 
 
 def build_comparison(inputs: CompareInputs) -> Comparison:
@@ -148,18 +177,50 @@ def build_comparison(inputs: CompareInputs) -> Comparison:
     incentive_not_modelled = tuple(
         c for c in result.ranked_cities if c.band == "incentive_not_modelled"
     )
+    unpriced_cities = _unpriced_cities(result)
 
     return Comparison(
         inputs=inputs,
         spec_result=result,
         net_ranked=net_ranked,
         incentive_not_modelled=incentive_not_modelled,
-        geojson=to_geojson(result.ranked_cities, ()),
+        unpriced_cities=unpriced_cities,
+        geojson=to_geojson(result.ranked_cities, unpriced_cities),
+        fx_resolutions=result.fx_resolutions,
+        live_programme_checks=result.live_programme_checks,
     )
 
 
+def _unpriced_cities(result: SpecResult) -> tuple[UnpricedCity, ...]:
+    """The third explicit page state: every candidate city the visitor
+    named that resolved to no committed cost profile at all — a city
+    absent from `result.ranked_cities`. Computed by set difference between
+    `result.city_assessments` (every candidate the visitor typed) and the
+    `city_id`s `engine.ranker.rank` actually priced — resolving each
+    assessment's name through the SAME pure, allow-list-only
+    `resolve_city_to_profile_stem` lookup `app.services.spec` already used
+    to build `result.ranked_cities` in the first place (never a second
+    pricing run, never `load_cost_profile`/`localize` called again)."""
+    priced_city_ids = {city.city_id for city in result.ranked_cities}
+    unpriced: list[UnpricedCity] = []
+    for assessment in result.city_assessments:
+        stem = resolve_city_to_profile_stem(assessment.name)
+        if stem is not None and stem in priced_city_ids:
+            continue
+        unpriced.append(
+            UnpricedCity(
+                name=assessment.name,
+                reason=(
+                    f"No committed cost profile exists for {assessment.name!r} yet — "
+                    "it was never priced, and is named here rather than dropped."
+                ),
+            )
+        )
+    return tuple(unpriced)
+
+
 def to_geojson(
-    ranked_cities: tuple[RankedCity, ...], unpriced: tuple
+    ranked_cities: tuple[RankedCity, ...], unpriced: tuple[UnpricedCity, ...]
 ) -> dict:
     """Build the GeoJSON `FeatureCollection` MapLibre renders. One feature
     per `ranked_cities` entry that resolves to a committed coordinate

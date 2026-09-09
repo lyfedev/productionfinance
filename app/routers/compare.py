@@ -58,7 +58,34 @@ def _comparison_to_json(comparison: Comparison) -> dict:
         "incentive_not_modelled": [
             _ranked_city_to_json(c) for c in comparison.incentive_not_modelled
         ],
+        # The third explicit state (UI-01) — never silently dropped.
+        "unpriced_cities": [
+            {"name": city.name, "reason": city.reason} for city in comparison.unpriced_cities
+        ],
         "geojson": comparison.geojson,
+        "fx_resolutions": [
+            {
+                "base": fx.base,
+                "quote": fx.quote,
+                "rate": str(fx.rate),
+                "origin": fx.origin,
+                "disclosure": fx.disclosure,
+            }
+            for fx in comparison.fx_resolutions
+        ],
+        "live_programme_checks": [
+            {
+                "jurisdiction_id": check.jurisdiction_id,
+                "programme_id": check.programme_id,
+                "availability": check.availability,
+                "availability_reason": check.availability_reason,
+                "programme_status_state": check.programme_status_state,
+                "programme_status_reason": check.programme_status_reason,
+                "programme_status_source_url": check.programme_status_source_url,
+                "programme_status_checked_at": check.programme_status_checked_at,
+            }
+            for check in comparison.live_programme_checks
+        ],
     }
 
 

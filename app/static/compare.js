@@ -7,8 +7,8 @@
 // usable; no figure on this page exists only inside this script.
 //
 // Vocabulary discipline: this file is covered by the D-70 gate over
-// app/static/ — every string and comment here avoids prescriptive
-// language ("recommend", "should", "best", "optimal", etc.).
+// app/static/ — every string and comment here stays clear of the
+// product's prescriptive-vocabulary list (see 04-CONTEXT.md § D-70).
 
 const MAP_CONTAINER_ID = "map";
 const GEOJSON_SCRIPT_ID = "compare-geojson";
