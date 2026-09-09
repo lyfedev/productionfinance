@@ -223,7 +223,7 @@ Plans:
   4. Every Job 1 result is classified as exact match, explained variance, or unexplained — no blended mean-error number that can silently absorb a real bug
   5. Every document and PDF extraction runs through a permitted Google SDK, proven by a timestamped log line at the call site in production logs, with groundedness checks on extracted quotes, preference for primary `.gov` domains, locale-aware number parsing, and proposed-bill versus enacted-law classification all enforced
 
-**Plans**: 6/8 plans executed — 3 executed, 5 pending, in 3 further waves
+**Plans**: 7/8 plans executed — 3 executed, 5 pending, in 3 further waves
 
 Plans:
 
@@ -231,7 +231,7 @@ Plans:
 - [x] 05-02-PLAN.md — Every award in the document, locale-aware figure parsing, the three-value mismatch taxonomy and the honest accuracy counts (AGT-01, AGT-02, AGT-03, AGT-04)
 - [x] 05-03-PLAN.md — `/job1` on the hosted URL for an anonymous visitor, run persistence, deploy, and the production-log proof for SHP-05/SHP-06
 - [x] 05-04-PLAN.md — California: archive the primary rate sources, write `jurisdictions/us-ca.yaml`, reconcile both allocation-stage fixtures with literal expected values (JUR-02)
-- [ ] 05-05-PLAN.md — New Jersey: archive the primary rate sources, write `jurisdictions/us-nj.yaml`, reconcile both estimated-stage fixtures and assert the diversity-bonus residue exactly (JUR-03)
+- [x] 05-05-PLAN.md — New Jersey: archive the primary rate sources, write `jurisdictions/us-nj.yaml`, reconcile both estimated-stage fixtures and assert the diversity-bonus residue exactly (JUR-03)
 - [x] 05-06-PLAN.md — Connecticut: one validation pair per unexercised statutory band from the archived open-data CSV, and the unsourced-transfer-discount refusal made a permanent asserted behaviour (JUR-04)
 - [x] 05-07-PLAN.md — AGT-08 in full: build groundedness checking on extracted quotes and proposed-bill-versus-enacted-law classification, prove the primary-government-domain and locale-aware-parsing guardrails fire (AGT-08)
 - [ ] 05-08-PLAN.md — Wire all four curated jurisdictions into `/validate`, carry disclosure stage through to the page, generalize the cross-jurisdiction sweep and add the four-jurisdiction acceptance gate (JUR-02, JUR-03, JUR-04)
@@ -388,7 +388,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Engine Spine & Incentive Interpreter | 1 — Accounts | 9/9 | Complete    | 2026-08-25 |
 | 3. New York End-to-End — The Anora Proof | 1 — Accounts | 3/3 | Complete    | 2026-08-25 |
 | 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 7/7 | In Progress|  |
-| 5. Curated Breadth & the Validation Loop | 1 — Accounts | 6/8 | In Progress|  |
+| 5. Curated Breadth & the Validation Loop | 1 — Accounts | 7/8 | In Progress|  |
 | 6. The Interface | 1 — Accounts | 0/TBD | Not started | - |
 | 7. Live Research, Caching & Durable Jobs | 1 — Accounts | 3/6 | In Progress|  |
 | 8. Demo Proof, Export & Submission | 1 — Accounts | 0/TBD | Not started | - |
