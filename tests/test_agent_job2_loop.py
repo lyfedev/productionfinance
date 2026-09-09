@@ -219,9 +219,29 @@ _FULL_IDENTITY = JurisdictionIdentity(
 )
 
 
+# 07-05: coercible, realistic text per field — since a "sufficient" run
+# now also runs through agent.rule_coercion.build_rule_document, generic
+# placeholder text ("value-rate") would fail that coercion's classifiers
+# and flip terminal_reason away from "sufficient". Content chosen so
+# every one of this module's existing "sufficient" assertions still
+# holds (Rule 1 compatibility fix, mirrors 07-02's own precedent of
+# updating 07-01's fixture — see 07-05-SUMMARY.md).
+_DETERMINED_FIELD_TEXT: dict[SufficiencyField, str] = {
+    SufficiencyField.rate: "A 25% rebate applies to qualifying local spend.",
+    SufficiencyField.qualifying_base_definition: (
+        "The credit is based on total qualified production spend."
+    ),
+    SufficiencyField.caps: "The programme has an annual programme cap of $10 million.",
+    SufficiencyField.payout_mechanism: "This is a refundable tax credit, paid within 90 days.",
+    SufficiencyField.current_availability: (
+        "The programme is currently active and accepting applications."
+    ),
+}
+
+
 def _all_determined_findings() -> list[FieldFinding]:
     return [
-        _finding(f, True, f"value-{f.value}", "https://example.org/incentive-programme")
+        _finding(f, True, _DETERMINED_FIELD_TEXT[f], "https://example.org/incentive-programme")
         for f in SufficiencyField
     ]
 
@@ -259,7 +279,10 @@ def _scripted_seams(decisions: list[str]):
     return _search_fn, _judge_fn, search_calls
 
 
-def test_terminal_reason_is_the_closed_nine_member_set():
+def test_terminal_reason_is_the_closed_eleven_member_set():
+    # 07-05 adds pricing_refused and rule_schema_violation to 07-02's
+    # original nine — both additions to the closed set, never replacements
+    # (see agent.job2.TerminalReason's own docstring).
     assert {r.value for r in TerminalReason} == {
         "sufficient",
         "agent_gave_up",
@@ -270,6 +293,8 @@ def test_terminal_reason_is_the_closed_nine_member_set():
         "cache_boundary_violation",
         "not_configured",
         "sdk_error",
+        "pricing_refused",
+        "rule_schema_violation",
     }
 
 

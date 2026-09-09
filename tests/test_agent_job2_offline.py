@@ -93,11 +93,32 @@ def _scripted_seams(job_id: str, decisions: list[str]):
         findings = []
         identity = None
         if decision == "sufficient":
+            # 07-05: realistic, coercible text per field — a "sufficient"
+            # run now also runs through agent.rule_coercion
+            # .build_rule_document, so generic placeholder text
+            # ("value-rate") would fail its classifiers and flip
+            # terminal_reason away from "sufficient" (Rule 1
+            # compatibility fix, see 07-05-SUMMARY.md).
+            _texts: dict[SufficiencyField, str] = {
+                SufficiencyField.rate: "A 25% rebate applies to qualifying local spend.",
+                SufficiencyField.qualifying_base_definition: (
+                    "The credit is based on total qualified production spend."
+                ),
+                SufficiencyField.caps: (
+                    "The programme has an annual programme cap of $10 million."
+                ),
+                SufficiencyField.payout_mechanism: (
+                    "This is a refundable tax credit, paid within 90 days."
+                ),
+                SufficiencyField.current_availability: (
+                    "The programme is currently active and accepting applications."
+                ),
+            }
             findings = [
                 FieldFinding(
                     field=f,
                     determined=True,
-                    value_text=f"value-{f.value}",
+                    value_text=_texts[f],
                     source_url="https://example.org/incentive-programme",
                 )
                 for f in SufficiencyField

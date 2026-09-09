@@ -62,6 +62,63 @@
 {% if record.message %}<p>{{ record.message }}</p>{% endif %}
 {% endif %}
 
+{% if record.priced %}
+<div class="figure-node">
+  <p>
+    <strong>&#9888; Unvalidated &mdash; researched, not validated.</strong>
+    This jurisdiction's cost model was built by a live research agent and
+    has not been checked against a published government award, unlike a
+    curated jurisdiction on this site (which has). Every figure below
+    carries <code>confidence: researched</code>, never
+    <code>validated</code>.
+  </p>
+  <h3>Priced result for {{ record.identity.jurisdiction_name if record.identity else record.city_input }}</h3>
+  <table>
+    <tr><th>Total net cash</th><td>{{ "{:,}".format(record.priced.total_net_cash.value | float) }} {{ record.priced.total_net_cash.unit }} (confidence: {{ record.priced.total_net_cash.confidence }})</td></tr>
+  </table>
+  {% for pp in record.priced.programmes %}
+  <div class="figure-node">
+    <h4>{{ pp.programme_id }}</h4>
+    <p>Qualifying base: {{ "{:,}".format(pp.qualifying_base.value | float) }} {{ pp.qualifying_base.unit }}</p>
+    <p>Gross credit: {{ "{:,}".format(pp.gross_credit.value | float) }} {{ pp.gross_credit.unit }}</p>
+    {% if pp.net_cash.point %}
+    <p>Net cash: {{ "{:,}".format(pp.net_cash.point.value | float) }} {{ pp.net_cash.point.unit }} (confidence: {{ pp.net_cash.point.confidence }})</p>
+    {% else %}
+    <p>
+      Net cash range: {{ "{:,}".format(pp.net_cash.low.value | float) }} to
+      {{ "{:,}".format(pp.net_cash.high.value | float) }} {{ pp.net_cash.low.unit }}
+      (confidence: {{ pp.net_cash.low.confidence }}) &mdash; a range, not a point estimate:
+      no sourced midpoint was determined.
+    </p>
+    {% endif %}
+    <p>Eligible: {{ pp.eligibility.eligible }} &mdash; {{ pp.eligibility.reasons | join("; ") }}</p>
+    <p>
+      Availability:
+      {% if pp.availability.available is none %}unknown{% else %}{{ pp.availability.available }}{% endif %}
+      &mdash; {{ pp.availability.reason }}
+    </p>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if record.terminal_reason == "pricing_refused" %}
+<div class="figure-node">
+  <p><strong>This figure cannot be computed:</strong> {{ record.message }}</p>
+</div>
+{% endif %}
+
+{% if record.undetermined_disclosures %}
+<div class="figure-node">
+  <h3>What was not determined by research</h3>
+  <ul>
+    {% for d in record.undetermined_disclosures %}
+    <li>{{ d }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
 <h3>The agent's reasoning trail</h3>
 <p>
   This is the agent's actual search history for this run, read back from
