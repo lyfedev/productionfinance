@@ -272,7 +272,7 @@ Plans:
   4. The visitor sees informative progress and reaches a legible terminal state within the documented ceiling — never a silent spinner that can time out
   5. Curated rules are served from cache while cap consumption, programme open/closed status, FX and uncurated-city research go live, enforced at a single point; a restarted process resumes or reclassifies in-flight research jobs instead of hanging
 
-**Plans**: 1/6 plans executed in 4 waves
+**Plans**: 2/6 plans executed in 4 waves
 
 Plans:
 **Wave 1**
@@ -281,7 +281,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 07-02-PLAN.md — The self-terminating loop: findings that accumulate, an objective that restates the gap, and the closed terminal set including "no programme found" (AGT-05, AGT-06) (wave 2)
+- [x] 07-02-PLAN.md — The self-terminating loop: findings that accumulate, an objective that restates the gap, and the closed terminal set including "no programme found" (AGT-05, AGT-06) (wave 2)
 - [ ] 07-03-PLAN.md — Durable jobs: boot-id restart reclassification proven by a SIGKILL two-process test, and the round-by-round reasoning trail as a product surface (AGT-11, UI-10) (wave 2)
 - [ ] 07-04-PLAN.md — The caching boundary made real: one policy module, live FX with a visible fallback, live cap consumption and live programme status (AGT-10) (wave 2)
 
@@ -390,7 +390,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 4. Cost Localization & Landed-Cost Outputs | 1 — Accounts | 7/7 | In Progress|  |
 | 5. Curated Breadth & the Validation Loop | 1 — Accounts | 6/8 | In Progress|  |
 | 6. The Interface | 1 — Accounts | 0/TBD | Not started | - |
-| 7. Live Research, Caching & Durable Jobs | 1 — Accounts | 1/6 | In Progress|  |
+| 7. Live Research, Caching & Durable Jobs | 1 — Accounts | 2/6 | In Progress|  |
 | 8. Demo Proof, Export & Submission | 1 — Accounts | 0/TBD | Not started | - |
 | 9. Reference Production & Scheduled Index Runs | 2 — Balances | 0/TBD | Not started | - |
 | 10. The Published Index | 2 — Balances | 0/TBD | Not started | - |

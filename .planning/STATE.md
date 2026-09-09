@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Curated Breadth & the Validation Loop
 status: executing
-stopped_at: Completed 05-04-PLAN.md (California, JUR-02)
-last_updated: "2026-09-09T08:41:55.262Z"
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-09-09T08:51:02.559Z"
 last_activity: 2026-09-09
 last_activity_desc: Phase 05 plan 01 executed — SHP-05/SHP-06 eligibility spine
-state_head: 24a690cdf0c82604eadc62ae109debb334c98886
+state_head: 52349c845e16c3bd705e40dfa863e3150ac32043
 progress:
   total_phases: 11
   completed_phases: 3
   total_plans: 42
-  completed_plans: 33
+  completed_plans: 35
   percent: 27
 ---
 
@@ -101,6 +101,7 @@ human sets `PARALLEL_API_KEY` and `GEMINI_API_KEY`/`GOOGLE_API_KEY` per
 | Phase 07 P01 | 55min | 3 tasks | 11 files |
 | Phase 05 P06 | ~35min | 3 tasks | 5 files |
 | Phase 05 P04 | 25min | 3 tasks | 8 files |
+| Phase 07 P02 | 55min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -157,6 +158,7 @@ Recent decisions affecting current work:
 - [Phase 07]: 07-01 (tracer): agent/job2.py lands the D-90 self-terminating research loop — while True: driven only by SufficiencyVerdict.decision, no round counter, proven by an AST gate plus scripted 1/2/5-round tests. One session_id threads every round's Search call; app/services/cache_policy.py is the single AGT-10 choke point, asserted before the first Search (mutation-tested). var/job2/{job_id}.json persists each round atomically before the next round starts (D-92). No API key is present in this environment — every claim is proven offline (24 new tests); the live Parallel/Gemini call pair remains unverified pending keys, same as 05-01's SHP-05/SHP-06 gap.
 - [Phase 05]: Plan 05-06: two new Connecticut validation pairs (Colony Video 2015 Productions at 10%, Mako Games at 15%) fill the last two unexercised rate bands; the transfer-discount refusal is now asserted uniformly per-pair rather than for one pair only.
 - [Phase 05]: 05-04: California (JUR-02) modelled as one nonrefundable_credit programme at a directly-sourced 35% base rate (RTC 17053.98.1), not the 20%+uplifts guess Phase 1 assumed — RTC 17053.98 (the statute this plan's own Task 1 text names) is the superseded Program 3.0 statute; RTC 17053.98.1 is the current one, confirming 35%/40% directly and matching both fixtures within 12 bps on the bare base rate
+- [Phase 07]: 07-02 finishes the D-90 loop's shape: merge_findings/unmet_fields/build_refined_objective/normalize_queries/normalize_mode are pure functions driving refinement (a determined field is never flipped back False, an unsourced later value never overwrites a sourced one); TerminalReason is now a closed nine-value taxonomy (not a pass-through of the model's decision literal) with a "sufficient" claim cross-checked against the driver's own merged findings and a new JurisdictionIdentity block before being believed; the wall-clock guard is now enforced (time.monotonic(), checked only between rounds, never mid-call) producing budget_exhausted distinct from agent_gave_up; both SDK call sites are wrapped so an exception becomes a durable sdk_error record. tests/test_agent_job2_loop.py is the new standing AST-based gate (34 tests); both non-vacuity mutations were performed by hand, observed failing, and reverted this session. No API keys are present in this environment; every claim is proven offline, same gap 07-01 already named.
 
 ### Pending Todos
 
@@ -183,6 +185,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-09T08:41:55.063Z
-Stopped at: Completed 05-04-PLAN.md (California, JUR-02)
+Last session: 2026-09-09T08:51:02.189Z
+Stopped at: Completed 07-02-PLAN.md
 Resume file: None
