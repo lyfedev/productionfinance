@@ -35,6 +35,20 @@ def _ranked_city_to_json(city: RankedCity) -> dict:
         "incentive_figure": (
             figure_to_dict(city.incentive_figure) if city.incentive_figure is not None else None
         ),
+        # UI-04: one entry per priced programme, named by programme_id —
+        # never a single blended or earliest date. Empty for an
+        # incentive_not_modelled city (never priced).
+        "arrival": [
+            {
+                "programme_id": entry.programme_id,
+                "estimated_date": (
+                    entry.estimated_date.isoformat() if entry.estimated_date else None
+                ),
+                "typical_days": entry.typical_days,
+                "reason": entry.reason,
+            }
+            for entry in city.arrival
+        ],
     }
 
 

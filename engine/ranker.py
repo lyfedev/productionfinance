@@ -31,6 +31,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from datetime import date
 from typing import Literal
 
 from engine.cost_localizer import LocalizedBudget
@@ -39,9 +40,26 @@ from engine.landed_cost import LandedCost, aggregate
 from engine.models import JurisdictionRuleSet
 from engine.pipeline import price_jurisdiction
 
-__all__ = ["RankedCity", "rank"]
+__all__ = ["ProgrammeArrival", "RankedCity", "rank"]
 
 Band = Literal["net_ranked", "incentive_not_modelled"]
+
+
+@dataclass(frozen=True)
+class ProgrammeArrival:
+    """One priced programme's cash-arrival timing, named by `programme_id`
+    (Phase 6, UI-04). `estimated_date`, `typical_days` and `reason` are
+    copied straight from the `ArrivalTiming` that
+    `engine.net_cash.convert_to_net_cash` already produced for this
+    programme — a carry, never a re-derivation; nothing here recomputes a
+    date or a lag. A jurisdiction priced from more than one programme
+    carries one `ProgrammeArrival` per programme, never a single blended
+    or earliest date."""
+
+    programme_id: str
+    estimated_date: date | None
+    typical_days: int | None
+    reason: str
 
 
 @dataclass(frozen=True)
@@ -60,7 +78,10 @@ class RankedCity:
     band decision was computed from — carried so a caller (Route A's gap
     decomposition, plan 04-06 Task 3) never has to re-run `aggregate` a
     second time just to reach `reporting_currency`/`fx_as_of_date`/
-    `source_currency` for `engine.gap.decompose_gap`.
+    `source_currency` for `engine.gap.decompose_gap`. `arrival` (plan
+    06-01 Task 2, UI-04) is one `ProgrammeArrival` per programme
+    `price_jurisdiction` priced for this city — always empty for an
+    `incentive_not_modelled` city, since no cash was ever priced for one.
     """
 
     city_id: str
@@ -70,6 +91,7 @@ class RankedCity:
     incentive_figure: Figure | None
     cost_only_total: Figure
     landed_cost: LandedCost
+    arrival: tuple[ProgrammeArrival, ...] = ()
 
 
 def _no_rule_file_reason(jurisdiction_id: str | None) -> str:
@@ -178,6 +200,22 @@ def rank(
 
         net_cash_figure = priced.total_net_cash
         landed = aggregate(localized, net_cash_figure, reporting_currency=reporting_currency)
+        # UI-04: one ProgrammeArrival per programme price_jurisdiction
+        # priced for this city — a straight carry of the SAME ArrivalTiming
+        # object each PricedProgramme.net_cash already produced, never a
+        # re-derivation. Mirrors PricedJurisdiction.programmes' own "every
+        # declared programme, whether or not it contributes to the sum"
+        # ordering (engine/pipeline.py) — never filtered to only the
+        # programme(s) that contributed to total_net_cash.
+        arrival = tuple(
+            ProgrammeArrival(
+                programme_id=pp.programme_id,
+                estimated_date=pp.net_cash.arrival.estimated_date,
+                typical_days=pp.net_cash.arrival.typical_days,
+                reason=pp.net_cash.arrival.reason,
+            )
+            for pp in priced.programmes
+        )
         ranked.append(
             RankedCity(
                 city_id=city_id,
@@ -187,6 +225,7 @@ def rank(
                 incentive_figure=net_cash_figure,
                 cost_only_total=landed.cost_total,
                 landed_cost=landed,
+                arrival=arrival,
             )
         )
 

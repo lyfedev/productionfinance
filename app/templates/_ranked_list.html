@@ -14,7 +14,8 @@
       <tr>
         <th>City</th>
         <th>Net landed cost</th>
-        <th>Cost total (pre-incentive)</th>
+        <th>Modelled incentive</th>
+        <th>Cash arrival</th>
       </tr>
     </thead>
     <tbody>
@@ -23,13 +24,46 @@
         <td>{{ city.city_id }}</td>
         <td class="pf-money">
           {{ city.total_landed_cost.value }} {{ city.total_landed_cost.unit }}
-          <span class="pf-basis">({{ city.total_landed_cost.basis }})</span>
+          <span class="pf-basis">({{ city.total_landed_cost.basis }}, {{ city.total_landed_cost.confidence }})</span>
         </td>
-        <td class="pf-money">{{ city.cost_only_total.value }} {{ city.cost_only_total.unit }}</td>
+        <td class="pf-money">
+          {% if city.incentive_figure %}
+            {{ city.incentive_figure.value }} {{ city.incentive_figure.unit }}
+            <span class="pf-basis">
+              ({{ city.incentive_figure.basis or "not recorded" }}, {{ city.incentive_figure.confidence }})
+            </span>
+          {% else %}
+            unknown — not modelled
+          {% endif %}
+        </td>
+        <td>
+          {% if city.arrival %}
+          <ul class="pf-arrival-list">
+            {% for entry in city.arrival %}
+            <li>
+              <strong>{{ entry.programme_id }}</strong>:
+              {% if entry.estimated_date %}
+                {{ entry.estimated_date.isoformat() }}
+              {% else %}
+                no date — {{ entry.reason }}
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          no programme arrival timing recorded
+          {% endif %}
+        </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+  <p class="pf-cost-only-note">
+    Cost total before the incentive above (pre-incentive), by city:
+    {% for city in comparison.net_ranked %}
+      {{ city.city_id }}: <span class="pf-money">{{ city.cost_only_total.value }} {{ city.cost_only_total.unit }}</span>{% if not loop.last %}; {% endif %}
+    {% endfor %}
+  </p>
   {% else %}
   <p>No candidate city has both a committed cost profile and a committed rule file yet.</p>
   {% endif %}

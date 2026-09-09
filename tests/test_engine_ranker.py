@@ -242,30 +242,44 @@ def test_net_ranked_city_carries_one_arrival_entry_per_priced_programme():
     }
 
 
-def test_net_ranked_arrival_is_the_same_arrivaltiming_object_net_cash_produced():
-    """A carry, not a re-derivation: each entry's `.arrival` is the exact
-    `ArrivalTiming` object `PricedProgramme.net_cash.arrival` already
-    carries — asserted by identity, not just equality."""
+def test_net_ranked_arrival_fields_are_copied_from_this_calls_own_price_jurisdiction(
+    monkeypatch,
+):
+    """A carry, not a re-derivation: `estimated_date`/`typical_days`/
+    `reason` are copied straight from the `ArrivalTiming` THIS call's own
+    `price_jurisdiction` produced — asserted against a spy on the real
+    call `rank()` makes, not against a second, independent
+    `price_jurisdiction` invocation (which would prove nothing about
+    whether `rank()` recomputes anything of its own)."""
+    import engine.ranker as ranker_module
+
+    real_price_jurisdiction = ranker_module.price_jurisdiction
+    captured: list = []
+
+    def _spy(*args, **kwargs):
+        priced = real_price_jurisdiction(*args, **kwargs)
+        captured.append(priced)
+        return priced
+
+    monkeypatch.setattr(ranker_module, "price_jurisdiction", _spy)
+
     ruleset_by_jurisdiction = {"zz-synthetic-mechanisms": _mechanisms_ruleset()}
-    ruleset = ruleset_by_jurisdiction["zz-synthetic-mechanisms"]
-    localized = _localized(RANKED_PROFILE, 50)
-
-    from engine.pipeline import price_jurisdiction
-
-    expected = price_jurisdiction(
-        ruleset,
-        localized.spend_breakdown.total_spend,
-        spend_breakdown=localized.spend_breakdown,
-        spend_confidence="researched",
-    )
-    expected_by_id = {pp.programme_id: pp.net_cash.arrival for pp in expected.programmes}
-
     result = rank(
-        {"ranked-small": localized}, ruleset_by_jurisdiction, reporting_currency="USD"
+        {"ranked-small": _localized(RANKED_PROFILE, 50)},
+        ruleset_by_jurisdiction,
+        reporting_currency="USD",
     )
+
+    assert len(captured) == 1
+    expected_by_id = {pp.programme_id: pp.net_cash.arrival for pp in captured[0].programmes}
+
     city = result[0]
+    assert city.arrival, "expected at least one arrival entry to check against"
     for entry in city.arrival:
-        assert entry.arrival is expected_by_id[entry.programme_id]
+        expected = expected_by_id[entry.programme_id]
+        assert entry.estimated_date == expected.estimated_date
+        assert entry.typical_days == expected.typical_days
+        assert entry.reason == expected.reason
 
 
 def test_net_ranked_arrival_distinguishes_dated_and_undated_programmes():
@@ -282,7 +296,7 @@ def test_net_ranked_arrival_distinguishes_dated_and_undated_programmes():
         reporting_currency="USD",
     )
     city = result[0]
-    by_id = {entry.programme_id: entry.arrival for entry in city.arrival}
+    by_id = {entry.programme_id: entry for entry in city.arrival}
 
     for dated_id, expected_days in (
         ("mechanisms-transferable", 45),
