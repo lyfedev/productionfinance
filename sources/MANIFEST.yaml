@@ -458,6 +458,121 @@ documents:
     cited_for:
       - "data/union_rates/bectu.yaml — row bectu-grips-branch-general-crew-london-2024, general_crew craft (GBP424/day, TV/SVOD Band 1, dated 2024)"
 
+  # --- California (JUR-02) rate-structure documents, plan 05-04 ---
+  # The 2026-08-24 California entry above (film-commission-approved-projects.html)
+  # is the DISCLOSURE table only — it publishes per-production qualified
+  # expenditures and credit allocations but states no rate, no cap, no
+  # mechanism. The three documents below supply those.
+
+  - path: sources/ca/2026-09-09-film-ca-gov-tax-credit-the-basics-4-0.html
+    url: https://film.ca.gov/tax-credit/the-basics-4-0/
+    retrieved_at: "2026-09-09T01:33:45-07:00"
+    sha256: "54053a3fd7727e489bcc137b1649090e5161ba2d0d654a1bf3c8a85cc467e8a6"
+    jurisdiction: us-ca
+    document_title: "The Basics — California Film & Television Tax Credit Program 4.0 (California Film Commission, film.ca.gov)"
+    note: >
+      Fetched by direct curl (no JS execution). The base-rate percentages
+      (35%/40%) render client-side as an animated Divi "number counter"
+      widget — the digits are NOT present as plain text anywhere in the
+      served HTML; they are carried in the widget's
+      data-number-value="40"/"35" attribute, paired with the following
+      <h3 class="title"> mechanism label and the following toggle's
+      category title (Relocating TV Series / Independent Films / Feature
+      Film, New TV Series, Mini-Series, Pilots) by document order. This is
+      still the archived server response any visitor's browser receives —
+      no OCR, no document-AI, no third-party summarization was used to read
+      it; the attribute was read directly from the archived bytes. Also
+      states the per-project caps ("first $120 million in qualified
+      expenditures, plus uplifts" for Feature/New TV/Mini-series/Pilots;
+      "first $20 million" for Independent Films), the $1,000,000 minimum
+      budget per category, the $750-million-per-fiscal-year / $3.75-billion
+      -over-5-years program pool (sunset June 30, 2030), and the uplift
+      categories (Out-of-Zone Filming +5%, Visual Effects +5%, Local Hire
+      Labor +10%/+5%) — none of which is itemized per-production in the
+      approved-projects disclosure table, so no uplift is declared on
+      jurisdictions/us-ca.yaml's programme (an uplift only some productions
+      claim must not be declared unconditionally — see that file's header
+      comment).
+    cited_for:
+      - "jurisdictions/us-ca.yaml — rate_structure.base_rate (0.35), caps.per_project_cap ($120,000,000), minimum_spend ($1,000,000), caps.annual_programme_cap ($750,000,000/fiscal_year), effective_dates.rule_version_effective_to (2030-06-30 program sunset)"
+
+  - path: sources/ca/2026-09-09-leginfo-rtc-17053-98-1.html
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=RTC&sectionNum=17053.98.1"
+    retrieved_at: "2026-09-09T01:33:45-07:00"
+    sha256: "7df6806984af71f93d7c2b08246ba9b4ea2bcfb8685017803c48bab155ebc9ea"
+    jurisdiction: us-ca
+    document_title: "California Revenue and Taxation Code Section 17053.98.1 — Film and Television Tax Credit Program 4.0 (personal income tax mirror), leginfo.legislature.ca.gov"
+    note: >
+      Fetched by direct curl from the California Legislature's own bill-text
+      site. THIS, not RTC 17053.98 (the Program 3.0 statute, superseded for
+      credits allocated on or after 2026-07-01 -- 2026-08-24's session
+      initially fetched 17053.98 on the plan's own suggestion and found it
+      states 20%/25% base rates, not the 35%/40% film.ca.gov's live page
+      displays; RTC 17053.98.1 is the correct, current Program 4.0 statute,
+      "for taxable years beginning on or after January 1, 2025" with
+      credits "in no instance prior to July 1, 2025" -- see the header
+      comment in jurisdictions/us-ca.yaml for the full resolution, styled on
+      SOURCE-TRUTH.md SRC-01's precedent for a stale-vs-current source
+      conflict), confirms directly and in statute text: subdivision (a)(4)
+      the applicable credit percentage is 35% for a feature/TV
+      series/mini-series in its second-or-subsequent year (or any
+      non-relocating qualified motion picture) and 35% for an independent
+      film, 40% for a relocating TV series in its first California season;
+      subdivision (a)(3)(B) the per-project caps ($120,000,000 for
+      feature/miniseries/TV series per season, $20,000,000 for an
+      independent film); subdivision (i)(1)(A) the $750,000,000/fiscal-year
+      aggregate allocation cap; subdivision (a)(19) "qualified motion
+      picture" requires a $1,000,000 minimum production budget; subdivision
+      (a)(17) "qualified expenditures" means amounts paid for tangible
+      personal property used, and services performed, WITHIN California
+      (a plain total-qualified-spend definition, matching
+      jurisdictions/us-ny.yaml and jurisdictions/us-ct.yaml's
+      base_definition.type); subdivision (a)(22)(B)(iv) above-the-line
+      wages for writers, directors, music directors/composers/supervisors,
+      producers and performers (other than unscripted background actors)
+      are excluded from "qualified wages" ENTIRELY — a categorical
+      exclusion, not the PerPersonCeiling schema's W-2-cap-with-loan-out-
+      exemption model (same class of schema mismatch CT's star-talent
+      exclusion already established, see jurisdictions/us-ct.yaml); the
+      default mechanism is a NONREFUNDABLE credit against "net tax" with an
+      8-year carryover (subdivision (c)(3)), with an independent film's
+      credit alone sellable once to one unrelated party (subdivision
+      (c)(1)-(4), no resale) and a separate one-time elective PARTIAL refund
+      option available to any category (subdivision (k): 20% of a "total
+      refundable amount" -- itself 90% of the excess credit over net tax --
+      paid out per year across a 5-year "refundable period") — neither this
+      schema's `refundable` nor `transferable` Literal cleanly names this
+      elect-to-partially-refund-at-a-haircut structure, so
+      jurisdictions/us-ca.yaml declares `mechanism: nonrefundable_credit`
+      (the closest of the four Literal values to "credit against tax
+      liability by default, sellable/refundable only by a separate,
+      non-default election") and documents the full mechanism in its header
+      comment and rate_structure.source_note rather than picking a
+      Literal that silently overstates monetizability. Establishes
+      audit requirements as a precondition to credit-certificate issuance
+      (subdivision (g)) with no dollar fee schedule stated.
+    cited_for:
+      - "jurisdictions/us-ca.yaml — rate_structure.base_rate (0.35), caps.per_project_cap ($120,000,000/$20,000,000), caps.annual_programme_cap ($750,000,000), minimum_spend ($1,000,000), base_definition.type (total_qualified_spend), per_person_ceiling.applies (false, categorical exclusion not a cap), mechanism (nonrefundable_credit), audit.mandatory (true)"
+
+  - path: sources/ca/2026-09-09-leginfo-rtc-23698-1.html
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=RTC&sectionNum=23698.1"
+    retrieved_at: "2026-09-09T01:33:45-07:00"
+    sha256: "14febb0741a1a57700f29df7b99c9cc8f519029fb1548f9aac565a303fa860c9"
+    jurisdiction: us-ca
+    document_title: "California Revenue and Taxation Code Section 23698.1 — Film and Television Tax Credit Program 4.0 (corporation tax mirror), leginfo.legislature.ca.gov"
+    note: >
+      Fetched by direct curl. RTC 23698.1 is the Corporation Tax Law's
+      mirror of RTC 17053.98.1 (Personal Income Tax Law) — the statute a
+      corporate qualified taxpayer (both fixtures' productions are held by
+      corporations: CBS Studios Inc., Walt Disney Animation Studios) claims
+      the credit under. Independently confirms the identical figures as
+      17053.98.1 (35/40 percent applicable credit percentages, $120,000,000/
+      $20,000,000 per-project caps, $750,000,000 fiscal-year aggregate cap)
+      byte-for-byte in its own text — cited as a second, independent
+      statutory confirmation, not merely a cross-reference.
+    cited_for:
+      - "jurisdictions/us-ca.yaml — second independent statutory confirmation of rate_structure.base_rate, caps.per_project_cap and caps.annual_programme_cap for corporate qualified taxpayers"
+
   - path: sources/state-dept/2026-08-26-allowances-state-gov-uk-per-diem.html
     url: "https://allowances.state.gov/web920/per_diem_action.asp"
     retrieved_at: "2026-08-26T17:15:00-07:00"
