@@ -21,6 +21,8 @@ __all__ = [
     "GEMINI_MODEL_VAR",
     "GEMINI_TIMEOUT_SECONDS",
     "GOOGLE_API_KEY_VAR",
+    "JOB2_MAX_CHARS_PER_SEARCH",
+    "JOB2_WALL_CLOCK_CEILING_SECONDS",
     "MAX_DOCUMENT_CHARS",
     "PARALLEL_API_KEY_VAR",
     "PRIMARY_GOVERNMENT_SUFFIXES",
@@ -46,6 +48,14 @@ SEARCH_TIMEOUT_SECONDS = 30.0
 EXTRACT_TIMEOUT_SECONDS = 60.0
 GEMINI_TIMEOUT_SECONDS = 60.0
 MAX_DOCUMENT_CHARS = 400_000
+
+# Job 2 (agent/job2.py): a wall-clock BACKSTOP only — 07-02 lands the guard
+# that enforces it and the AST gate that keeps it a backstop rather than a
+# round counter (D-90). Never add a maximum round count alongside this.
+JOB2_WALL_CLOCK_CEILING_SECONDS = 240.0
+# Bounds what one round's Search call returns (T-07-01/T-07-02), the same
+# reasoning as MAX_DOCUMENT_CHARS above but for the live research path.
+JOB2_MAX_CHARS_PER_SEARCH = 60_000
 
 
 def _default_gemini_model() -> str:

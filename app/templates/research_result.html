@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Research an uncurated jurisdiction{% endblock %}
+{% block content %}
+
+{% if in_flight %}
+<meta http-equiv="refresh" content="3">
+{% endif %}
+
+<p><a href="{{ public_path }}/">&larr; Back to ProductionFinance</a></p>
+
+<h1>Job 2 — research an uncurated jurisdiction live</h1>
+<p>
+  A named city or jurisdiction with no curated rule model is researched by
+  a genuine agent loop: Parallel Search, then a <code>google-genai</code>
+  sufficiency judgment against five named fields (rate, qualifying base
+  definition, caps, payout mechanism, current availability), repeated with
+  a refined objective until the agent itself decides it has enough or gives
+  up (AGT-05, AGT-10). Results from this path are labelled
+  <strong>researched</strong>, never <strong>validated</strong>.
+</p>
+
+{% if not_configured_message %}
+<p><strong>Not configured:</strong> {{ not_configured_message }}</p>
+{% elif show_form %}
+<form method="post" action="{{ public_path }}/research">
+  <p>
+    <label>City or jurisdiction name:<br>
+      <input type="text" name="city" maxlength="120" required value="{{ city_prefill }}">
+    </label>
+  </p>
+  <p>
+    <label>Qualified spend (optional):<br>
+      <input type="text" name="qualified_spend" maxlength="120">
+    </label>
+  </p>
+  <button type="submit">Research</button>
+</form>
+<p><small>
+  At most one run every {{ min_interval_seconds }}s. Wall-clock ceiling:
+  {{ ceiling_seconds }}s.
+</small></p>
+{% endif %}
+
+{% if refusal_reason %}
+<p><strong>{{ refusal_reason }}</strong></p>
+{% endif %}
+
+{% if record %}
+<h2>{{ record.city_input }}</h2>
+
+{% if in_flight %}
+<h3>Research in progress</h3>
+<p>
+  Wall-clock ceiling: {{ ceiling_seconds }}s &mdash; this page refreshes
+  itself every 3 seconds.
+</p>
+{% if record.rounds %}
+{% set current = record.rounds[-1] %}
+<p>
+  Round {{ record.round_count }} complete, searching further &mdash;
+  objective was: <em>{{ current.objective }}</em>
+</p>
+{% if current.unmet_fields %}
+<p>Still unmet: {{ current.unmet_fields | join(", ") }}</p>
+{% endif %}
+{% else %}
+<p>Starting the first round&hellip;</p>
+{% endif %}
+{% else %}
+<h3>Terminal result: {{ record.terminal_reason }}</h3>
+{% if record.message %}<p>{{ record.message }}</p>{% endif %}
+{% endif %}
+
+<h3>Rounds ({{ record.round_count }})</h3>
+<table>
+  <tr>
+    <th>#</th><th>Objective</th><th>Queries</th><th>Mode</th>
+    <th>Decision</th><th>Unmet fields</th>
+  </tr>
+  {% for r in record.rounds %}
+  <tr>
+    <td>{{ r.round_number }}</td>
+    <td>{{ r.objective }}</td>
+    <td>{{ r.search_queries | join(", ") }}</td>
+    <td>{{ r.mode }}</td>
+    <td>{{ r.decision }}</td>
+    <td>{% if r.unmet_fields %}{{ r.unmet_fields | join(", ") }}{% else %}&mdash;{% endif %}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% if record.sdk_calls %}
+<h3>SDK call evidence (D-84)</h3>
+<table>
+  <tr><th>SDK</th><th>Operation</th><th>Target</th><th>Elapsed (ms)</th><th>Outcome</th><th>UTC timestamp</th></tr>
+  {% for c in record.sdk_calls %}
+  <tr>
+    <td>{{ c.sdk }}</td>
+    <td>{{ c.op }}</td>
+    <td>{{ c.target }}</td>
+    <td>{{ c.elapsed_ms }}</td>
+    <td>{{ c.outcome }}</td>
+    <td>{{ c.at }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+{% endif %}
+
+{% endblock %}
