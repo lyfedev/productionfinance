@@ -1,0 +1,82 @@
+production_title: "Colony Video 2015 Productions"
+jurisdiction_id: us-ct
+program_id: ct-film-digital-media-production-tax-credit
+production_type: feature
+season: null
+
+qualified_spend: "187220"
+credit_amount: "18722"
+diversity_credit_amount: null
+
+disclosure_stage: issued
+status: active
+blocker: null
+
+source_url: "https://data.ct.gov/api/v3/views/kjsu-mdny/export.csv?accessType=DOWNLOAD"
+source_document: "sources/ct/2026-08-24-ct-film-tax-credits-issued.csv"
+source_document_sha256: "2b249b80d393d57ff849ee1f1630f3fc6acd0aaecf216c938fc3bb93e7ddfe87"
+report_period: "2016-11-10"
+date_checked: "2026-09-09"
+
+assertion:
+  mode: exact
+  tolerance_bps: null
+  variance_reason: null
+
+notes: >
+  Selected this session (05-06, JUR-04) from the same archived Connecticut
+  open-data export (data.ct.gov, dataset kjsu-mdny — SRC-02) that
+  ct_christmas_always.yaml already draws from, specifically to close the
+  gap D-97 restored: jurisdictions/us-ct.yaml declares three statutory rate
+  bands but only the top ($1,000,000+, 30%) band was ever exercised by a
+  committed pair before this plan. This fixture exercises the lowest band.
+
+  Verbatim CSV row (Statutory Reference "CGS 12-217jj" only — the same
+  filter ct_christmas_always.yaml applies, excluding the two other statutes
+  this one CSV mixes in, 12-217kk Film Infrastructure and 12-217ll Digital
+  Animation): "Colony Video 2015 Productions","$187,220.00",
+  "2016-11-10T00:00:00.000","$18,722","Film and Digital Media Production
+  Tax Credit","CGS 12-217jj","Stonington".
+
+  Selection method: parsed the archived CSV with csv.reader, skipping the
+  blank row after the header, stripping the dollar sign and thousands
+  commas before Decimal conversion (this row has no trailing-period
+  artifact and no blank Municipality, but the parser tolerates both per
+  the existing fixture's documented gotchas). Filtered to Statutory
+  Reference "CGS 12-217jj" only and confirmed the filter matched 611 of
+  658 rows before further narrowing.
+
+  jurisdictions/us-ct.yaml's rule_version_effective_from is 2010-01-01.
+  Computing the implied rate (credit / spend) across every 12-217jj row
+  reveals the pre-2010 rows do NOT follow the current three-tier schedule
+  (e.g. a $81,260 spend below the $100,000 minimum still nets a 30% credit
+  in a 2009 row) — a genuine earlier statute version, not noise. Rows were
+  therefore further filtered to Date Issued on or after 2010-01-01 (519 of
+  611 rows) before computing band membership, which is the same effective-
+  date boundary jurisdictions/us-ct.yaml itself declares. Within that
+  post-2010 set, the implied-rate distribution is clean: 24 rows at
+  exactly 10%, 22 rows at exactly 15%, 472 rows at exactly 30%, and one row
+  at a sub-dollar-rounding-adjacent 29.9% — matching the three declared
+  bands with no unexplained residue.
+
+  This row's implied rate is 18,722 / 187,220 = exactly 10.00000%, landing
+  in the declared $100,000-$500,000 band at rate "0.10" with ZERO
+  rounding residue (18,722 == 187,220 * 0.10 exactly) — the cleanest
+  possible anchor for this band.
+
+  "Colony Video 2015 Productions" was preferred over the many recurring
+  companies in this band (e.g. "National Media Connection LLC" appears 14
+  times in the dataset) for the same D-05 principle 01-03 and
+  ct_christmas_always.yaml both already applied: a single one-off
+  production with nothing to reverse-engineer is the strongest test case.
+  Confirmed via a full-dataset grep that "Colony Video 2015 Productions"
+  appears exactly once in the entire 658-row CSV, across all three
+  statutes. Production Company is the only production identifier the CSV
+  discloses — there is no separate production-title column, so
+  production_title above is the disclosed Production Company name itself,
+  consistent with ct_christmas_always.yaml's convention.
+
+  D-02 interpreter-only boundary holds: qualified_spend is fed in as a
+  given from the disclosure; no input-vector field is asserted against.
+  diversity_credit_amount is omitted as null — Connecticut's CSV has no
+  such column at all.
