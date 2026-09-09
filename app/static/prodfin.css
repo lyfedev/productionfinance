@@ -271,3 +271,104 @@
   border-radius: var(--pf-radius);
   color: var(--pf-unranked-ink);
 }
+
+/* --- Display currency (UI-11) ------------------------------------------ */
+
+.pf-currency-section {
+  margin: var(--pf-space-5) 0;
+  padding: var(--pf-space-4) var(--pf-space-5);
+  background: var(--pf-paper);
+  border: 1px solid var(--pf-line);
+  border-radius: var(--pf-radius);
+}
+
+.pf-currency-section label {
+  font-family: var(--pf-font-display);
+  font-weight: 600;
+  margin-right: var(--pf-space-2);
+}
+
+.pf-currency-note {
+  color: var(--pf-ink-soft);
+  font-size: 0.85rem;
+  margin-top: var(--pf-space-2);
+  max-width: 40rem;
+}
+
+.pf-currency-converted {
+  display: block;
+  font-family: var(--pf-font-body);
+  font-size: 0.8rem;
+  color: var(--pf-ink-soft);
+  margin-top: var(--pf-space-1);
+}
+
+.pf-currency-converted-badge {
+  font-weight: 600;
+  color: var(--pf-ramp-low);
+}
+
+.pf-currency-refusal {
+  display: block;
+  font-family: var(--pf-font-body);
+  font-size: 0.8rem;
+  color: var(--pf-unranked-ink);
+  margin-top: var(--pf-space-1);
+}
+
+.pf-currency-original {
+  display: block;
+  font-family: var(--pf-font-body);
+  font-size: 0.8rem;
+  color: var(--pf-ink-soft);
+  margin-top: var(--pf-space-1);
+}
+
+.pf-currency-original-badge {
+  font-weight: 600;
+  color: var(--pf-ink);
+}
+
+/* --- The permalink (UI-08) and its change diff (UI-12) ----------------- */
+
+.pf-share-section {
+  margin: var(--pf-space-6) 0;
+  padding: var(--pf-space-4) var(--pf-space-5);
+  background: var(--pf-paper);
+  border: 1px solid var(--pf-line);
+  border-radius: var(--pf-radius);
+}
+
+.pf-share-link input[type="text"] {
+  width: 100%;
+  max-width: 40rem;
+  font-family: var(--pf-font-mono);
+  padding: var(--pf-space-2) var(--pf-space-3);
+  border: 1px solid var(--pf-line);
+  border-radius: var(--pf-radius);
+  background: var(--pf-paper-sunk);
+}
+
+.pf-diff-section {
+  margin: var(--pf-space-5) 0 var(--pf-space-6);
+  padding: var(--pf-space-4) var(--pf-space-5);
+  background: var(--pf-paper);
+  border: 1px solid var(--pf-line);
+  border-radius: var(--pf-radius);
+}
+
+.pf-diff-unchanged {
+  padding: var(--pf-space-3) var(--pf-space-4);
+  background: var(--pf-paper-sunk);
+  border-radius: var(--pf-radius);
+  color: var(--pf-ink-soft);
+}
+
+.pf-diff-note {
+  color: var(--pf-ink-soft);
+}
+
+.pf-diff-changes {
+  margin: 0;
+  padding-left: var(--pf-space-4);
+}

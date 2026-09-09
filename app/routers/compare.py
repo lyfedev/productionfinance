@@ -10,11 +10,29 @@ uses.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from pydantic import ValidationError
 
 from app.services.compare import CompareInputs, Comparison, GapSelection, build_comparison
+from app.services.currency_display import (
+    DISPLAY_CURRENCIES,
+    build_city_displays,
+    build_original_currency_figures,
+)
+from app.services.permalink import (
+    PermalinkDecodeError,
+    PermalinkDiffView,
+    PermalinkState,
+    build_diff_view,
+    decode_permalink,
+    encode_permalink,
+    record_figures,
+)
+from app.services.provenance import collect_rate_figures
+from engine.figure import Figure
 from engine.figure_serialize import figure_to_dict
 from engine.ranker import RankedCity
 
@@ -23,6 +41,60 @@ __all__ = ["router"]
 router = APIRouter()
 
 _DEFAULT_CANDIDATE_CITIES: tuple[str, ...] = ("New York, NY", "Los Angeles, CA", "London, UK")
+
+
+def _current_rate_figures(comparison: Comparison) -> tuple[Figure, ...]:
+    """The leaf rate figures behind THIS comparison's own totals, walked
+    fresh from the real `Figure` tree `app.services.compare
+    .build_comparison` just produced — the same source both the
+    UI-08 "share this comparison" token and the UI-12 diff read, so they
+    can never disagree about what "this comparison's rates" means."""
+    roots = [
+        city.total_landed_cost
+        for city in (*comparison.net_ranked, *comparison.incentive_not_modelled)
+    ]
+    return collect_rate_figures(roots)
+
+
+def _now_iso() -> str:
+    return datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def _currency_display_context(comparison: Comparison) -> tuple[dict, dict]:
+    """UI-11's two mechanisms, built together for a single `comparison`:
+    `figure_displays` (the visitor's chosen-currency conversion) and
+    `original_currency_figures` (the unconditional "as originally
+    priced" disclosure). When BOTH would show the SAME currency for the
+    SAME figure (the visitor chose GBP as their display currency for a
+    city whose true original IS GBP), the chosen-currency entry is
+    dropped — the reconstruction is the more precise of the two (exact,
+    from disclosed leaves, versus a fresh `resolve_fx` conversion FROM
+    the reporting-currency total), so showing both would present two
+    slightly different GBP figures for the identical total."""
+    cities = (*comparison.net_ranked, *comparison.incentive_not_modelled)
+    original_currency_figures = build_original_currency_figures(cities)
+    figure_displays = build_city_displays(
+        cities, comparison.inputs.display_currency, on_date=datetime.now(UTC).date()
+    )
+    for figure_id, original in original_currency_figures.items():
+        if original.source_currency == comparison.inputs.display_currency:
+            figure_displays.pop(figure_id, None)
+    return figure_displays, original_currency_figures
+
+
+def _share_permalink_token(comparison: Comparison, current_rate_figures: tuple[Figure, ...]) -> str:
+    """UI-08: a freshly-created-now token for THIS comparison — offered
+    on every render, whether this request itself arrived via a permalink
+    or not, so reopening a shared link and then sharing it again always
+    hands out a token recording the state as of right now, not the
+    original creation time."""
+    return encode_permalink(
+        PermalinkState(
+            inputs=comparison.inputs,
+            created_at=_now_iso(),
+            recorded_figures=record_figures(current_rate_figures),
+        )
+    )
 
 
 def _ranked_city_to_json(city: RankedCity) -> dict:
@@ -154,52 +226,103 @@ def get_compare(
     # submit, mirroring every other input on this page.
     gap_city_a: str | None = Query(None),
     gap_city_b: str | None = Query(None),
+    # UI-11 (plan 06-04): the visitor's chosen DISPLAY currency — a pure
+    # rendering choice, never fed into `CompareInputs`' pricing fields.
+    display_currency: str = Query("USD"),
+    # UI-08 (plan 06-04): the permalink token. When present, this token
+    # is the SOLE source of truth for `CompareInputs` — every other query
+    # parameter above is ignored, so there is never an ambiguity about
+    # which input source wins. This is also the ONLY reachable path to
+    # UI-12's diff: a permalink carries the creation-time recorded rates
+    # a fresh query string never could.
+    permalink: str | None = Query(None),
 ) -> HTMLResponse:
     from app.main import PUBLIC_PATH, templates
 
-    # A bare `GET /compare` (no `candidate_cities` in the query string at
-    # all) renders the real default comparison — never an error. Resolved
-    # here, not as a mutable list default on the signature itself (B008).
-    resolved_candidate_cities = (
-        candidate_cities if candidate_cities is not None else list(_DEFAULT_CANDIDATE_CITIES)
-    )
+    permalink_diff: PermalinkDiffView | None = None
 
-    try:
-        inputs = CompareInputs(
-            production_type=production_type,
-            shoot_days_stage=shoot_days_stage,
-            shoot_days_location=shoot_days_location,
-            crew_size=crew_size,
-            crew_tier=crew_tier,
-            principal_cast_count=principal_cast_count,
-            principal_cast_imported_count=principal_cast_imported_count,
-            crew_imported_count=crew_imported_count,
-            crew_hired_locally_count=crew_hired_locally_count,
-            start_quarter=start_quarter,
-            start_year=start_year,
-            start_index=start_index,
-            candidate_cities=resolved_candidate_cities,
-            reporting_currency=reporting_currency,
-            gap_city_a=gap_city_a,
-            gap_city_b=gap_city_b,
-        )
+    if permalink is not None:
+        try:
+            state = decode_permalink(permalink)
+        except PermalinkDecodeError as exc:
+            # Never silently falls back to a default comparison for an
+            # unreadable link — a 422 naming the reason, exactly like
+            # every other CompareInputs validation failure on this
+            # route (UI-08's own "worse than failing to encode" clause).
+            raise HTTPException(status_code=422, detail=f"invalid permalink: {exc}") from exc
+        inputs = state.inputs
         comparison = build_comparison(inputs)
-    except ValidationError as exc:
-        # Readable 422 naming the field and the reason — never a 500 and
-        # never a bare framework error page. `include_context=False`:
-        # pydantic-core's default `errors()` embeds the raw `ValueError`
-        # instance itself in `ctx.error` for a validator-raised error
-        # (this plan's `start_index`/candidate-city-count checks both
-        # are) — a value `json.dumps` cannot serialize, which would
-        # otherwise turn a clean 422 into an unhandled 500 at RESPONSE
-        # time. Mirrors `app/routers/methodology.py`'s own fix for the
-        # identical pydantic-core behavior.
-        raise HTTPException(status_code=422, detail=exc.errors(include_context=False)) from exc
+        current_rate_figures = _current_rate_figures(comparison)
+        permalink_diff = build_diff_view(state, current_rate_figures)
+    else:
+        # A bare `GET /compare` (no `candidate_cities` in the query
+        # string at all) renders the real default comparison — never an
+        # error. Resolved here, not as a mutable list default on the
+        # signature itself (B008).
+        resolved_candidate_cities = (
+            candidate_cities if candidate_cities is not None else list(_DEFAULT_CANDIDATE_CITIES)
+        )
+
+        try:
+            inputs = CompareInputs(
+                production_type=production_type,
+                shoot_days_stage=shoot_days_stage,
+                shoot_days_location=shoot_days_location,
+                crew_size=crew_size,
+                crew_tier=crew_tier,
+                principal_cast_count=principal_cast_count,
+                principal_cast_imported_count=principal_cast_imported_count,
+                crew_imported_count=crew_imported_count,
+                crew_hired_locally_count=crew_hired_locally_count,
+                start_quarter=start_quarter,
+                start_year=start_year,
+                start_index=start_index,
+                candidate_cities=resolved_candidate_cities,
+                reporting_currency=reporting_currency,
+                display_currency=display_currency,
+                gap_city_a=gap_city_a,
+                gap_city_b=gap_city_b,
+            )
+            comparison = build_comparison(inputs)
+        except ValidationError as exc:
+            # Readable 422 naming the field and the reason — never a 500
+            # and never a bare framework error page. `include_context=
+            # False`: pydantic-core's default `errors()` embeds the raw
+            # `ValueError` instance itself in `ctx.error` for a
+            # validator-raised error (this plan's `start_index`/
+            # candidate-city-count checks both are) — a value
+            # `json.dumps` cannot serialize, which would otherwise turn
+            # a clean 422 into an unhandled 500 at RESPONSE time. Mirrors
+            # `app/routers/methodology.py`'s own fix for the identical
+            # pydantic-core behavior.
+            raise HTTPException(
+                status_code=422, detail=exc.errors(include_context=False)
+            ) from exc
+        current_rate_figures = _current_rate_figures(comparison)
+
+    # UI-11: computed AFTER `comparison` exists on either path above (a
+    # permalink's OWN `display_currency`, carried inside `state.inputs`,
+    # is honoured identically to a fresh query string's).
+    figure_displays, original_currency_figures = _currency_display_context(comparison)
+
+    # UI-08: every render — whether reached via a fresh query string or
+    # via an existing permalink — offers a freshly-created-now token for
+    # THIS comparison, so "share" always hands out a link recording the
+    # state as of right now.
+    share_permalink_token = _share_permalink_token(comparison, current_rate_figures)
 
     return templates.TemplateResponse(
         request=request,
         name="compare.html",
-        context={"public_path": PUBLIC_PATH, "comparison": comparison},
+        context={
+            "public_path": PUBLIC_PATH,
+            "comparison": comparison,
+            "figure_displays": figure_displays,
+            "original_currency_figures": original_currency_figures,
+            "display_currencies": DISPLAY_CURRENCIES,
+            "share_permalink_token": share_permalink_token,
+            "permalink_diff": permalink_diff,
+        },
     )
 
 
@@ -219,7 +342,15 @@ def post_compare_json(inputs: CompareInputs) -> dict:
 
     from app.main import PUBLIC_PATH, templates
 
+    # UI-11: identical to the GET handler — `inputs.display_currency`
+    # reaches this endpoint via the SAME hidden form field every other
+    # carried-forward input already uses (`compare.html`'s slider/gap
+    # forms), so the settled-slider JS path preserves a visitor's chosen
+    # display currency with zero changes to `app/static/compare.js`.
+    figure_displays, original_currency_figures = _currency_display_context(comparison)
+
     payload = _comparison_to_json(comparison)
+    payload["display_currency"] = comparison.inputs.display_currency
     # UI-03: the SAME `_ranked_list.html` a full page load renders,
     # rendered here as a standalone fragment so the settled-slider JS
     # path (`app/static/compare.js`) injects server-rendered markup
@@ -228,6 +359,9 @@ def post_compare_json(inputs: CompareInputs) -> dict:
     # divertible source of truth for what a figure looks like even
     # though not for what it IS.
     payload["ranked_list_html"] = templates.get_template("_ranked_list.html").render(
-        comparison=comparison, public_path=PUBLIC_PATH
+        comparison=comparison,
+        public_path=PUBLIC_PATH,
+        figure_displays=figure_displays,
+        original_currency_figures=original_currency_figures,
     )
     return payload

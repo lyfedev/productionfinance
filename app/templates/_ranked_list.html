@@ -4,6 +4,53 @@
    single list this template has to filter by a `band` flag) — no branch
    below ever emits both bands into one shared table body. #}
 
+{# UI-11 (plan 06-04): the government figure — `figure.value`/`.unit` —
+   is ALWAYS rendered first and unchanged above/beside this macro's own
+   call site; this macro only ever ADDS a converted figure alongside it,
+   visibly marked "converted" and carrying its own rate/date/origin, or
+   an explicit refusal when no rate could be resolved. `figure_displays`
+   is a dict keyed by `figure.figure_id` (built by
+   `app.services.currency_display.build_city_displays`) — passed in by
+   BOTH call sites that render this template (`compare.html`'s own
+   `{% include %}`, which shares context automatically, and
+   `app/routers/compare.py::post_compare_json`'s standalone
+   `.render(figure_displays=...)` call), so a figure this template does
+   NOT recognise (the `figure_displays is defined` guard) simply renders
+   with no conversion rather than raising. #}
+{% macro dual_currency(figure) %}
+  {% set d = figure_displays.get(figure.figure_id) if (figure_displays is defined and figure_displays) else none %}
+  {% if d and d.converted_value is not none %}
+  <span class="pf-currency-converted" data-currency-converted data-figure-id="{{ figure.figure_id }}">
+    &asymp; {{ d.converted_value }} {{ d.display_currency }}
+    <span class="pf-currency-converted-badge">(converted)</span>
+    — from {{ d.original_value }} {{ d.original_unit }} at 1 {{ d.original_unit }} =
+    {{ d.rate }} {{ d.display_currency }}, rate {{ d.rate_origin }}{% if d.rate_date %} as of {{ d.rate_date }}{% endif %}
+  </span>
+  {% elif d and d.conversion_refusal %}
+  <span class="pf-currency-refusal" data-currency-refusal data-figure-id="{{ figure.figure_id }}">
+    currency conversion to {{ d.display_currency }} unavailable — {{ d.conversion_refusal }}
+  </span>
+  {% endif %}
+{% endmacro %}
+
+{# UI-11's UNCONDITIONAL case: `figure` (already expressed in
+   `engine.landed_cost.aggregate`'s reporting currency) is ITSELF a
+   converted figure for a city priced in another currency — the TRUE
+   original is shown here ALWAYS, regardless of any chosen display
+   currency (see `app.services.currency_display`'s module docstring,
+   mechanism 2). `original_currency_figures` is keyed by figure_id, same
+   contract as `figure_displays` above. #}
+{% macro original_currency(figure) %}
+  {% set o = original_currency_figures.get(figure.figure_id) if (original_currency_figures is defined and original_currency_figures) else none %}
+  {% if o %}
+  <span class="pf-currency-original" data-currency-original data-figure-id="{{ figure.figure_id }}">
+    as originally priced: {{ o.source_value }} {{ o.source_currency }}
+    <span class="pf-currency-original-badge">(original)</span>
+    — reconstructed from the underlying rate figures, before conversion to {{ figure.unit }}
+  </span>
+  {% endif %}
+{% endmacro %}
+
 <section class="pf-band pf-band--ranked" aria-labelledby="pf-ranked-heading">
   <h2 id="pf-ranked-heading">Ranked on net landed cost</h2>
   {% if comparison.net_ranked %}
@@ -25,6 +72,8 @@
         <td class="pf-money">
           {{ city.total_landed_cost.value }} {{ city.total_landed_cost.unit }}
           <span class="pf-basis">({{ city.total_landed_cost.basis }}, {{ city.total_landed_cost.confidence }})</span>
+          {{ dual_currency(city.total_landed_cost) }}
+          {{ original_currency(city.total_landed_cost) }}
         </td>
         <td class="pf-money">
           {% if city.incentive_figure %}
@@ -32,6 +81,7 @@
             <span class="pf-basis">
               ({{ city.incentive_figure.basis or "not recorded" }}, {{ city.incentive_figure.confidence }})
             </span>
+            {{ dual_currency(city.incentive_figure) }}
           {% else %}
             unknown — not modelled
           {% endif %}
@@ -61,7 +111,7 @@
   <p class="pf-cost-only-note">
     Cost total before the incentive above (pre-incentive), by city:
     {% for city in comparison.net_ranked %}
-      {{ city.city_id }}: <span class="pf-money">{{ city.cost_only_total.value }} {{ city.cost_only_total.unit }}</span>{% if not loop.last %}; {% endif %}
+      {{ city.city_id }}: <span class="pf-money">{{ city.cost_only_total.value }} {{ city.cost_only_total.unit }}</span>{{ dual_currency(city.cost_only_total) }}{{ original_currency(city.cost_only_total) }}{% if not loop.last %}; {% endif %}
     {% endfor %}
   </p>
   {% else %}
@@ -92,6 +142,8 @@
         <td class="pf-money">
           {{ city.cost_only_total.value }} {{ city.cost_only_total.unit }}
           <span class="pf-basis">({{ city.cost_only_total.basis }})</span>
+          {{ dual_currency(city.cost_only_total) }}
+          {{ original_currency(city.cost_only_total) }}
         </td>
         <td class="pf-incentive-unknown">unknown — not modelled</td>
         <td>{{ city.reason }}</td>

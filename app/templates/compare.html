@@ -26,6 +26,15 @@
 <input type="hidden" name="reporting_currency" value="{{ comparison.inputs.reporting_currency }}">
 {% endmacro %}
 
+{# UI-11 (plan 06-04): every OTHER form on this page (slider, gap picker)
+   carries the visitor's chosen display currency forward as its own
+   hidden field — never via carry_forward_inputs() itself, so the
+   currency form's own visible <select name="display_currency"> below is
+   never duplicated by a same-named hidden field in the SAME form. #}
+{% macro carry_forward_display_currency() %}
+<input type="hidden" name="display_currency" value="{{ comparison.inputs.display_currency }}">
+{% endmacro %}
+
 {% block content %}
 
 <link rel="stylesheet" href="{{ public_path }}/static/prodfin.css">
@@ -33,6 +42,62 @@
 <p><a href="{{ public_path }}/spec">&larr; Back to the form</a></p>
 
 <h1>Compare candidate cities</h1>
+
+{# UI-12 (plan 06-04): rendered ONLY when this page was reached through
+   a permalink (`permalink_diff` is None on every other request). Every
+   recorded rate gets an EXPLICIT verdict — "unchanged", "changed" (named
+   field by field), or "cannot determine what changed" — never silence,
+   and "cannot determine" is never folded into "unchanged" (UI-12's two
+   honesty requirements). #}
+{% if permalink_diff %}
+<section class="pf-diff-section" aria-labelledby="pf-diff-heading">
+  <h2 id="pf-diff-heading">What's changed since this link was created</h2>
+  <p>This comparison was opened from a link created {{ permalink_diff.created_at }}.</p>
+  {% if permalink_diff.recorded_count == 0 %}
+  <p class="pf-diff-note" data-diff-empty>This link recorded no rates to check for changes.</p>
+  {% elif permalink_diff.all_unchanged %}
+  <p class="pf-diff-unchanged" data-diff-all-unchanged>
+    No changes — every one of the {{ permalink_diff.recorded_count }} rate(s) this link
+    recorded is genuinely unchanged.
+  </p>
+  {% else %}
+  <table class="pf-money-table pf-diff-table" data-diff-table>
+    <thead>
+      <tr><th>Rate</th><th>Status</th><th>Details</th></tr>
+    </thead>
+    <tbody>
+      {% for rate in permalink_diff.rates %}
+      <tr data-diff-status="{{ rate.status }}" data-diff-label="{{ rate.label }}">
+        <td>{{ rate.label }}</td>
+        <td>
+          {% if rate.status == "unchanged" %}
+            unchanged
+          {% elif rate.status == "changed" %}
+            changed
+          {% else %}
+            cannot determine what changed
+          {% endif %}
+        </td>
+        <td>
+          {% if rate.status == "changed" %}
+          <ul class="pf-diff-changes">
+            {% for change in rate.changes %}
+            <li>{{ change.field }}: {{ change.recorded }} &rarr; {{ change.current }}</li>
+            {% endfor %}
+          </ul>
+          {% elif rate.status == "cannot_determine" %}
+            {{ rate.reason }}
+          {% else %}
+            matches what this link recorded
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+{% endif %}
 
 <section class="pf-inputs" aria-labelledby="pf-inputs-heading">
   <h2 id="pf-inputs-heading">The production, as read</h2>
@@ -60,6 +125,7 @@
   <h2 id="pf-slider-heading">Start date</h2>
   <form method="get" action="{{ public_path }}/compare" id="pf-slider-form">
     {{ carry_forward_inputs() }}
+    {{ carry_forward_display_currency() }}
     {% if comparison.gap_selection.city_a_id %}
     <input type="hidden" name="gap_city_a" value="{{ comparison.gap_selection.city_a_id }}">
     {% endif %}
@@ -99,6 +165,38 @@
   </form>
 </section>
 
+<section class="pf-currency-section" aria-labelledby="pf-currency-heading">
+  <h2 id="pf-currency-heading">Display currency</h2>
+  <form method="get" action="{{ public_path }}/compare" id="pf-currency-form">
+    {{ carry_forward_inputs() }}
+    <input type="hidden" name="start_quarter" value="{{ comparison.inputs.start_quarter }}">
+    <input type="hidden" name="start_year" value="{{ comparison.inputs.start_year }}">
+    {% if comparison.gap_selection.city_a_id %}
+    <input type="hidden" name="gap_city_a" value="{{ comparison.gap_selection.city_a_id }}">
+    {% endif %}
+    {% if comparison.gap_selection.city_b_id %}
+    <input type="hidden" name="gap_city_b" value="{{ comparison.gap_selection.city_b_id }}">
+    {% endif %}
+
+    <label for="pf-display-currency">Show costs in</label>
+    <select id="pf-display-currency" name="display_currency">
+      {% for code in display_currencies %}
+      <option value="{{ code }}" {% if code == comparison.inputs.display_currency %}selected{% endif %}>{{ code }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Update display currency</button>
+    <p class="pf-currency-note">
+      Every total below is always shown first in the currency it was
+      actually priced in — that figure never changes. When the chosen
+      display currency differs, a converted figure is shown alongside
+      it, clearly marked as converted, carrying its own exchange rate,
+      the rate's date, and whether that rate was checked live or is the
+      committed snapshot fallback. This choice changes only how a figure
+      is displayed, never what was priced.
+    </p>
+  </form>
+</section>
+
 <section class="pf-map-section" aria-labelledby="pf-map-heading">
   <h2 id="pf-map-heading">Where these cities land</h2>
   <div id="map" class="pf-map" data-style-url="https://tiles.openfreemap.org/styles/liberty">
@@ -126,6 +224,7 @@
   <h2 id="pf-gap-heading">Compare two cities</h2>
   <form method="get" action="{{ public_path }}/compare" id="pf-gap-form">
     {{ carry_forward_inputs() }}
+    {{ carry_forward_display_currency() }}
     <input type="hidden" name="start_quarter" value="{{ comparison.inputs.start_quarter }}">
     <input type="hidden" name="start_year" value="{{ comparison.inputs.start_year }}">
 
@@ -182,6 +281,24 @@
     </tfoot>
   </table>
   {% endif %}
+</section>
+
+<section class="pf-share-section" aria-labelledby="pf-share-heading">
+  <h2 id="pf-share-heading">Share this comparison</h2>
+  <p>
+    This link is the ONLY way to save or share this exact comparison —
+    there is no login and nothing is stored on the server. Opening it
+    later reproduces the same inputs and shows, individually, what — if
+    anything — has changed since it was created.
+  </p>
+  <p class="pf-share-link">
+    <label for="pf-share-url">Permalink</label>
+    <input
+      type="text"
+      id="pf-share-url"
+      readonly
+      value="{{ public_path }}/compare?permalink={{ share_permalink_token }}">
+  </p>
 </section>
 
 {% if comparison.live_programme_checks %}
