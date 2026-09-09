@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: Curated Breadth & the Validation Loop
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-09-09T07:06:16.000Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-09-09T07:32:10.274Z"
 last_activity: 2026-09-09
 last_activity_desc: Phase 05 plan 01 executed — SHP-05/SHP-06 eligibility spine
-state_head: d06226e
+state_head: 994ed7ec3bd8b23321528b8dc543cea8f50a91b0
 progress:
   total_phases: 11
-  completed_phases: 4
+  completed_phases: 3
   total_plans: 31
-  completed_plans: 28
+  completed_plans: 29
   percent: 27
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-08-24)
 ## Current Position
 
 Phase: 05 (Curated Breadth & the Validation Loop) — EXECUTING
-Plan: 1 of 3
+Plan: 2 of 3
 Status: 05-01 complete (SHP-05/SHP-06 eligibility spine, tracer) — ready for 05-02
 Last activity: 2026-09-09 — Phase 05 plan 01 executed
 
@@ -96,6 +96,7 @@ human sets `PARALLEL_API_KEY` and `GEMINI_API_KEY`/`GOOGLE_API_KEY` per
 | Phase 04 P06 | 220min | 3 tasks | 14 files |
 | Phase 04 P07 | 33min | 3 tasks | 8 files |
 | Phase 05 P01 | 55min | 3 tasks | 12 files |
+| Phase 05 P02 | 55min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -144,6 +145,8 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-06: Two-band ranked list (engine.ranker) and component-by-component gap decomposition (engine.gap) land; rank() requires reporting_currency after catching a Rule-1 bug where a GBP city would have sorted against a raw USD total; decompose_gap folds a city-specific INC-10 exemption reduction into its target cost line before by-label matching (another real discovery against NY/LA's genuinely different exemption types). Golden Decimal totals pinned in CI (D-78): NY $758,427, LA $693,521, London £548,595/$747,735, NY-vs-LA gap $64,906 -- every value independently hand-derived and confirmed exact against the pipeline, non-vacuity proven via an in-memory rate perturbation. Route A's JSON contract splits the two bands into separate top-level keys (net_ranked_cities/incentive_not_modelled_cities), resolving a contradiction between the plan's own action prose and its acceptance criteria in favor of the criteria.
 - [Phase 04]: [Phase 04] 04-07: seven-row declared sensitivity step table drives a real-pipeline perturbation engine (D-67/D-68); regime-signature diffing reads chain-produced derivation text to detect crew-tier and incentive tiered-band cliff crossings (D-69); a non-vacuous D-70 gate (proven to fail on an inserted word, twice) covers both engine strings and rendered HTML. Fixed golden NY-vs-LA gap $64,906; quarter-forward is the only cliff-crossing row (per-diem month band shifts April->July); full 8-run perturbation set measured ~539ms. Fixed a real bug: the new four-quarter quarter-invariance re-run must exclude a quarter a dated union rate row does not cover, rather than crashing the visitor's own request.
 - [Phase 05]: 05-01 (tracer): agent/ package wires Parallel Search -> primary-government-domain filter -> Parallel Extract -> google-genai structured extraction -> engine.pipeline.price_jurisdiction, in that fixed order (D-82), with both SDKs imported lazily and a D-84 PRODFIN_SDK_CALL log line unconditional at both call sites. Parallel/Gemini SDK call signatures resolved by introspecting the installed parallel-web==1.3.3 / google-genai==2.19.0 packages, not from memory (recorded in 05-01-SUMMARY.md's Decisions Made). tests/test_agent_eligibility.py (14 tests) is the standing CI gate. No API key is present in this environment — SHP-05/SHP-06 are code-verified but UNVERIFIED-IN-PRODUCTION until a human installs both keys per deploy/README.md and runs `python -m agent.job1 --limit 1 --require-live` successfully once.
+- [Phase 05]: 05-02: D-88 locale-aware money parsing (parse_money) and D-86 three-value mismatch taxonomy (MatchClass/classify/AccuracySummary) land together; explained_variance is reachable only through agent/variance_rules.yaml's closed predicate registry (T-05-07), with an unknown predicate raising at load.
+- [Phase 05]: 05-02: AGT-03 (three exact live reproductions) is honestly gated open via .planning/WINDOWS.md entry #26, not a live artifact -- PARALLEL_API_KEY/GEMINI_API_KEY remain unset in this environment; tests/test_agent_job1_offline.py enforces exactly one of {live artifact, WINDOWS.md entry}, never a skip.
 
 ### Pending Todos
 
@@ -170,6 +173,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-09-09T07:06:16.000Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-09-09T07:32:01.560Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
