@@ -19,49 +19,59 @@ coupling, not a requirement of RD-03 itself): this test originally priced
 base + credit directly, bypassing `engine.pipeline.price_jurisdiction`
 entirely. `price_jurisdiction` always also computes net cash via
 `engine.net_cash.convert_to_net_cash`, which raised `NotImplementedError`
-for any mechanism other than `refundable` before plan 02-04 landed.
-Connecticut's real, statute-sourced mechanism is `transferable`
-(jurisdictions/us-ct.yaml), so routing this golden-value test through the
-full pipeline would have raised before ever reaching the assertion this
-test actually needs — even though the test never looks at net cash at all.
-Plan 02-04 implemented `transferable` (and the other three net-cash
-mechanisms), closing the gap that motivated the decoupling. Plan 02-09
-re-coupled the test to `price_jurisdiction`, adding pipeline-routed
-assertions ALONGSIDE the original direct base-then-credit assertions — both
-paths run and must agree, so neither can compensate for the other. RD-03's
-own stated principle ("assert on gross credit, never net cash") still
-holds: routing through `price_jurisdiction` changes which code path
-produces the figure, never which figure is compared against a government
-disclosure.
+for any mechanism other than `refundable` before plan 02-04 landed. Plan
+02-04 implemented `transferable` (and the other three net-cash mechanisms),
+closing the gap that motivated the decoupling. Plan 02-09 re-coupled the
+test to `price_jurisdiction`, adding pipeline-routed assertions ALONGSIDE
+the original direct base-then-credit assertions — both paths run and must
+agree, so neither can compensate for the other. RD-03's own stated
+principle ("assert on gross credit, never net cash") still holds: routing
+through `price_jurisdiction` changes which code path produces the figure,
+never which figure is compared against a government disclosure.
 
-Plan 02-09 finding, discovered by actually running the re-coupled test
-(never assumed): `price_jurisdiction` always ALSO computes net cash, and the
-real, committed `jurisdictions/us-ct.yaml` declares
+Plan 02-09 finding, still live and still true (05-08 widened its scope to
+New Jersey too, not resolved it): `price_jurisdiction` always ALSO computes
+net cash, and the real, committed `jurisdictions/us-ct.yaml` declares
 `transfer_discount.applies: true` but leaves `typical_rate_low` and
 `typical_rate_high` both null — CGS 12-217jj(e)(1) confirms the credit is
 transferable but the statute states no market discount rate, so no sourced
-conversion rate exists for Connecticut. `engine.net_cash.transferable`
-correctly refuses to convert at an unsourced rate rather than invent one
-(the same behaviour `tests/test_engine_net_cash.py::test_transferable_requires_fully_declared_transfer_discount`
+conversion rate exists for Connecticut. `jurisdictions/us-nj.yaml`
+(plan 05-05) has the same shape from the other side: N.J.A.C.
+19:31T-1.10(a) sources a transfer-price FLOOR (0.75) but no ceiling, so
+`transfer_discount` still does not *fully* declare both bounds.
+`engine.net_cash.transferable` correctly refuses to convert at an
+unsourced/partially-sourced rate rather than invent one (the same
+behaviour `tests/test_engine_net_cash.py::test_transferable_requires_fully_declared_transfer_discount`
 already covers generically) — so `price_jurisdiction` currently raises
-`ValueError` for EVERY active Connecticut pair, not only Christmas Always.
-This is a genuine, disclosed data gap, not a bug: `engine/net_cash.py` and
-`jurisdictions/us-ct.yaml` are both correct and unmodified by this plan, and
-inventing a discount rate to make the pipeline "complete" would violate this
-project's core rule against presenting an unresearched figure as validated.
-It is also the concrete, real-data proof of WHY RD-03 anchors the
-golden-value assertion on gross credit alone rather than net cash:
-`test_christmas_always_reproduces_exactly` above already proves the
-disclosed figure is reproduced through the direct base-then-credit path; net
-cash for Connecticut cannot currently be computed at all, sourced or
-fabricated. `_pipeline_can_complete` (below) makes this exclusion structural
-rather than a hard-coded jurisdiction-id skip, so a future `us-ct.yaml`
-update that sources a real discount rate is picked up automatically, not
-silently left excluded.
+`ValueError` for EVERY active Connecticut pair and EVERY active New Jersey
+pair. This is a genuine, disclosed data gap, not a bug: `engine/net_cash.py`
+is unmodified by this plan, and inventing a discount rate (or a ceiling) to
+make the pipeline "complete" would violate this project's core rule against
+presenting an unresearched figure as validated. It is also the concrete,
+real-data proof of WHY RD-03 anchors the golden-value assertion on gross
+credit alone rather than net cash: the direct base-then-credit sweep above
+already proves the disclosed figure for every active pair, including
+Connecticut's and New Jersey's; net cash for either cannot currently be
+computed at all, sourced or fabricated. `_pipeline_can_complete` (below)
+makes this exclusion structural rather than a hard-coded jurisdiction-id
+skip, so a future `us-ct.yaml`/`us-nj.yaml` update that sources a real,
+fully-bounded discount range is picked up automatically, not silently left
+excluded.
 
-Jurisdiction-to-rule-file mapping is now a dict (JUR-05-style: adding a
-third jurisdiction here is a one-line addition, not a copied test), per
-Task 3's explicit generalisation instruction.
+Jurisdiction-to-rule-file mapping is a dict covering all four curated
+jurisdictions (New York, California, New Jersey, Connecticut — JUR-01
+through JUR-04). `ACTIVE_PAIRS_BY_JURISDICTION` is built by a single dict
+comprehension over that map (JUR-05-style: a fifth jurisdiction is a
+one-line addition to the map, not a copied test block), and
+`ALL_ACTIVE_PAIRS` flattens it into the sweep's parametrize input. The
+per-jurisdiction proofs — literal hand-checkable expected values, full
+rate-band/tier coverage, and (for California/New Jersey/Connecticut) the
+per-pair honest-refusal assertion — live in their own dedicated modules:
+`tests/test_jurisdiction_us_ca.py` (plan 05-04), `tests/test_jurisdiction_us_nj.py`
+(plan 05-05) and `tests/test_jurisdiction_us_ct.py` (plan 05-06). This
+module's job is the cross-jurisdiction sweep and the acceptance gate that
+makes losing coverage for any of the four a named test failure, not an
+invisible gap.
 
 This is the same sorted-glob + safe-loader + fail-loud-on-empty-glob
 pattern `tests/test_validation_pair_fixtures.py` already uses (T-01-15 —
@@ -89,10 +99,14 @@ if not FIXTURE_PATHS:
         "validation-pair set must fail loudly, not report a vacuous green."
     )
 
-# Jurisdiction-to-rule-file mapping (generalised from a hard-coded New
-# York-only filter, Task 3): a third jurisdiction is a one-line addition.
+# Jurisdiction-to-rule-file mapping, all four curated jurisdictions
+# (JUR-01..04 — New York, California, New Jersey, Connecticut). Adding a
+# fifth jurisdiction here is a one-line addition to this dict, never a
+# copied test block (05-08 Task 3's generalisation instruction).
 RULESET_PATH_BY_JURISDICTION = {
     "us-ny": "jurisdictions/us-ny.yaml",
+    "us-ca": "jurisdictions/us-ca.yaml",
+    "us-nj": "jurisdictions/us-nj.yaml",
     "us-ct": "jurisdictions/us-ct.yaml",
 }
 RULESETS: dict[str, JurisdictionRuleSet] = {
@@ -118,9 +132,23 @@ def _active_pairs_for(jurisdiction_id: str) -> list[dict]:
     return pairs
 
 
-NY_ACTIVE_PAIRS = _active_pairs_for("us-ny")
+# A single dict comprehension over RULESET_PATH_BY_JURISDICTION, not four
+# hand-maintained per-jurisdiction lists — this is what makes a fifth
+# jurisdiction a one-line map addition rather than a fifth copied
+# `_active_pairs_for(...)` call site.
+ACTIVE_PAIRS_BY_JURISDICTION: dict[str, list[dict]] = {
+    jurisdiction_id: _active_pairs_for(jurisdiction_id)
+    for jurisdiction_id in RULESET_PATH_BY_JURISDICTION
+}
+
+# Named per-jurisdiction aliases, kept so the four named single-production
+# anchor tests below (test_anora_reproduces_exactly,
+# test_christmas_always_reproduces_exactly, and their pipeline-routed
+# variants) read as directly as they always have — these are views onto
+# ACTIVE_PAIRS_BY_JURISDICTION, not a second, independently-filtered list.
+NY_ACTIVE_PAIRS = ACTIVE_PAIRS_BY_JURISDICTION["us-ny"]
 NY_RULESET = RULESETS["us-ny"]
-CT_ACTIVE_PAIRS = _active_pairs_for("us-ct")
+CT_ACTIVE_PAIRS = ACTIVE_PAIRS_BY_JURISDICTION["us-ct"]
 CT_RULESET = RULESETS["us-ct"]
 
 
@@ -215,14 +243,24 @@ def _assert_matches_disclosure(pair: dict, computed_credit: Decimal, *, via: str
         pytest.fail(f"{pair['production_title']}: unrecognized assertion.mode {mode!r}")
 
 
-ALL_ACTIVE_PAIRS = NY_ACTIVE_PAIRS + CT_ACTIVE_PAIRS
+# The flattened sweep input — every active pair across all four curated
+# jurisdictions, built from ACTIVE_PAIRS_BY_JURISDICTION rather than a
+# hand-written concatenation, so a fifth jurisdiction in the map is picked
+# up automatically.
+ALL_ACTIVE_PAIRS = [
+    pair
+    for pairs in ACTIVE_PAIRS_BY_JURISDICTION.values()
+    for pair in pairs
+]
 
 # Every active pair whose declared programme currently CAN complete through
 # `price_jurisdiction` (plan 02-09 finding, see module docstring) —
-# Connecticut's real `transferable` programme cannot, so it is excluded here
-# but still fully covered by the direct-path tests above and by
-# test_ct_pipeline_routing_blocked_by_unsourced_transfer_discount below,
-# which proves and names exactly why.
+# Connecticut's and New Jersey's real `transferable` programmes cannot
+# (Connecticut: wholly unsourced; New Jersey: floor sourced, ceiling not),
+# so both are excluded here but stay fully covered by the direct-path
+# tests above and by the per-jurisdiction refusal proofs in
+# tests/test_jurisdiction_us_ct.py and tests/test_jurisdiction_us_nj.py,
+# which prove and name exactly why.
 PIPELINE_ROUTABLE_PAIRS = [p for p in ALL_ACTIVE_PAIRS if _pipeline_can_complete(p)]
 if not PIPELINE_ROUTABLE_PAIRS:
     raise RuntimeError(
@@ -356,6 +394,76 @@ def test_at_least_one_connecticut_pair_exercised():
     a vacuous green."""
     assert len(CT_ACTIVE_PAIRS) >= 1, (
         f"expected at least 1 active us-ct validation pair, found {len(CT_ACTIVE_PAIRS)}"
+    )
+
+
+def test_at_least_one_california_pair_exercised():
+    """The California counterpart of the Connecticut guard above (05-08 —
+    the guarantee is uniform across all four curated jurisdictions, not
+    accidental)."""
+    ca_pairs = ACTIVE_PAIRS_BY_JURISDICTION["us-ca"]
+    assert len(ca_pairs) >= 1, (
+        f"expected at least 1 active us-ca validation pair, found {len(ca_pairs)}"
+    )
+
+
+def test_at_least_one_new_jersey_pair_exercised():
+    """The New Jersey counterpart of the Connecticut guard above (05-08 —
+    the guarantee is uniform across all four curated jurisdictions, not
+    accidental)."""
+    nj_pairs = ACTIVE_PAIRS_BY_JURISDICTION["us-nj"]
+    assert len(nj_pairs) >= 1, (
+        f"expected at least 1 active us-nj validation pair, found {len(nj_pairs)}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# 05-08 Task 3 — the four-jurisdiction acceptance gate. Two generic tests
+# (never a hand-copied per-jurisdiction assertion) that make losing
+# coverage for any curated jurisdiction, or losing reachability from the
+# hosted /validate surface, a named test failure rather than an invisible
+# gap.
+# ---------------------------------------------------------------------------
+
+
+def test_every_curated_jurisdiction_in_this_modules_map_has_an_active_pair():
+    """The first acceptance-gate test: every jurisdiction id declared in
+    this module's own RULESET_PATH_BY_JURISDICTION must have at least one
+    active validation pair. Names any jurisdiction that does not, rather
+    than failing an opaque parametrize with zero cases."""
+    missing = [
+        jurisdiction_id
+        for jurisdiction_id, pairs in ACTIVE_PAIRS_BY_JURISDICTION.items()
+        if not pairs
+    ]
+    assert not missing, (
+        f"curated jurisdiction(s) with a rule file but zero active validation "
+        f"pairs: {missing}"
+    )
+
+
+def test_every_active_fixture_jurisdiction_is_reachable_from_the_hosted_surface():
+    """The second acceptance-gate test: every jurisdiction id an active
+    fixture declares must also appear in
+    app.services._paths.RULESET_PATH_BY_JURISDICTION — the dict that
+    actually gates what an anonymous visitor can select at /validate. A
+    jurisdiction with a rule file and active pairs but no entry there
+    would have coverage in this test suite while staying invisible on the
+    hosted surface; that gap must fail loudly here, named, rather than
+    going unnoticed."""
+    from app.services._paths import RULESET_PATH_BY_JURISDICTION as hosted_map
+
+    fixture_jurisdictions = {
+        data.get("jurisdiction_id")
+        for path in FIXTURE_PATHS
+        for data in [_load(path)]
+        if data.get("status") == "active"
+    }
+    unreachable = fixture_jurisdictions - set(hosted_map)
+    assert not unreachable, (
+        f"jurisdiction(s) declared by an active fixture but absent from "
+        f"app.services._paths.RULESET_PATH_BY_JURISDICTION (unreachable from "
+        f"the hosted /validate surface): {unreachable}"
     )
 
 
